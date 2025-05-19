@@ -1,0 +1,612 @@
+{% load static %}
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> StudyFly - Sistema de Planificación para Estudiantes </title>
+  <link rel="stylesheet" href="{% static 'base.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dark-theme">
+
+  <!-- Barra de navegación -->
+  <header class="app-nav">
+    <section class="welcome-header">
+      <div class="welcome-content">
+        <div class="welcome-user">
+          <div class="avatar">
+            <img src="https://via.placeholder.com/150" alt="Usuario">
+          </div>
+          <div>
+            <h1 class="welcome-title">Buenos días, Estudiante</h1>
+            <p class="welcome-date">Lunes, 3 de mayo de 2025</p>
+          </div>
+        </div>
+        <div class="welcome-actions">
+          <button class="icon-button notification-button">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <button class="icon-button notification-button">
+            <i class="fas fa-bell"></i>
+            {% comment %} Agregar el contador de notificationes {% endcomment %}
+            <span class="notification-badge">3</span> 
+          </button>
+          <div class="productivity-indicator">
+            <p>Productividad hoy</p>
+            <p class="productivity-value">78%</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </header>
+
+  <!-- Barra lateral izquieda -->
+  <div class="sidebar">
+
+    <div class="menu-items">
+        <div class="menu-item active">
+            <i>📊</i>
+            <span>Dashboard</span>
+        </div>
+        <div class="menu-item">
+            <i>📝</i>
+            <span>Tareas</span>
+        </div>
+        <div class="menu-item">
+            <i>📅</i>
+            <span>Calendario</span>
+        </div>
+        <div class="menu-item">
+            <i>📚</i>
+            <span>Materias de estudio</span>
+        </div>
+        <div class="menu-item">
+            <i>📊</i>
+            <span>Estadísticas</span>
+        </div>
+        <div class="menu-item">
+            <i>⚙️</i>
+            <span>Configuración</span>
+        </div>
+    </div>
+
+    </div>
+
+  {% comment %} <!-- Contenido principal -->
+  <main class="main-content">
+    
+    <div class="sidebar">
+
+    <div class="menu-items">
+        <div class="menu-item active">
+            <i>📊</i>
+            <span>Dashboard</span>
+        </div>
+        <div class="menu-item">
+            <i>📝</i>
+            <span>Tareas</span>
+        </div>
+        <div class="menu-item">
+            <i>📅</i>
+            <span>Calendario</span>
+        </div>
+        <div class="menu-item">
+            <i>📚</i>
+            <span>Materias de estudio</span>
+        </div>
+        <div class="menu-item">
+            <i>📊</i>
+            <span>Estadísticas</span>
+        </div>
+        <div class="menu-item">
+            <i>⚙️</i>
+            <span>Configuración</span>
+        </div>
+    </div>
+
+    </div>
+    <!-- Acciones rápidas -->
+    <section class="quick-actions">
+      <div class="quick-actions-header">
+        <h2>Acciones rápidas</h2>
+        <p>Accede a las funciones más utilizadas</p>
+      </div>
+      <div class="quick-actions-buttons">
+        <button class="action-button">
+          <i class="fas fa-plus-circle"></i>
+          <div>
+            <span>Nueva tarea</span>
+            <span class="action-description">Añadir tarea pendiente</span>
+          </div>
+        </button>
+        <button class="action-button">
+          <i class="fas fa-calendar-plus"></i>
+          <div>
+            <span>Evento</span>
+            <span class="action-description">Programar en calendario</span>
+          </div>
+        </button>
+        <button class="action-button">
+          <i class="fas fa-clock"></i>
+          <div>
+            <span>Pomodoro</span>
+            <span class="action-description">Iniciar sesión de estudio</span>
+          </div>
+        </button>
+        <button class="action-button">
+          <i class="fas fa-list-ul"></i>
+          <div>
+            <span>Planificar</span>
+            <span class="action-description">Organizar semana</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- Widgets principales -->
+    <div class="dashboard-grid">
+      <div class="main-column">
+        <!-- Espacio de trabajo -->
+        <section class="workspace-card">
+          <div class="card-header">
+            <h2>Mi espacio de trabajo</h2>
+            <p>Gestiona tus tareas y horario académico</p>
+          </div>
+          <div class="workspace-tabs">
+            <div class="tabs">
+              <button class="tab active" data-tab="tasks">Tareas</button>
+              <button class="tab" data-tab="calendar">Calendario</button>
+            </div>
+            <div class="tab-content active" id="tasksTab">
+              <div class="kanban-board">
+                <div class="kanban-column">
+                  <div class="column-header">
+                    <h3>Pendientes</h3>
+                    <span class="badge">3</span>
+                  </div>
+                  <div class="task-card">
+                    <div class="task-header">
+                      <h4>Completar informe de laboratorio</h4>
+                      <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="task-due-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Hoy, 18:00</span>
+                    </div>
+                    <div class="task-tags">
+                      <span class="tag subject-tag">Química</span>
+                      <span class="tag priority-high">alta</span>
+                    </div>
+                  </div>
+                  <div class="task-card">
+                    <div class="task-header">
+                      <h4>Estudiar para examen de matemáticas</h4>
+                      <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="task-due-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Mañana, 10:00</span>
+                    </div>
+                    <div class="task-tags">
+                      <span class="tag subject-tag">Matemáticas</span>
+                      <span class="tag priority-high">alta</span>
+                    </div>
+                  </div>
+                  <div class="task-card">
+                    <div class="task-header">
+                      <h4>Preparar presentación de proyecto</h4>
+                      <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="task-due-date">
+                      <i class="fas fa-clock"></i>
+                      <span>En 3 días</span>
+                    </div>
+                    <div class="task-tags">
+                      <span class="tag subject-tag">Programación</span>
+                      <span class="tag priority-medium">media</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="kanban-column">
+                  <div class="column-header">
+                    <h3>En progreso</h3>
+                    <span class="badge">1</span>
+                  </div>
+                  <div class="task-card">
+                    <div class="task-header">
+                      <h4>Revisar notas de clase</h4>
+                      <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="task-due-date">
+                      <i class="fas fa-clock"></i>
+                      <span>En 5 días</span>
+                    </div>
+                    <div class="task-tags">
+                      <span class="tag subject-tag">Historia</span>
+                      <span class="tag priority-low">baja</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="kanban-column">
+                  <div class="column-header">
+                    <h3>Completadas</h3>
+                    <span class="badge">1</span>
+                  </div>
+                  <div class="task-card completed">
+                    <div class="task-header">
+                      <h4>Leer capítulo 5 de programación</h4>
+                      <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                    </div>
+                    <div class="task-due-date">
+                      <i class="fas fa-clock"></i>
+                      <span>Completada</span>
+                    </div>
+                    <div class="task-tags">
+                      <span class="tag subject-tag">Programación</span>
+                      <span class="tag priority-medium">media</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-content" id="calendarTab">
+              <div class="calendar-view">
+                <div class="calendar-header">
+                  <h3>Mayo 2025</h3>
+                  <div class="calendar-navigation">
+                    <button class="icon-button"><i class="fas fa-chevron-left"></i></button>
+                    <button class="icon-button"><i class="fas fa-chevron-right"></i></button>
+                  </div>
+                </div>
+                <div class="calendar-grid">
+                  <div class="calendar-day-header">Hora</div>
+                  <div class="calendar-day-header">Lunes</div>
+                  <div class="calendar-day-header">Martes</div>
+                  <div class="calendar-day-header">Miércoles</div>
+                  <div class="calendar-day-header">Jueves</div>
+                  <div class="calendar-day-header">Viernes</div>
+                  <div class="calendar-day-header">Sábado</div>
+                  <div class="calendar-day-header">Domingo</div>
+                  
+                  <!-- Filas de horas (simplificado) -->
+                  <div class="calendar-hour">8:00</div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  
+                  <div class="calendar-hour">9:00</div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell">
+                    <div class="calendar-event physics">
+                      <div>Física</div>
+                      <div class="event-location">Lab 3</div>
+                    </div>
+                  </div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  
+                  <div class="calendar-hour">10:00</div>
+                  <div class="calendar-cell">
+                    <div class="calendar-event math">
+                      <div>Matemáticas</div>
+                      <div class="event-location">Aula 201</div>
+                    </div>
+                  </div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  
+                  <div class="calendar-hour">11:00</div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell">
+                    <div class="calendar-event project">
+                      <div>Proyecto Grupal</div>
+                      <div class="event-location">Sala de Estudio</div>
+                    </div>
+                  </div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  
+                  <div class="calendar-hour">12:00</div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  
+                  <div class="calendar-hour">13:00</div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell">
+                    <div class="calendar-event programming">
+                      <div>Programación</div>
+                      <div class="event-location">Sala de Informática</div>
+                    </div>
+                  </div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  
+                  <div class="calendar-hour">14:00</div>
+                  <div class="calendar-cell">
+                    <div class="calendar-event study">
+                      <div>Estudio</div>
+                      <div class="event-location">Biblioteca</div>
+                    </div>
+                  </div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                  <div class="calendar-cell"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Vista semanal -->
+        <section class="weekly-overview">
+          <div class="card-header">
+            <h2>Vista Semanal</h2>
+          </div>
+          <div class="weekly-grid">
+            <div class="weekly-day">
+              <div class="day-header">Lun</div>
+              <div class="day-events">
+                <div class="week-event class-event">
+                  <div>Matemáticas</div>
+                  <div>10:00 - 12:00</div>
+                </div>
+                <div class="week-event study-event">
+                  <div>Estudio</div>
+                  <div>14:00 - 16:00</div>
+                </div>
+              </div>
+            </div>
+            <div class="weekly-day">
+              <div class="day-header">Mar</div>
+              <div class="day-events">
+                <div class="week-event class-event">
+                  <div>Física</div>
+                  <div>09:00 - 11:00</div>
+                </div>
+                <div class="week-event meeting-event">
+                  <div>Tutoría</div>
+                  <div>15:00 - 16:00</div>
+                </div>
+              </div>
+            </div>
+            <div class="weekly-day">
+              <div class="day-header">Mié</div>
+              <div class="day-events">
+                <div class="week-event class-event">
+                  <div>Programación</div>
+                  <div>13:00 - 15:00</div>
+                </div>
+                <div class="week-event meeting-event">
+                  <div>Proyecto Grupal</div>
+                  <div>16:00 - 17:30</div>
+                </div>
+              </div>
+            </div>
+            <div class="weekly-day">
+              <div class="day-header">Jue</div>
+              <div class="day-events">
+                <div class="week-event meeting-event">
+                  <div>Proyecto Grupal</div>
+                  <div>11:00 - 13:00</div>
+                </div>
+                <div class="week-event deadline-event">
+                  <div>Entrega Informe</div>
+                  <div>14:00</div>
+                </div>
+              </div>
+            </div>
+            <div class="weekly-day">
+              <div class="day-header">Vie</div>
+              <div class="day-events">
+                <div class="week-event exam-event">
+                  <div>Examen</div>
+                  <div>10:00 - 12:00</div>
+                </div>
+              </div>
+            </div>
+            <div class="weekly-day">
+              <div class="day-header">Sáb</div>
+              <div class="day-events">
+                <div class="week-event free-event">
+                  <div>Descanso</div>
+                  <div>Libre</div>
+                </div>
+              </div>
+            </div>
+            <div class="weekly-day">
+              <div class="day-header">Dom</div>
+              <div class="day-events">
+                <div class="week-event study-event">
+                  <div>Preparación Semanal</div>
+                  <div>15:00 - 18:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="side-column">
+        <!-- Modo Pomodoro -->
+        <section class="focus-mode">
+          <div class="card-header">
+            <h2>Modo Pomodoro: Concentración</h2>
+          </div>
+          <div class="focus-content">
+            <div class="timer">25:00</div>
+            <div class="progress-bar">
+              <div class="progress" style="width: 0%"></div>
+            </div>
+            <div class="timer-controls">
+              <button class="timer-button reset-button">
+                <i class="fas fa-undo"></i>
+                Reiniciar
+              </button>
+              <button class="timer-button start-button">
+                <i class="fas fa-play"></i>
+                Iniciar
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Próximas entregas -->
+        <section class="upcoming-deadlines">
+          <div class="card-header">
+            <h2>Próximas entregas</h2>
+          </div>
+          <div class="deadlines-list">
+            <div class="deadline-item">
+              <div class="deadline-icon">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+              <div class="deadline-content">
+                <div class="deadline-header">
+                  <h3>Examen de Matemáticas</h3>
+                  <span class="tag priority-high">alta</span>
+                </div>
+                <div class="deadline-details">
+                  <span>Mañana, 10:00</span>
+                  <span class="tag subject-tag">Matemáticas</span>
+                </div>
+              </div>
+            </div>
+            <div class="deadline-item">
+              <div class="deadline-icon">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+              <div class="deadline-content">
+                <div class="deadline-header">
+                  <h3>Entrega de Proyecto</h3>
+                  <span class="tag priority-high">alta</span>
+                </div>
+                <div class="deadline-details">
+                  <span>Viernes, 23:59</span>
+                  <span class="tag subject-tag">Programación</span>
+                </div>
+              </div>
+            </div>
+            <div class="deadline-item">
+              <div class="deadline-icon">
+                <i class="fas fa-calendar-day"></i>
+              </div>
+              <div class="deadline-content">
+                <div class="deadline-header">
+                  <h3>Informe de Laboratorio</h3>
+                  <span class="tag priority-medium">media</span>
+                </div>
+                <div class="deadline-details">
+                  <span>Próxima semana</span>
+                  <span class="tag subject-tag">Química</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Análisis de Productividad -->
+        <section class="productivity-insights">
+          <div class="card-header">
+            <h2>Análisis de Productividad</h2>
+          </div>
+          <div class="chart-container">
+            <div class="chart">
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 65%"></div>
+                <div class="bar-segment break" style="height: 35%"></div>
+              </div>
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 75%"></div>
+                <div class="bar-segment break" style="height: 25%"></div>
+              </div>
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 58%"></div>
+                <div class="bar-segment break" style="height: 42%"></div>
+              </div>
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 90%"></div>
+                <div class="bar-segment break" style="height: 10%"></div>
+              </div>
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 82%"></div>
+                <div class="bar-segment break" style="height: 18%"></div>
+              </div>
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 45%"></div>
+                <div class="bar-segment break" style="height: 55%"></div>
+              </div>
+              <div class="chart-bar">
+                <div class="bar-segment focus" style="height: 40%"></div>
+                <div class="bar-segment break" style="height: 60%"></div>
+              </div>
+            </div>
+            <div class="chart-labels">
+              <div>L</div>
+              <div>M</div>
+              <div>X</div>
+              <div>J</div>
+              <div>V</div>
+              <div>S</div>
+              <div>D</div>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color focus-color"></span>
+              <span>Tiempo de enfoque</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color break-color"></span>
+              <span>Descansos</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Consejos de estudio -->
+        <section class="study-tips">
+          <div class="card-header">
+            <div class="tip-title">
+              <i class="fas fa-lightbulb"></i>
+              <h2>Consejo del día</h2>
+            </div>
+          </div>
+          <div class="tip-content">
+            <p>
+              La técnica <strong>Pomodoro</strong> puede aumentar tu productividad hasta un 25%. Tus patrones de estudio
+              muestran que eres más productivo en sesiones de 25 minutos.
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html> {% endcomment %}
