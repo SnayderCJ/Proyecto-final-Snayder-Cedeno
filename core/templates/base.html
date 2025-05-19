@@ -1,11 +1,12 @@
 {% load static %}
 <html lang="es">
 <head>
+  {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title> StudyFly - Sistema de Planificación para Estudiantes </title>
-  <link rel="stylesheet" href="{% static 'base.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'base.css' %}">
 </head>
 
 <body class="dark-theme">
@@ -41,40 +42,9 @@
     </section>
   </header>
 
-<!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="menu-items">
+  <!-- Sidebar -->
+   {% include 'partials/sidebar.html '%}
 
-        <div class="sidebar-header">
-         <h2>StudyFly</h2>
-
-        <div class="menu-item active">
-            <i>📊</i>
-            <span>Dashboard</span>
-        </div>
-        <div class="menu-item">
-            <i>📝</i>
-            <span>Tareas</span>
-        </div>
-        <div class="menu-item">
-            <i>📅</i>
-            <span>Calendario</span>
-        </div>
-        <div class="menu-item">
-            <i>📚</i>
-            <span>Materias de estudio</span>
-        </div>
-        <div class="menu-item">
-            <i>📊</i>
-            <span>Estadísticas</span>
-        </div>
-        <div class="menu-item">
-            <i>⚙️</i>
-            <span>Configuración</span>
-        </div>
-    </div>
-  </nav>
-  <!-- Barra lateral izquieda -->
 
   <!-- Contenido principal -->
   <main class="main-content">
