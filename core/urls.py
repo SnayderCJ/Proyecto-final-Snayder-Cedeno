@@ -6,4 +6,5 @@ app_name = "core"
 urlpatterns = [
    # Ruta Principal
    path('', views.home, name='home'),
+   path('perfil/', views.perfil, name='perfil'),
 ]

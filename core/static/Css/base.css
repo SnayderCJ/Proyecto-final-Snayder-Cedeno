@@ -52,6 +52,11 @@
    color: var(--foreground);
    line-height: 1.5;
  }
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
  
  /* Contenedores */
  .container {
@@ -218,7 +223,6 @@
  }
  
  
- 
  /* Welcome Header */
  .welcome-header {
    background: linear-gradient(to right, rgba(168, 85, 247, 0.2), rgba(168, 85, 247, 0.05), var(--background));
@@ -314,7 +318,7 @@
    padding: 0.5rem;
    margin-bottom: 0.5rem;
    display: flex;
-   flex-direction: column;
+  flex-direction: column;
  }
  
  @media (min-width: 768px) {

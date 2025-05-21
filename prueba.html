@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Perfil</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #201835;
+            color: white;
+        }
+        
+        .container {
+            display: flex;
+        }
+        
+        .sidebar {
+            width: 100px;
+            height: 100vh;
+            background-color: #2D2440;
+            padding-top: 20px;
+            position: fixed;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #9c5dd9;
+            margin-right: 10px;
+        }
+        
+        .menu-item {
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #9c5dd9;
+        }
+        
+        .icon-placeholder {
+            width: 25px;
+            height: 25px;
+            background-color: #444;
+            border-radius: 5px;
+        }
+        
+        .main-content {
+            margin-left: 100px;
+            padding: 20px;
+            width: calc(100% - 100px);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .productivity {
+            display: flex;
+            align-items: center;
+            background-color: #152018;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        .productivity-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .card {
+            background-color: #2D2440;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #3a3251;
+            border: none;
+            color: white;
+            box-sizing: border-box;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-cancel {
+            background-color: transparent;
+            color: white;
+            border: 1px solid #ddd;
+        }
+        
+        .btn-primary {
+            background-color: #9c5dd9;
+            color: white;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3a3251;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #9c5dd9;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .photo-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #3a3251;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .photo-upload-icon {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: #9c5dd9;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .photo-upload-icon:before {
+            content: "📷";
+            font-size: 20px;
+        }
+        
+        .upload-btn {
+            background-color: transparent;
+            color: #9c5dd9;
+            border: 1px solid #9c5dd9;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-circle"></div>
+            </div>
+            <div class="menu-item active">
+                <div class="icon-placeholder"></div>
+            </div>
+            <div class="menu-item">
+                <div class="icon-placeholder"></div>
+            </div>
+            <div class="menu-item">
+                <div class="icon-placeholder"></div>
+            </div>
+            <div class="menu-item">
+                <div class="icon-placeholder"></div>
+            </div>
+            <div class="menu-item">
+                <div class="icon-placeholder"></div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="user-info">
+                    <h2>Buenos días, Estudiante</h2>
+                </div>
+                <div class="productivity">
+                    <div class="productivity-dot"></div>
+                    <span>Productividad hoy 78%</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Información Personal</div>
+                    <div class="status-indicator">•</div>
+                </div>
+                
+                <!-- Sección de foto de perfil -->
+                <div class="photo-upload-container">
+                    <div class="profile-photo">
+                        <img id="profileImage" src="/api/placeholder/150/150" alt="Foto de perfil">
+                        <label for="fileInput" class="photo-upload-icon"></label>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*">
+                    <button class="upload-btn">Cambiar Foto de Perfil</button>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">Nombre Completo</div>
+                    <input type="text" class="input-field" value="Estudiante">
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">Correo Electrónico</div>
+                    <input type="email" class="input-field" value="estudiante@ejemplo.com">
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">Rol</div>
+                    <input type="text" class="input-field" value="Estudiante">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-cancel">Cancelar</button>
+                    <button class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Seguridad</div>
+                    <div class="status-indicator">•</div>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">Contraseña Actual</div>
+                    <input type="password" class="input-field">
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">Nueva Contraseña</div>
+                    <input type="password" class="input-field">
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-label">Confirmar Contraseña</div>
+                    <input type="password" class="input-field">
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-cancel">Cancelar</button>
+                    <button class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Preferencias de Notificación</div>
+                </div>
+                
+                <div class="notification-item">
+                    <div>
+                        <div>Notificaciones por Email</div>
+                        <div style="font-size: 12px; color: #aaa;">Recordatorios y alertas del sistema</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="notification-item">
+                    <div>
+                        <div>Recordatorio de Tareas</div>
+                        <div style="font-size: 12px; color: #aaa;">Alertas de vencimientos</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Script para previsualizar la imagen seleccionada
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            var file = event.target.files[0];
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('profileImage').src = e.target.result;
+            }
+            
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Conectar el botón de cambiar foto con el input file
+        document.querySelector('.upload-btn').addEventListener('click', function() {
+            document.getElementById('fileInput').click();
+        });
+    </script>
+</body>
+</html>

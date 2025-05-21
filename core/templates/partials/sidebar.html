@@ -8,8 +8,10 @@
         </div>
 
         <div class="menu-item active">
+            <a href="{% url 'core:home' %}">
             <i class="fa-solid fa-grip"></i>
             <span>Dashboard</span>
+            </a>
         </div>
         <div class="menu-item">
             <i class="fa-solid fa-calendar"></i>
@@ -30,8 +32,10 @@
 
         <br><br><br><br><br><br><br><br><br>
         <div class="menu-item">
-            <i class="fa-solid fa-user"></i>
-            <span>Perfil</span>
+            <a href="{% url 'core:perfil' %}">
+                <i class="fa-solid fa-user"></i>
+                <span>Perfil </span>
+            </a>
         </div>
         <div class="menu-item">
             <i class="fa-solid fa-gear"></i>

@@ -1,0 +1,194 @@
+
+
+.user-info {
+   display: flex;
+   align-items: center;
+}
+
+.productivity {
+   display: flex;
+   align-items: center;
+   background-color: #152018;
+   padding: 5px 15px;
+   border-radius: 20px;
+}
+
+.productivity-dot {
+   width: 10px;
+   height: 10px;
+   background-color: #4CAF50;
+   border-radius: 50%;
+   margin-right: 5px;
+}
+   
+.card {
+   background-color: #2D2440;
+   border-radius: 10px;
+   padding: 20px;
+   margin-bottom: 20px;
+   width: 1270px;
+}
+
+.card-header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 15px;
+}
+
+.card-title {
+   font-size: 18px;
+   font-weight: bold;
+}
+
+.input-group {
+   margin-bottom: 15px;
+}
+
+.input-label {
+   font-size: 14px;
+   margin-bottom: 5px;
+   color: #aaa;
+}
+
+.input-field {
+   width: 100%;
+   padding: 10px;
+   border-radius: 5px;
+   background-color: #3a3251;
+   border: none;
+   color: white;
+   box-sizing: border-box;
+}
+
+.button-group {
+   display: flex;
+   justify-content: flex-end;
+   gap: 10px;
+}
+
+.btn {
+   padding: 8px 15px;
+   border-radius: 5px;
+   border: none;
+   cursor: pointer;
+   font-size: 14px;
+}
+
+.btn-cancel {
+   background-color: transparent;
+   color: white;
+   border: 1px solid #ddd;
+}
+
+.btn-primary {
+   background-color: #9c5dd9;
+   color: white;
+}
+
+.toggle-switch {
+   position: relative;
+   display: inline-block;
+   width: 50px;
+   height: 24px;
+}
+
+.toggle-switch input {
+   opacity: 0;
+   width: 0;
+   height: 0;
+}
+
+.slider {
+   position: absolute;
+   cursor: pointer;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   background-color: #3a3251;
+   transition: .4s;
+   border-radius: 24px;
+}
+
+.slider:before {
+   position: absolute;
+   content: "";
+   height: 18px;
+   width: 18px;
+   left: 3px;
+   bottom: 3px;
+   background-color: white;
+   transition: .4s;
+   border-radius: 50%;
+}
+
+input:checked + .slider {
+   background-color: #9c5dd9;
+}
+
+input:checked + .slider:before {
+   transform: translateX(26px);
+}
+
+.notification-item {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   margin-bottom: 10px;
+}
+
+.photo-upload-container {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   margin: 20px 0;
+}
+
+.profile-photo {
+   width: 150px;
+   height: 150px;
+   border-radius: 50%;
+   background-color: #3a3251;
+   position: relative;
+   overflow: hidden;
+   margin-bottom: 15px;
+}
+
+.profile-photo img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+}
+
+.photo-upload-icon {
+   position: absolute;
+   bottom: 0;
+   right: 0;
+   background-color: #9c5dd9;
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   cursor: pointer;
+}
+
+.photo-upload-icon:before {
+   content: "📷";
+   font-size: 20px;
+}
+
+.upload-btn {
+   background-color: transparent;
+   color: #9c5dd9;
+   border: 1px solid #9c5dd9;
+   padding: 8px 15px;
+   border-radius: 5px;
+   cursor: pointer;
+}
+
+#fileInput {
+   display: none;
+}

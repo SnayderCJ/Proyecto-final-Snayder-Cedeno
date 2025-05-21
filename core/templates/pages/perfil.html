@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="card">
+   <div class="card-header">
+      <div class="card-title">Información Personal</div>
+      <div class="status-indicator">•</div>
+   </div>
+
+   <!-- Sección de foto de perfil -->
+   <div class="photo-upload-container">
+      <div class="profile-photo">
+         <img id="profileImage" src="/api/placeholder/150/150" alt="Foto de perfil">
+         <label for="fileInput" class="photo-upload-icon"></label>
+      </div>
+      <input type="file" id="fileInput" accept="image/*">
+      <button class="upload-btn">Cambiar Foto de Perfil</button>
+   </div>
+
+   <div class="input-group">
+      <div class="input-label">Nombre Completo</div>
+      <input type="text" class="input-field" value="Estudiante">
+   </div>
+
+   <div class="input-group">
+      <div class="input-label">Correo Electrónico</div>
+      <input type="email" class="input-field" value="estudiante@ejemplo.com">
+   </div>
+
+   <div class="input-group">
+      <div class="input-label">Rol</div>
+      <input type="text" class="input-field" value="Estudiante">
+   </div>
+
+   <div class="button-group">
+      <button class="btn btn-cancel">Cancelar</button>
+      <button class="btn btn-primary">Guardar Cambios</button>
+   </div>
+   </div>
+
+   <div class="card">
+   <div class="card-header">
+      <div class="card-title">Seguridad</div>
+      <div class="status-indicator">•</div>
+   </div>
+
+   <div class="input-group">
+      <div class="input-label">Contraseña Actual</div>
+      <input type="password" class="input-field">
+   </div>
+
+   <div class="input-group">
+      <div class="input-label">Nueva Contraseña</div>
+      <input type="password" class="input-field">
+   </div>
+
+   <div class="input-group">
+      <div class="input-label">Confirmar Contraseña</div>
+      <input type="password" class="input-field">
+   </div>
+
+   <div class="button-group">
+      <button class="btn btn-cancel">Cancelar</button>
+      <button class="btn btn-primary">Guardar Cambios</button>
+   </div>
+   </div>
+
+   <div class="card">
+   <div class="card-header">
+      <div class="card-title">Preferencias de Notificación</div>
+   </div>
+
+   <div class="notification-item">
+      <div>
+         <div>Notificaciones por Email</div>
+         <div style="font-size: 12px; color: #aaa;">Recordatorios y alertas del sistema</div>
+      </div>
+      <label class="toggle-switch">
+         <input type="checkbox" checked>
+         <span class="slider"></span>
+      </label>
+   </div>
+
+   <div class="notification-item">
+      <div>
+         <div>Recordatorio de Tareas</div>
+         <div style="font-size: 12px; color: #aaa;">Alertas de vencimientos</div>
+      </div>
+      <label class="toggle-switch">
+         <input type="checkbox">
+         <span class="slider"></span>
+      </label>
+   </div>
+   </div>
+
+{% endblock content %}
