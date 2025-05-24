@@ -41,9 +41,12 @@
             <i class="fa-solid fa-gear"></i>
             <span>Configuración</span>
         </div>
+
         <div class="menu-item"> 
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>  Cerrar Sesión</span>
+            <a href="{% url 'accounts:logout' %}">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span> Cerrar Sesión</span>
+            </a>    
         </div>
     </div>
   </nav>
