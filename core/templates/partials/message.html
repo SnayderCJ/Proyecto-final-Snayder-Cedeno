@@ -1,0 +1,10 @@
+{% if messages %}
+        <div class="toast-container">
+        {% for message in messages %}
+        <div class="custom-toast {{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="close-toast" onclick="this.parentElement.style.display='none';">&times;</button>
+        </div>
+        {% endfor %}
+        </div>
+        {% endif %}

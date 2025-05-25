@@ -30,7 +30,7 @@ def login_view(request):
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect("home")
+        return redirect("home") 
 
     form = CustomUserCreationForm(request.POST or None)
 
