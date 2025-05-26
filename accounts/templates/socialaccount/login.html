@@ -1,0 +1,31 @@
+{% extends 'baseAuth.html' %}
+
+{% block title %}Iniciar Sesión con Google{% endblock %}
+{% block heading %}Iniciar Sesión con Google{% endblock %}
+
+{% block content %}
+<div class="social-login-container">
+  <p>Se dispone a iniciar sesión usando una cuenta externa desde Google.</p>
+  
+  <form method="post" action="">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Continuar</button>
+  </form>
+  
+  <div class="toggle-form">
+    <a href="{% url 'accounts:login' %}" class="toggle-link">← Volver al inicio de sesión</a>
+  </div>
+</div>
+
+<style>
+.social-login-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.social-login-container p {
+  margin-bottom: 20px;
+  color: #666;
+}
+</style>
+{% endblock %}
