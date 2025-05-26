@@ -1,26 +1,58 @@
-# Entorno virtual
-.venv/
-venv/
-
-.env
-
-# Archivos y directorios Python
+# Python
 *.pyc
 *.pyo
 *.pyd
 __pycache__/
+*.db
+*.sqlite3
 
-# Archivos de configuración de IDEs
-.vscode/
+# Entornos virtuales
+venv/
+env/
+.env
+.venv/
+.ENV/
+
+# Archivos de configuración de editor
 .idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
 
-# Archivos y directorios de logs
+# Archivos de configuración de pruebas
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Archivos de log
 *.log
-logs/
 
-# Archivos y directorios de migraciones
-*/migrations/
-*/migrations/__pycache__/
+# Archivos de migraciones
+traductor_LSE/migrations/*
+!traductor_LSE/migrations/__init__.py
 
-# Base de datos SQLite
-db.sqlite3
+# Archivos de medios
+media/
+staticfiles/
+
+# Archivo de configuración de Django
+*.pot
+*.mo
+*.pyc
+
+# Archivos de Docker
+docker-compose*.yml
+Dockerfile*
+
+# Pytest
+.cache
+*.egg-info/
+dist/
+build/
+*__init__.py
+
+# Otros
+*.DS_Store
+*.env.*
