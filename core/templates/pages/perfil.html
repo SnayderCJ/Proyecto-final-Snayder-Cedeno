@@ -12,26 +12,36 @@
    <!-- Sección de foto de perfil -->
    <div class="photo-upload-container">
       <div class="profile-photo">
-         <img id="profileImage" src="/api/placeholder/150/150" alt="Foto de perfil">
-         <label for="fileInput" class="photo-upload-icon"></label>
+         <img id="profileImage"
+              src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
+              alt="Foto de perfil">
+         {% if not is_google_user %}
+           <label for="fileInput" class="photo-upload-icon"></label>
+         {% endif %}
       </div>
-      <input type="file" id="fileInput" accept="image/*">
-      <button class="upload-btn">Cambiar Foto de Perfil</button>
+      {% if not is_google_user %}
+        <input type="file" id="fileInput" accept="image/*">
+        <button class="upload-btn">Cambiar Foto de Perfil</button>
+      {% endif %}
    </div>
 
    <div class="input-group">
       <div class="input-label">Nombre Completo</div>
-      <input type="text" class="input-field" value="Estudiante">
+      <input type="text" class="input-field"
+            value="{{ request.user.first_name }} {{ request.user.last_name }}"
+            {% if is_google_user %}disabled{% endif %}>
    </div>
 
    <div class="input-group">
       <div class="input-label">Correo Electrónico</div>
-      <input type="email" class="input-field" value="estudiante@ejemplo.com">
+      <input type="email" class="input-field"
+            value="{{ request.user.email }}"
+            {% if is_google_user %}disabled{% endif %}>
    </div>
 
    <div class="input-group">
       <div class="input-label">Rol</div>
-      <input type="text" class="input-field" value="Estudiante">
+      <input type="text" class="input-field" value="Estudiante" disabled>
    </div>
 
    <div class="button-group">
