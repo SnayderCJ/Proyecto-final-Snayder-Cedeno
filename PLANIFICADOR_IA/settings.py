@@ -52,10 +52,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    
 ]
-
-
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -162,8 +159,33 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth
 ]
 
-# Opcional: simplifica el inicio de sesión
+# Configuración de cuentas
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+
+# Configuración para ir directo a Google sin página intermedia
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Esta es la clave principal
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Registro automático
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_STORE_TOKENS = False
+
+# Configuración específica de Google OAuth
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+        'VERIFIED_EMAIL': True,
+    }
+}
+
+# Adaptador para las URLs de callback
+SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'

@@ -1,12 +1,8 @@
-# Agregar a tu accounts/views.py
-
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
 from allauth.socialaccount.models import SocialApp
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount import app_settings
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -37,6 +33,11 @@ def login_view(request):
         "google_configured": google_app_configured
     }
     return render(request, "login.html", context)
+
+def google_login_direct(request):
+    """Vista que redirige directamente a Google usando allauth"""
+    # Simplemente redirigir a la URL de allauth con el parámetro process
+    return redirect('/allauth/google/login/?process=login')
 
 def register_view(request):
     if request.user.is_authenticated:
