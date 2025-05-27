@@ -5,25 +5,54 @@ from .forms import CustomAuthenticationForm, CustomUserCreationForm
 from allauth.socialaccount.models import SocialApp
 from django.utils.html import format_html
 
+import unicodedata
+
+def normalize_text(text):
+    """Normaliza el texto para manejar correctamente caracteres especiales"""
+    if not text:
+        return text
+    
+    # Normalizar Unicode y asegurar codificación correcta
+    normalized = unicodedata.normalize('NFC', str(text))
+    return normalized
+
+def safe_title_case(text):
+    """Aplica title case de forma segura con caracteres especiales"""
+    if not text:
+        return text
+    
+    # Normalizar primero
+    text = normalize_text(text)
+    
+    # Dividir en palabras y capitalizar cada una
+    words = []
+    for word in text.split():
+        if word:
+            # Capitalizar la primera letra y mantener el resto en minúscula
+            capitalized = word[0].upper() + word[1:].lower()
+            words.append(capitalized)
+    
+    return ' '.join(words)
+
 def format_user_name(user):
     """Función para formatear el nombre del usuario"""
     if user.first_name and user.last_name:
-        # Dividir nombres y apellidos
-        first_names = user.first_name.strip().split()
-        last_names = user.last_name.strip().split()
+        # Normalizar y dividir nombres y apellidos
+        first_names = normalize_text(user.first_name).strip().split()
+        last_names = normalize_text(user.last_name).strip().split()
         
         # Tomar solo el primer nombre y primer apellido
-        first_name = first_names[0].title() if first_names else ""
-        first_lastname = last_names[0].title() if last_names else ""
+        first_name = safe_title_case(first_names[0]) if first_names else ""
+        first_lastname = safe_title_case(last_names[0]) if last_names else ""
         
         return f"{first_name} {first_lastname}".strip()
     elif user.first_name:
         # Solo tiene first_name, usar solo el primer nombre
-        first_names = user.first_name.strip().split()
-        return first_names[0].title() if first_names else user.email
+        first_names = normalize_text(user.first_name).strip().split()
+        return safe_title_case(first_names[0]) if first_names else user.email
     else:
         # No tiene nombres, usar email
-        return user.email
+        return user.email.split('@')[0] if user.email else "Usuario"
 
 def process_full_name(full_name):
     """Procesa el nombre completo y lo divide en first_name y last_name"""
@@ -116,7 +145,7 @@ def register_view(request):
 def social_login_cancelled(request):
     """Vista personalizada para cuando se cancela el login social"""
     messages.info(request, "Has cancelado el inicio de sesión con Google.")
-    return render(request, "login_cancelled.html")
+    return render(request, "login_cancelled.html")  # Quitar "accounts/"
 
 def signout(request):
     logout(request)
