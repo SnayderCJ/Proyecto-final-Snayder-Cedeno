@@ -14,18 +14,86 @@
 
   {% include 'partials/message.html' %}
 
-  {% include 'partials/navigationBar.html' %}
+  {% include 'partials/sidebar.html' %}
 
-  {% include 'partials/sidebar.html '%}
+  <!-- Contenido principal wrapper -->
+  <div class="main-wrapper">
+    {% include 'partials/navigationBar.html' %}
 
-  <!-- Contenido principal -->
-  <main class="main-content">
-    {% block content %}
+    <!-- Contenido principal -->
+    <main class="main-content">
+      {% block content %}
+      {% endblock content %}
+    </main>
+  </div>
 
-    {% endblock content %}
-  </main>
+  <!-- Overlay para móviles -->
+  <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <script>
+    // Función para alternar el sidebar en móviles
+    function toggleSidebar() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.querySelector('.sidebar-overlay');
+      
+      sidebar.classList.toggle('mobile-open');
+      overlay.classList.toggle('active');
+    }
+
+    // Función para alternar tabs
+    function switchTab(tabName) {
+      // Ocultar todos los tab-content
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Remover clase active de todos los tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Mostrar el tab-content correspondiente
+      document.getElementById(tabName + 'Tab').classList.add('active');
+      
+      // Agregar clase active al tab clickeado
+      event.target.classList.add('active');
+    }
+
+    // Event listeners para tabs
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          const tabName = this.getAttribute('data-tab');
+          switchTab(tabName);
+        });
+      });
+
+      // Cerrar sidebar al hacer click fuera en móviles
+      document.addEventListener('click', function(event) {
+        const sidebar = document.querySelector('.sidebar');
+        const menuToggle = document.querySelector('.menu-toggle');
+        
+        if (window.innerWidth <= 768 && 
+            !sidebar.contains(event.target) && 
+            !menuToggle.contains(event.target) && 
+            sidebar.classList.contains('mobile-open')) {
+          toggleSidebar();
+        }
+      });
+
+      // Cerrar sidebar al cambiar el tamaño de pantalla
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+          const sidebar = document.querySelector('.sidebar');
+          const overlay = document.querySelector('.sidebar-overlay');
+          
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        }
+      });
+    });
+  </script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
-  <script src="Js/auth.js"></script>
 </body>
-</html> 
+</html>
