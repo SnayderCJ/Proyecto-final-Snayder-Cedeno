@@ -1,0 +1,120 @@
+{% extends 'baseAuth.html' %}
+
+{% block title %}Inicio de Sesión Cancelado{% endblock %}
+{% block heading %}Inicio de Sesión Cancelado{% endblock %}
+
+{% block content %}
+<div class="cancelled-info">
+  <div class="info-icon">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.6"/>
+      <path d="M12 8v4" stroke="currentColor" stroke-width="2"/>
+      <path d="m12 16 .01 0" stroke="currentColor" stroke-width="2"/>
+    </svg>
+  </div>
+  
+  <p class="info-message">
+    Has decidido cancelar el inicio de sesión con Google.
+    <br>
+    ¿Te gustaría intentar de nuevo o usar otro método?
+  </p>
+</div>
+
+<div class="form-actions">
+  <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+    Volver al Inicio de Sesión
+  </a>
+  
+  <div class="or-divider">O</div>
+  
+  <a href="{% url 'accounts:register' %}" class="btn btn-outline">
+    Crear Cuenta Nueva
+  </a>
+</div>
+
+<div class="toggle-form">
+  <span>Si tienes problemas técnicos, puedes </span>
+  <a href="{% url 'accounts:login' %}" class="toggle-link">usar el formulario tradicional</a>
+</div>
+
+<style>
+.cancelled-info {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.info-icon {
+  margin-bottom: 20px;
+  color: #9ca3af;
+}
+
+.info-message {
+  color: #9ca3af;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.form-actions .btn {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.form-actions .btn + .or-divider {
+  margin: 20px 0;
+}
+
+.or-divider {
+  text-align: center;
+  position: relative;
+  margin: 20px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.or-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #374151;
+  z-index: 1;
+}
+
+.or-divider::after {
+  content: 'O';
+  background: #1f2937;
+  padding: 0 15px;
+  position: relative;
+  z-index: 2;
+}
+
+.toggle-form {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #374151;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.toggle-link {
+  color: #8b5cf6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.toggle-link:hover {
+  color: #a78bfa;
+  text-decoration: underline;
+}
+</style>
+{% endblock %}

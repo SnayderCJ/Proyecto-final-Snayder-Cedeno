@@ -84,29 +84,25 @@ def register_view(request):
 
     if request.method == "POST":
         if form.is_valid():
-            user = form.save(commit=False)
-            
-            # Procesar el nombre completo si existe
-            if hasattr(form, 'cleaned_data') and 'full_name' in form.cleaned_data:
-                full_name = form.cleaned_data['full_name']
-                first_name, last_name = process_full_name(full_name)
-                user.first_name = first_name
-                user.last_name = last_name
-            
-            user.save()
-            login(request, user)
-            
-            # Formatear el nombre para el mensaje
-            display_name = format_user_name(user)
-            messages.success(request, format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name))
-            return redirect("core:home")
+            try:
+                user = form.save()
+                login(request, user)
+                
+                # Formatear el nombre para el mensaje
+                display_name = format_user_name(user)
+                messages.success(request, format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name))
+                return redirect("core:home")
+            except Exception as e:
+                messages.error(request, "Hubo un error al crear tu cuenta. Por favor intenta de nuevo.")
         else:
+            # Mostrar errores específicos de validación
             for field, errors in form.errors.items():
                 for error in errors:
                     if field == '__all__':
                         messages.error(request, error)
                     else:
-                        messages.error(request, f"{form.fields[field].label}: {error}")
+                        field_label = form.fields[field].label if field in form.fields else field.replace('_', ' ').title()
+                        messages.error(request, f"{field_label}: {error}")
 
     # Verificar si Google OAuth está configurado
     google_app_configured = SocialApp.objects.filter(provider='google').exists()
@@ -116,6 +112,11 @@ def register_view(request):
         "google_configured": google_app_configured
     }
     return render(request, "register.html", context)
+
+def social_login_cancelled(request):
+    """Vista personalizada para cuando se cancela el login social"""
+    messages.info(request, "Has cancelado el inicio de sesión con Google.")
+    return render(request, "login_cancelled.html")
 
 def signout(request):
     logout(request)

@@ -34,4 +34,3 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             user.last_name = " ".join([surname.title() for surname in surnames])
             
         return user
-        return super().get_login_redirect_url(request)
