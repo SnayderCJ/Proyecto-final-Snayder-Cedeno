@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
-
+from allauth.socialaccount.models import SocialApp
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -25,8 +25,19 @@ def login_view(request):
             if not messages.get_messages(request):
                 messages.error(request, "Por favor, verifica tus credenciales.")
 
-    return render(request, "login.html", {"form": form})
+    # Verificar si Google OAuth está configurado
+    google_app_configured = SocialApp.objects.filter(provider='google').exists()
+    
+    context = {
+        "form": form,
+        "google_configured": google_app_configured
+    }
+    return render(request, "login.html", context)
 
+def google_login_direct(request):
+    """Vista que redirige directamente a Google usando allauth"""
+    # Simplemente redirigir a la URL de allauth con el parámetro process
+    return redirect('/allauth/google/login/?process=login')
 
 def register_view(request):
     if request.user.is_authenticated:
@@ -50,7 +61,6 @@ def register_view(request):
                         messages.error(request, f"{form.fields[field].label}: {error}")
 
     return render(request, "register.html", {"form": form})
-
 
 def signout(request):
     logout(request)
