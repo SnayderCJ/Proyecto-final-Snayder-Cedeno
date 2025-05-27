@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     
     # Aplicaciones de Django
     'core', 
-    'accounts',
+    'accounts.apps.AccountsConfig',  # Usar la configuración completa
     
     # App de Auth
     'allauth',
@@ -187,5 +187,5 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# Adaptador para las URLs de callback
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+# Adaptador personalizado para las URLs de callback y procesamiento de nombres
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
