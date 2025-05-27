@@ -95,6 +95,8 @@ DATABASES = {
     }
 }
 
+# Asegurar codificación por defecto
+DEFAULT_CHARSET = 'utf-8'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
