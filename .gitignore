@@ -29,9 +29,6 @@ coverage.xml
 # Archivos de log
 *.log
 
-# Archivos de migraciones
-traductor_LSE/migrations/*
-!traductor_LSE/migrations/__init__.py
 
 # Archivos de medios
 media/
@@ -42,9 +39,6 @@ staticfiles/
 *.mo
 *.pyc
 
-# Archivos de Docker
-docker-compose*.yml
-Dockerfile*
 
 # Pytest
 .cache
@@ -56,3 +50,4 @@ build/
 # Otros
 *.DS_Store
 *.env.*
+
