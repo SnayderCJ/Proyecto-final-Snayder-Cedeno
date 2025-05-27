@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     
     # Aplicaciones de Django
     'core', 
-    'accounts',
+    'accounts.apps.AccountsConfig',  # Usar la configuración completa
     
     # App de Auth
     'allauth',
@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'accounts.middleware.CleanSocialLoginMessagesMiddleware',  # Nuestro middleware
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
@@ -171,6 +172,13 @@ SOCIALACCOUNT_AUTO_SIGNUP = True  # Registro automático
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_STORE_TOKENS = False
 
+# Deshabilitar mensajes automáticos de allauth
+ACCOUNT_MESSAGES_ENABLED = False  # Deshabilitar TODOS los mensajes de account
+SOCIALACCOUNT_MESSAGES_ENABLED = False  # Deshabilitar TODOS los mensajes de socialaccount
+ACCOUNT_SESSION_REMEMBER = None
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
+
 # Configuración específica de Google OAuth
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -180,11 +188,12 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
+            'prompt': 'select_account',  # ESTA LÍNEA FUERZA LA SELECCIÓN DE CUENTA
         },
         'OAUTH_PKCE_ENABLED': True,
         'VERIFIED_EMAIL': True,
     }
 }
 
-# Adaptador para las URLs de callback
-SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
+# Adaptador personalizado para las URLs de callback y procesamiento de nombres
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'

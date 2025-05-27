@@ -3,6 +3,46 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from .forms import CustomAuthenticationForm, CustomUserCreationForm
 from allauth.socialaccount.models import SocialApp
+from django.utils.html import format_html
+
+def format_user_name(user):
+    """Función para formatear el nombre del usuario"""
+    if user.first_name and user.last_name:
+        # Dividir nombres y apellidos
+        first_names = user.first_name.strip().split()
+        last_names = user.last_name.strip().split()
+        
+        # Tomar solo el primer nombre y primer apellido
+        first_name = first_names[0].title() if first_names else ""
+        first_lastname = last_names[0].title() if last_names else ""
+        
+        return f"{first_name} {first_lastname}".strip()
+    elif user.first_name:
+        # Solo tiene first_name, usar solo el primer nombre
+        first_names = user.first_name.strip().split()
+        return first_names[0].title() if first_names else user.email
+    else:
+        # No tiene nombres, usar email
+        return user.email
+
+def process_full_name(full_name):
+    """Procesa el nombre completo y lo divide en first_name y last_name"""
+    if not full_name:
+        return "", ""
+    
+    names = full_name.strip().split()
+    if len(names) == 1:
+        return names[0].title(), ""
+    elif len(names) == 2:
+        return names[0].title(), names[1].title()
+    elif len(names) >= 3:
+        # Si hay 3 o más nombres, asumimos que los primeros son nombres y los últimos apellidos
+        middle_point = len(names) // 2
+        first_names = " ".join(names[:middle_point])
+        last_names = " ".join(names[middle_point:])
+        return first_names.title(), last_names.title()
+    
+    return "", ""
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -14,8 +54,10 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            name = user.first_name if user.first_name else user.email
-            messages.success(request, f"¡Bienvenido de nuevo, {name}!")
+            
+            # Formatear el nombre para el mensaje
+            display_name = format_user_name(user)
+            messages.success(request, format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name))
             return redirect("core:home")
         else:
             # Errores generales
@@ -34,33 +76,47 @@ def login_view(request):
     }
     return render(request, "login.html", context)
 
-def google_login_direct(request):
-    """Vista que redirige directamente a Google usando allauth"""
-    # Simplemente redirigir a la URL de allauth con el parámetro process
-    return redirect('/allauth/google/login/?process=login')
-
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect("home") 
+        return redirect("core:home") 
 
     form = CustomUserCreationForm(request.POST or None)
 
     if request.method == "POST":
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            name = user.first_name if user.first_name else user.email
-            messages.success(request, f"¡Tu cuenta ha sido creada con éxito! Bienvenido, {name}!")
-            return redirect("core:home")
+            try:
+                user = form.save()
+                login(request, user)
+                
+                # Formatear el nombre para el mensaje
+                display_name = format_user_name(user)
+                messages.success(request, format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name))
+                return redirect("core:home")
+            except Exception as e:
+                messages.error(request, "Hubo un error al crear tu cuenta. Por favor intenta de nuevo.")
         else:
+            # Mostrar errores específicos de validación
             for field, errors in form.errors.items():
                 for error in errors:
                     if field == '__all__':
                         messages.error(request, error)
                     else:
-                        messages.error(request, f"{form.fields[field].label}: {error}")
+                        field_label = form.fields[field].label if field in form.fields else field.replace('_', ' ').title()
+                        messages.error(request, f"{field_label}: {error}")
 
-    return render(request, "register.html", {"form": form})
+    # Verificar si Google OAuth está configurado
+    google_app_configured = SocialApp.objects.filter(provider='google').exists()
+    
+    context = {
+        "form": form,
+        "google_configured": google_app_configured
+    }
+    return render(request, "register.html", context)
+
+def social_login_cancelled(request):
+    """Vista personalizada para cuando se cancela el login social"""
+    messages.info(request, "Has cancelado el inicio de sesión con Google.")
+    return render(request, "login_cancelled.html")
 
 def signout(request):
     logout(request)

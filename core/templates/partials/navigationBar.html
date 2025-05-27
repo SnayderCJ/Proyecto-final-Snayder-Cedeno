@@ -6,7 +6,7 @@
       <div class="welcome-content">
         <div class="welcome-user">
           <div class="avatar">
-            <img src="https://via.placeholder.com/150" alt="Usuario">
+            <img src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}" alt="Usuario">
           </div>
           <div>
             <h1 class="welcome-title">Buenos días, {% if request.user.is_authenticated %} 
