@@ -41,7 +41,7 @@ def google_login_direct(request):
 
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect("home") 
+        return redirect("core:home") 
 
     form = CustomUserCreationForm(request.POST or None)
 
@@ -60,7 +60,14 @@ def register_view(request):
                     else:
                         messages.error(request, f"{form.fields[field].label}: {error}")
 
-    return render(request, "register.html", {"form": form})
+    # ESTA PARTE ES CRUCIAL - verificar si Google OAuth está configurado
+    google_app_configured = SocialApp.objects.filter(provider='google').exists()
+    
+    context = {
+        "form": form,
+        "google_configured": google_app_configured  # Esta línea es la clave
+    }
+    return render(request, "register.html", context)
 
 def signout(request):
     logout(request)
