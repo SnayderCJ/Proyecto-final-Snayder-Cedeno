@@ -7,4 +7,5 @@ urlpatterns = [
    # Ruta Principal
    path('', views.home, name='home'),
    path('perfil/', views.perfil, name='perfil'),
+   path('settings/', views.settings, name='settings'),
 ]

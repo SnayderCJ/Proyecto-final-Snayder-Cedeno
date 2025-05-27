@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # Aplicaciones de Django
     'core', 
     'accounts',
+    'planner'
 ]
 
 
