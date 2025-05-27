@@ -6,16 +6,15 @@
       <div class="welcome-content">
         <div class="welcome-user">
           <div class="avatar">
-            <img src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}" alt="Usuario">
+            <img src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                 alt="Avatar de usuario"
+                 onerror="this.src=&quot;https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&amp;background=8b5cf6&amp;color=fff&amp;size=150&quot;">
           </div>
           <div>
-            <h1 class="welcome-title">Buenos días, {% if request.user.is_authenticated %} 
-              {{ request.user.first_name }} {{ request.user.last_name }}
-              {% else %}
-                Estudiante
-              {% endif %}
+            <h1 class="welcome-title">
+              {{ greeting }}, {% if request.user.is_authenticated %}{{ user_display_name }}{% else %}Estudiante{% endif %}
             </h1>
-            <p class="welcome-date">Lunes, 20 de mayo de 2025</p>
+            <p class="welcome-date">{{ current_date }}</p>
           </div>
         </div>
         <div class="welcome-actions">
@@ -24,8 +23,7 @@
           </button>
           <button class="icon-button notification-button">
             <i class="fas fa-bell"></i>
-
-            {% comment %} Agregar el contador de notificationes {% endcomment %}
+            {% comment %} Agregar el contador de notificaciones {% endcomment %}
             <span class="notification-badge">3</span> 
           </button>
           <div class="productivity-indicator">
@@ -35,4 +33,4 @@
         </div>
       </div>
     </section>
-  </header>
+</header>
