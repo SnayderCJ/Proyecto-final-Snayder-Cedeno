@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="card">
+   <div class="card-header">
+      <div class="card-title">Configuración</div> 
+      <div class="status-indicator">•</div>
+   </div>
+
+   <form method="post">
+      {% csrf_token %}
+
+      <div class="input-group">
+         <div class="input-label">{{ form.language.label }}</div>
+         {{ form.language }}
+      </div>
+
+      <div class="input-group">
+         <div class="input-label">{{ form.timezone.label }}</div>
+         {{ form.timezone }}
+      </div>
+
+      <div class="button-group">
+         <a href="{% url 'core:home' %}" class="btn btn-cancel">Cancelar</a>
+         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+   </form>
+</div>
+
+{% endblock content %}
