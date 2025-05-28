@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Aplicaciones de Django
     'core', 
     'accounts.apps.AccountsConfig',  # Usar la configuración completa
+    'planner.apps.PlannerConfig',  # Usar la configuración completa
     
     # App de Auth
     'allauth',
