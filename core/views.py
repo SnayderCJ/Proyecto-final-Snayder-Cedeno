@@ -1,10 +1,14 @@
+# core/views.py
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+from django.utils.html import format_html
 from allauth.socialaccount.models import SocialAccount
-from .forms import SettingsForm
+from .forms import SettingsForm, ProfileForm, CustomPasswordChangeForm
 from .models import UserSettings
 from datetime import datetime
 import unicodedata
-from django.contrib.auth.decorators import login_required
 
 def normalize_text(text):
     """Normaliza el texto para manejar correctamente caracteres especiales"""
@@ -99,30 +103,66 @@ def home(request):
     
     return render(request, 'pages/home.html', context)
 
+@login_required
 def perfil(request):
-    google_account = None
-    google_avatar = None
-    is_google_user = False
+    google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
+    is_google_user = bool(google_account)
+    
+    # Inicializar formularios
+    profile_form = ProfileForm(instance=request.user)
+    password_form = CustomPasswordChangeForm(request.user)
+    
+    # Procesamiento de formularios
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'profile' and not is_google_user:
+            profile_form = ProfileForm(request.POST, instance=request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                # Actualizar el username con el nuevo email
+                request.user.username = request.user.email
+                request.user.save()
+                messages.success(request, format_html("¡Tu información personal ha sido actualizada exitosamente!"))
+                return redirect('core:perfil')
+            else:
+                # Mostrar errores específicos
+                for field, errors in profile_form.errors.items():
+                    for error in errors:
+                        field_label = profile_form.fields[field].label if field in profile_form.fields else field.replace('_', ' ').title()
+                        messages.error(request, f"{field_label}: {error}")
+        
+        elif form_type == 'password':
+            password_form = CustomPasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                # Mantener la sesión activa después del cambio de contraseña
+                update_session_auth_hash(request, user)
+                messages.success(request, format_html("¡Tu contraseña ha sido cambiada exitosamente!"))
+                return redirect('core:perfil')
+            else:
+                # Mostrar errores específicos
+                for field, errors in password_form.errors.items():
+                    for error in errors:
+                        if field == '__all__':
+                            messages.error(request, error)
+                        else:
+                            field_label = password_form.fields[field].label if field in password_form.fields else field.replace('_', ' ').title()
+                            messages.error(request, f"{field_label}: {error}")
 
     context = {
         'greeting': get_greeting(),
         'current_date': get_formatted_date(),
+        'user_display_name': format_user_name(request.user),
+        'is_google_user': is_google_user,
+        'google_avatar': google_account.extra_data.get('picture') if google_account else None,
+        'profile_form': profile_form,
+        'password_form': password_form,
     }
-
-    if request.user.is_authenticated:
-        google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
-        if google_account:
-            is_google_user = True
-            google_avatar = google_account.extra_data.get('picture')
-
-        context.update({
-            'user_display_name': format_user_name(request.user),
-            'is_google_user': is_google_user,
-            'google_avatar': google_avatar,
-        })
 
     return render(request, 'pages/perfil.html', context)
 
+@login_required
 def settings(request):
     user_settings, _ = UserSettings.objects.get_or_create(user=request.user)
 
@@ -132,11 +172,20 @@ def settings(request):
             user_settings.language = form.cleaned_data['language']
             user_settings.timezone = form.cleaned_data['timezone']
             user_settings.save()
-            return redirect('core:settings')  # Redirige a la misma vista o donde desees
+            messages.success(request, "¡Tus configuraciones han sido guardadas exitosamente!")
+            return redirect('core:settings')
+        else:
+            messages.error(request, "Por favor corrige los errores en el formulario.")
     else:
         form = SettingsForm(initial={
             'language': user_settings.language,
             'timezone': user_settings.timezone
         })
 
-    return render(request, 'pages/settings.html', {'form': form})
+    context = {
+        'form': form,
+        'greeting': get_greeting(),
+        'current_date': get_formatted_date(),
+    }
+
+    return render(request, 'pages/settings.html', context)

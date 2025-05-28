@@ -3,107 +3,223 @@
 
 {% block content %}
 
+   <!-- Sección de Información Personal -->
    <div class="card">
-   <div class="card-header">
-      <div class="card-title">Información Personal</div>
-      <div class="status-indicator">•</div>
-   </div>
+      <div class="card-header">
+         <div class="card-title">Información Personal</div>
+         <div class="status-indicator">•</div>
+      </div>
 
-   <!-- Sección de foto de perfil -->
-   <div class="photo-upload-container">
-      <div class="profile-photo">
-         <img id="profileImage"
-              src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
-              alt="Foto de perfil">
+      <!-- Sección de foto de perfil -->
+      <div class="photo-upload-container">
+         <div class="profile-photo">
+            <img id="profileImage"
+                 src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
+                 alt="Foto de perfil">
+            {% if not is_google_user %}
+              <label for="fileInput" class="photo-upload-icon"></label>
+            {% endif %}
+         </div>
          {% if not is_google_user %}
-           <label for="fileInput" class="photo-upload-icon"></label>
+           <input type="file" id="fileInput" accept="image/*" style="display: none;">
+           <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+              Cambiar Foto de Perfil
+           </button>
          {% endif %}
       </div>
-      {% if not is_google_user %}
-        <input type="file" id="fileInput" accept="image/*">
-        <button class="upload-btn">Cambiar Foto de Perfil</button>
+
+      <!-- Formulario de información personal -->
+      <form method="post" id="profileForm">
+         {% csrf_token %}
+         <input type="hidden" name="form_type" value="profile">
+         
+         <div class="input-group">
+            <div class="input-label">{{ profile_form.first_name.label }}</div>
+            {% if is_google_user %}
+               <input type="text" class="input-field" 
+                      value="{{ request.user.first_name }}" 
+                      disabled>
+               <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                  Este campo no se puede editar porque iniciaste sesión con Google
+               </small>
+            {% else %}
+               {{ profile_form.first_name }}
+               {% for error in profile_form.first_name.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            {% endif %}
+         </div>
+
+         <div class="input-group">
+            <div class="input-label">{{ profile_form.last_name.label }}</div>
+            {% if is_google_user %}
+               <input type="text" class="input-field" 
+                      value="{{ request.user.last_name }}" 
+                      disabled>
+               <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                  Este campo no se puede editar porque iniciaste sesión con Google
+               </small>
+            {% else %}
+               {{ profile_form.last_name }}
+               {% for error in profile_form.last_name.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            {% endif %}
+         </div>
+
+         <div class="input-group">
+            <div class="input-label">{{ profile_form.email.label }}</div>
+            {% if is_google_user %}
+               <input type="email" class="input-field" 
+                      value="{{ request.user.email }}" 
+                      disabled>
+               <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                  Este campo no se puede editar porque iniciaste sesión con Google
+               </small>
+            {% else %}
+               {{ profile_form.email }}
+               {% for error in profile_form.email.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            {% endif %}
+         </div>
+
+         <div class="input-group">
+            <div class="input-label">Rol</div>
+            <input type="text" class="input-field" value="Estudiante" disabled>
+         </div>
+
+         {% if not is_google_user %}
+         <div class="button-group">
+            <button type="button" class="btn btn-cancel" onclick="window.location.reload()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+         </div>
+         {% endif %}
+      </form>
+   </div>
+
+   <!-- Sección de Seguridad -->
+   <div class="card">
+      <div class="card-header">
+         <div class="card-title">Seguridad</div>
+         <div class="status-indicator">•</div>
+      </div>
+
+      {% if is_google_user %}
+         <div style="text-align: center; padding: 20px; color: #888;">
+            <p>La gestión de contraseñas se realiza a través de tu cuenta de Google.</p>
+            <p>Para cambiar tu contraseña, ve a tu configuración de Google.</p>
+         </div>
+      {% else %}
+         <!-- Formulario de cambio de contraseña -->
+         <form method="post" id="passwordForm">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="password">
+            
+            <div class="input-group">
+               <div class="input-label">{{ password_form.old_password.label }}</div>
+               {{ password_form.old_password }}
+               {% for error in password_form.old_password.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            </div>
+
+            <div class="input-group">
+               <div class="input-label">{{ password_form.new_password1.label }}</div>
+               {{ password_form.new_password1 }}
+               {% if password_form.new_password1.help_text %}
+                  <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                     {{ password_form.new_password1.help_text }}
+                  </small>
+               {% endif %}
+               {% for error in password_form.new_password1.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            </div>
+
+            <div class="input-group">
+               <div class="input-label">{{ password_form.new_password2.label }}</div>
+               {{ password_form.new_password2 }}
+               {% for error in password_form.new_password2.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            </div>
+
+            <div class="button-group">
+               <button type="button" class="btn btn-cancel" onclick="clearPasswordForm()">Cancelar</button>
+               <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+            </div>
+         </form>
       {% endif %}
    </div>
 
-   <div class="input-group">
-      <div class="input-label">Nombre Completo</div>
-      <input type="text" class="input-field"
-            value="{{ request.user.first_name }} {{ request.user.last_name }}"
-            {% if is_google_user %}disabled{% endif %}>
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Correo Electrónico</div>
-      <input type="email" class="input-field"
-            value="{{ request.user.email }}"
-            {% if is_google_user %}disabled{% endif %}>
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Rol</div>
-      <input type="text" class="input-field" value="Estudiante" disabled>
-   </div>
-
-   <div class="button-group">
-      <button class="btn btn-cancel">Cancelar</button>
-      <button class="btn btn-primary">Guardar Cambios</button>
-      
-   </div>
-   </div>
-
+   <!-- Sección de Preferencias de Notificación -->
    <div class="card">
-   <div class="card-header">
-      <div class="card-title">Seguridad</div>
-      <div class="status-indicator">•</div>
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Contraseña Actual</div>
-      <input type="password" class="input-field">
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Nueva Contraseña</div>
-      <input type="password" class="input-field">
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Confirmar Contraseña</div>
-      <input type="password" class="input-field">
-   </div>
-
-   <div class="button-group">
-      <button class="btn btn-cancel">Cancelar</button>
-      <button class="btn btn-primary">Guardar Cambios</button>
-   </div>
-   </div>
-
-   <div class="card">
-   <div class="card-header">
-      <div class="card-title">Preferencias de Notificación</div>
-   </div>
-
-   <div class="notification-item">
-      <div>
-         <div>Notificaciones por Email</div>
-         <div style="font-size: 12px; color: #aaa;">Recordatorios y alertas del sistema</div>
+      <div class="card-header">
+         <div class="card-title">Preferencias de Notificación</div>
       </div>
-      <label class="toggle-switch">
-         <input type="checkbox" checked>
-         <span class="slider"></span>
-      </label>
+
+      <div class="notification-item">
+         <div>
+            <div>Notificaciones por Email</div>
+            <div style="font-size: 12px; color: #aaa;">Recordatorios y alertas del sistema</div>
+         </div>
+         <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="slider"></span>
+         </label>
+      </div>
+
+      <div class="notification-item">
+         <div>
+            <div>Recordatorio de Tareas</div>
+            <div style="font-size: 12px; color: #aaa;">Alertas de vencimientos</div>
+         </div>
+         <label class="toggle-switch">
+            <input type="checkbox">
+            <span class="slider"></span>
+         </label>
+      </div>
    </div>
 
-   <div class="notification-item">
-      <div>
-         <div>Recordatorio de Tareas</div>
-         <div style="font-size: 12px; color: #aaa;">Alertas de vencimientos</div>
-      </div>
-      <label class="toggle-switch">
-         <input type="checkbox">
-         <span class="slider"></span>
-      </label>
-   </div>
-   </div>
+   <script>
+      // Función para limpiar el formulario de contraseña
+      function clearPasswordForm() {
+         const passwordForm = document.getElementById('passwordForm');
+         if (passwordForm) {
+            passwordForm.reset();
+         }
+      }
+
+      // Previsualización de imagen de perfil (si no es usuario de Google)
+      {% if not is_google_user %}
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) {
+         fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+               const reader = new FileReader();
+               reader.onload = function(e) {
+                  const profileImage = document.getElementById('profileImage');
+                  if (profileImage) {
+                     profileImage.src = e.target.result;
+                  }
+               };
+               reader.readAsDataURL(file);
+            }
+         });
+      }
+      {% endif %}
+
+      // Confirmación antes de enviar formulario de contraseña
+      const passwordForm = document.getElementById('passwordForm');
+      if (passwordForm) {
+         passwordForm.addEventListener('submit', function(e) {
+            if (!confirm('¿Estás seguro de que quieres cambiar tu contraseña?')) {
+               e.preventDefault();
+            }
+         });
+      }
+   </script>
 
 {% endblock content %}
