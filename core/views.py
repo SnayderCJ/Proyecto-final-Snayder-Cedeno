@@ -1,12 +1,17 @@
 # core/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.utils.html import format_html
+from django.urls import reverse
 from allauth.socialaccount.models import SocialAccount
-from .forms import SettingsForm, ProfileForm, CustomPasswordChangeForm
-from .models import UserSettings
+from .forms import (
+    SettingsForm, ProfileForm, CustomPasswordChangeForm,
+    VerifyCodeForm, SetPasswordForm
+)
+from .models import UserSettings, PasswordSetupToken
+from .utils import send_password_setup_email
 from datetime import datetime
 import unicodedata
 
@@ -107,10 +112,11 @@ def home(request):
 def perfil(request):
     google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
     is_google_user = bool(google_account)
+    user_has_password = request.user.has_usable_password()
     
     # Inicializar formularios
     profile_form = ProfileForm(instance=request.user)
-    password_form = CustomPasswordChangeForm(request.user)
+    password_form = CustomPasswordChangeForm(request.user) if user_has_password else None
     
     # Procesamiento de formularios
     if request.method == 'POST':
@@ -132,7 +138,7 @@ def perfil(request):
                         field_label = profile_form.fields[field].label if field in profile_form.fields else field.replace('_', ' ').title()
                         messages.error(request, f"{field_label}: {error}")
         
-        elif form_type == 'password':
+        elif form_type == 'password' and user_has_password:
             password_form = CustomPasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
@@ -155,12 +161,162 @@ def perfil(request):
         'current_date': get_formatted_date(),
         'user_display_name': format_user_name(request.user),
         'is_google_user': is_google_user,
+        'user_has_password': user_has_password,
         'google_avatar': google_account.extra_data.get('picture') if google_account else None,
         'profile_form': profile_form,
         'password_form': password_form,
     }
 
     return render(request, 'pages/perfil.html', context)
+
+@login_required
+def request_password_setup(request):
+    """Vista para solicitar código de verificación para establecer contraseña"""
+    google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
+    
+    # Solo usuarios de Google sin contraseña pueden acceder
+    if not google_account or request.user.has_usable_password():
+        messages.error(request, "No tienes permisos para acceder a esta página.")
+        return redirect('core:perfil')
+    
+    if request.method == 'POST':
+        # Invalidar tokens anteriores del usuario
+        PasswordSetupToken.objects.filter(
+            user=request.user,
+            token_type='set_password',
+            is_used=False
+        ).update(is_used=True)
+        
+        # Crear nuevo token
+        token = PasswordSetupToken.objects.create(
+            user=request.user,
+            token_type='set_password'
+        )
+        
+        # Enviar email
+        if send_password_setup_email(request.user, token):
+            messages.success(request, format_html(
+                "¡Código enviado! Revisa tu correo <strong>{}</strong> y ingresa el código de 6 dígitos.",
+                request.user.email
+            ))
+            return redirect('core:verify_password_code')
+        else:
+            messages.error(request, "Hubo un error enviando el código. Por favor intenta de nuevo.")
+    
+    context = {
+        'greeting': get_greeting(),
+        'current_date': get_formatted_date(),
+        'user_display_name': format_user_name(request.user),
+    }
+    
+    return render(request, 'pages/emails/request_password_setup.html', context)
+
+@login_required
+def verify_password_code(request):
+    """Vista para verificar código de 6 dígitos"""
+    # CORRECCIÓN: Línea 166 - era request.user en lugar de user=request.user
+    google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
+    
+    # Solo usuarios de Google sin contraseña pueden acceder
+    if not google_account or request.user.has_usable_password():
+        messages.error(request, "No tienes permisos para acceder a esta página.")
+        return redirect('core:perfil')
+    
+    form = VerifyCodeForm(user=request.user)
+    
+    if request.method == 'POST':
+        form = VerifyCodeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            
+            # Buscar y validar token
+            token = PasswordSetupToken.objects.filter(
+                user=request.user,
+                token=code,
+                token_type='set_password'
+            ).first()
+            
+            if token and token.is_valid():
+                # Guardar token en sesión para el siguiente paso
+                request.session['verified_token_id'] = token.id
+                messages.success(request, "¡Código verificado correctamente! Ahora establece tu contraseña.")
+                return redirect('core:set_password')
+            else:
+                messages.error(request, "El código es inválido o ha expirado.")
+    
+    context = {
+        'form': form,
+        'greeting': get_greeting(),
+        'current_date': get_formatted_date(),
+        'user_display_name': format_user_name(request.user),
+        'user_email': request.user.email,
+    }
+    
+    return render(request, 'pages/emails/verify_password_code.html', context)
+
+@login_required
+def set_password(request):
+    """Vista para establecer nueva contraseña después de verificar código"""
+    google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
+    
+    # Verificar permisos y token en sesión
+    if (not google_account or 
+        request.user.has_usable_password() or 
+        'verified_token_id' not in request.session):
+        messages.error(request, "No tienes permisos para acceder a esta página.")
+        return redirect('core:perfil')
+    
+    # Verificar que el token siga siendo válido
+    token = get_object_or_404(
+        PasswordSetupToken,
+        id=request.session['verified_token_id'],
+        user=request.user,
+        token_type='set_password'
+    )
+    
+    if not token.is_valid():
+        del request.session['verified_token_id']
+        messages.error(request, "El código ha expirado. Solicita uno nuevo.")
+        return redirect('core:request_password_setup')
+    
+    form = SetPasswordForm()
+    
+    if request.method == 'POST':
+        form = SetPasswordForm(request.POST)
+        if form.is_valid():
+            # Establecer la nueva contraseña
+            request.user.set_password(form.cleaned_data['new_password1'])
+            request.user.save()
+            
+            # Marcar token como usado
+            token.mark_as_used()
+            
+            # Limpiar sesión
+            del request.session['verified_token_id']
+            
+            # Mantener la sesión activa
+            update_session_auth_hash(request, request.user)
+            
+            messages.success(request, format_html(
+                "¡Contraseña establecida correctamente! Ahora puedes usar tanto Google como tu contraseña para iniciar sesión."
+            ))
+            return redirect('core:perfil')
+        else:
+            # Mostrar errores específicos
+            for field, errors in form.errors.items():
+                for error in errors:
+                    field_label = form.fields[field].label if field in form.fields else field.replace('_', ' ').title()
+                    messages.error(request, f"{field_label}: {error}")
+    
+    context = {
+        'form': form,
+        'greeting': get_greeting(),
+        'current_date': get_formatted_date(),
+        'user_display_name': format_user_name(request.user),
+        'token': token,
+    }
+    
+    return render(request, 'pages/emails/set_password.html', context)
 
 @login_required
 def settings(request):
