@@ -1,0 +1,305 @@
+/* Calendar Container */
+.calendar-container {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.month-year {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.week-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #1a1a2e;
+  padding: 8px 15px;
+  border-radius: 8px;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle-btn {
+  padding: 8px 15px;
+  background-color: #1a1a2e;
+  border: none;
+  border-radius: 6px;
+  color: #b0b0b0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-btn.active {
+  background-color: #4a4a6a;
+  color: #fff;
+}
+
+/* Calendar Grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+  gap: 1px;
+  background-color: #2a2a3e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  overflow: hidden;
+  height: calc(100vh - 200px);
+}
+
+.time-column {
+  background-color: #16162a;
+}
+
+.day-header {
+  background-color: #1a1a2e;
+  padding: 15px;
+  text-align: center;
+  font-weight: 500;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+.day-header.today {
+  color: #7c7cff;
+}
+
+.time-slot {
+  padding: 10px;
+  text-align: right;
+  color: #6a6a7a;
+  font-size: 12px;
+  border-bottom: 1px solid #2a2a3e;
+  height: 60px;
+}
+
+.day-column {
+  background-color: #16162a;
+  position: relative;
+  border-right: 1px solid #2a2a3e;
+}
+
+.day-column:last-child {
+  border-right: none;
+}
+
+/* Events */
+.event {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.event:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.event-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.event-time {
+  opacity: 0.8;
+  font-size: 11px;
+}
+
+/* Event Categories */
+.event.daily {
+  background-color: #3a86ff;
+  color: white;
+}
+
+.event.event-name {
+  background-color: #8338ec;
+  color: white;
+}
+
+.event.description {
+  background-color: #ff006e;
+  color: white;
+}
+
+.event.team {
+  background-color: #06ffa5;
+  color: #0a0a0a;
+}
+
+/* Category Labels */
+.categories {
+  margin-top: 20px;
+  padding: 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.category-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.category-dot.daily {
+  background-color: #3a86ff;
+}
+.category-dot.event-name {
+  background-color: #8338ec;
+}
+.category-dot.description {
+  background-color: #ff006e;
+}
+.category-dot.team {
+  background-color: #06ffa5;
+}
+
+/* Calendario */
+
+ /* Estilos generales del calendario */
+    .calendar-container {
+        /* Puedes añadir estilos para el contenedor principal si es necesario */
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 60px); /* Ajusta si tu navbar tiene otra altura */
+        /* Puede ser que la altura del base.html también influya. */
+    }
+
+    .calendar-header-nav {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .calendar-grid-wrapper { /* Este es el contenedor clave para el scroll */
+        flex-grow: 1; /* Permite que este div ocupe el espacio disponible */
+        overflow-y: auto; /* ¡Esto permite el scroll vertical! */
+        max-height: calc(100vh - 200px); /* Ajusta esta altura máxima según tu diseño. Por ejemplo, 100vh - (altura_nav + altura_header_calendario + margen_inferior) */
+        border: 1px solid #333; /* Borde opcional para visualizar el área de scroll */
+        border-radius: 8px;
+        background-color: #1e1e1e; /* Fondo oscuro */
+    }
+
+    .calendar-grid {
+        display: grid;
+        /* La primera columna es para las horas, las 7 siguientes para los días */
+        grid-template-columns: 80px repeat(7, 1fr); 
+        min-height: 1440px; /* 24 horas * 60px/hora. Asegura que haya suficiente contenido para el scroll */
+        position: relative; /* Necesario para posicionar eventos con top/height absoluto */
+    }
+
+    .time-column, .day-column {
+        /* Añadir padding o margen para que los elementos no se peguen a los bordes */
+        border-right: 1px solid #333;
+    }
+    .time-column {
+        border-bottom: 1px solid #333; /* El último time-slot podría no tenerlo si lo prefieres */
+    }
+    .day-column {
+         border-bottom: 1px solid #333;
+    }
+
+    .time-slot {
+        height: 60px; /* Altura de cada slot horario */
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center; /* Centrar el texto de la hora verticalmente */
+        justify-content: flex-end; /* Alinear el texto de la hora a la derecha */
+        padding-right: 10px;
+        color: #ccc; /* Color del texto de la hora */
+        font-size: 0.9em;
+    }
+    .time-slot:last-child {
+        border-bottom: none; /* Quitar borde al último slot si no quieres que sobresalga */
+    }
+
+    .day-header {
+        height: 60px; /* Altura igual a un time-slot para alinear */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 1px solid #333;
+        background-color: #2a2a2a; /* Color de fondo para los encabezados de día */
+        color: #eee;
+        font-weight: bold;
+        position: sticky; /* Sticky para que los encabezados de día se queden arriba al hacer scroll horizontal (no aplica verticalmente aquí) */
+        top: 0; /* Asegura que se mantenga en la parte superior */
+        z-index: 10; /* Para que esté por encima de los eventos */
+    }
+    .day-header.today {
+        background-color: #007bff; /* Color de fondo para el día actual */
+        color: white;
+    }
+
+    /* Contenedor para eventos dentro de cada día */
+    .day-events-container {
+        position: relative; /* Esencial para el posicionamiento absoluto de los eventos */
+        height: 100%; /* Ocupa la altura de la cuadrícula */
+    }
+
+    .calendar-event {
+        position: absolute; /* Permite posicionamiento con top y height */
+        width: calc(100% - 10px); /* Ajusta el ancho para un pequeño padding */
+        left: 5px; /* Pequeño margen a la izquierda */
+        right: 5px; /* Pequeño margen a la derecha */
+        padding: 5px;
+        background-color: #4a4a4a; /* Color de fondo por defecto */
+        border-radius: 5px;
+        color: white;
+        font-size: 0.85em;
+        overflow: hidden; /* Oculta contenido que se desborda si el evento es muy pequeño */
+        text-overflow: ellipsis; /* Añade puntos suspensivos si el texto es muy largo */
+        white-space: nowrap; /* Mantiene el texto en una sola línea */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 5; /* Asegura que estén por encima de la cuadrícula pero debajo del header */
+        cursor: pointer; /* Indica que es clickeable */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transition: background-color 0.2s ease;
+    }
+
+    .calendar-event:hover {
+        background-color: #5a5a5a; /* Color al pasar el mouse */
+    }
+
+    .calendar-event strong {
+        display: block;
+        margin-bottom: 3px;
+    }
+    .calendar-event small {
+        display: block;
+        opacity: 0.8;
+    }
+
+    /* Colores según el tipo de evento */
+    .event-tarea { background-color: #28a745; border-color: #218838; } /* Verde */
+    .event-clase { background-color: #007bff; border-color: #0056b3; } /* Azul */
+    .event-descanso { background-color: #ffc107; border-color: #e0a800; color: #333; } /* Amarillo */
+    .event-personal { background-color: #6f42c1; border-color: #563d7c; } /* Púrpura */
+    .event-otro { background-color: #6c757d; border-color: #545b62; } /* Gris */
