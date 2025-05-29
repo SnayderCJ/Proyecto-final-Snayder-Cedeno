@@ -9,6 +9,12 @@ class CleanSocialLoginMessagesMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # PROCESAR ANTES DE LA VISTA - Verificar mensaje de conexión social
+        if request.user.is_authenticated and 'social_connect_message' in request.session:
+            connect_msg = request.session['social_connect_message']
+            messages.success(request, connect_msg)
+            del request.session['social_connect_message']
+        
         response = self.get_response(request)
         
         # Si el usuario está autenticado, limpiar mensajes de allauth

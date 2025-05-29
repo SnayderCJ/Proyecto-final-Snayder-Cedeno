@@ -153,18 +153,28 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth
 ]
 
+# ===== CONFIGURACIÓN ACTUALIZADA DE ALLAUTH =====
+
+# Adaptadores personalizados
+ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
+
 # Configuración de cuentas
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Cambiado de SOCIALACCOUNT_EMAIL_VERIFICATION
+ACCOUNT_UNIQUE_EMAIL = True  # AGREGADO - Email debe ser único
 
-# Configuración para ir directo a Google sin página intermedia
-SOCIALACCOUNT_LOGIN_ON_GET = True  # Esta es la clave principal
+# Configuración de cuentas sociales
 SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_AUTO_SIGNUP = True  # Registro automático
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_STORE_TOKENS = False
+
+# CONFIGURACIÓN PARA LOGIN DIRECTO CON GOOGLE
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Regresamos a True para login directo
 
 # Deshabilitar mensajes automáticos de allauth
 ACCOUNT_MESSAGES_ENABLED = False  # Deshabilitar TODOS los mensajes de account
@@ -186,12 +196,9 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'OAUTH_PKCE_ENABLED': True,
         'VERIFIED_EMAIL': True,
+        'FETCH_USERINFO': True,  # AGREGADO - Permite extraer información del perfil
     }
 }
-
-# Adaptador personalizado para las URLs de callback y procesamiento de nombres
-SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
-
 
 # CONFIGURACIÓN DE EMAIL
 
