@@ -6,7 +6,6 @@ import re
 
 User = get_user_model()
 
-
 class CustomAuthenticationForm(AuthenticationForm):
     username = forms.EmailField(
         label="Correo Electrónico",
@@ -27,7 +26,6 @@ class CustomAuthenticationForm(AuthenticationForm):
             "required": "required",
         }),
     )
-
 
 class CustomUserCreationForm(UserCreationForm):
     full_name = forms.CharField(
@@ -197,3 +195,140 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+# Nuevos formularios para recuperación de contraseña
+class PasswordResetRequestForm(forms.Form):
+    """Formulario para solicitar recuperación de contraseña"""
+    email = forms.EmailField(
+        label="Correo Electrónico",
+        widget=forms.EmailInput(attrs={
+            "class": "form-input",
+            "placeholder": "tu_correo@ejemplo.com",
+            "required": "required",
+        }),
+        help_text="Ingresa el correo electrónico asociado a tu cuenta"
+    )
+    
+    def clean_email(self):
+        """Validar que el email exista en la base de datos"""
+        email = self.cleaned_data.get('email', '').lower().strip()
+        
+        if not email:
+            raise ValidationError("El correo electrónico es obligatorio.")
+        
+        # Verificar formato básico
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            raise ValidationError("Ingresa una dirección de correo electrónico válida.")
+        
+        # Verificar que el email exista
+        if not User.objects.filter(email=email).exists():
+            raise ValidationError("No existe una cuenta asociada a este correo electrónico.")
+        
+        return email
+
+class PasswordResetVerifyForm(forms.Form):
+    """Formulario para verificar código de recuperación"""
+    code = forms.CharField(
+        label="Código de Verificación",
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input code-input',
+            'placeholder': '000000',
+            'maxlength': '6',
+            'pattern': '[0-9]{6}',
+            'inputmode': 'numeric',
+            'autocomplete': 'one-time-code',
+        }),
+        help_text="Ingresa el código de 6 dígitos que enviamos a tu correo"
+    )
+    
+    def __init__(self, user=None, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+    
+    def clean_code(self):
+        """Validar el código"""
+        code = self.cleaned_data.get('code', '').strip()
+        
+        if not code:
+            raise ValidationError("El código es obligatorio.")
+        
+        if not re.match(r'^\d{6}$', code):
+            raise ValidationError("El código debe tener exactamente 6 dígitos.")
+        
+        # Verificar que el código exista y sea válido
+        if self.user:
+            from core.models import PasswordSetupToken
+            token = PasswordSetupToken.objects.filter(
+                user=self.user,
+                token=code,
+                token_type='reset_password'
+            ).first()
+            
+            if not token:
+                raise ValidationError("El código ingresado no es válido.")
+            
+            if not token.is_valid():
+                raise ValidationError("El código ha expirado o ya fue usado. Solicita uno nuevo.")
+        
+        return code
+
+class PasswordResetForm(forms.Form):
+    """Formulario para establecer nueva contraseña"""
+    new_password1 = forms.CharField(
+        label="Nueva Contraseña",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': '••••••••',
+        }),
+        help_text="La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y números.",
+    )
+    new_password2 = forms.CharField(
+        label="Confirmar Nueva Contraseña",
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-input',
+            'placeholder': '••••••••',
+        }),
+    )
+    
+    def clean_new_password1(self):
+        """Validar la nueva contraseña"""
+        password1 = self.cleaned_data.get('new_password1')
+        
+        if not password1:
+            raise ValidationError("La nueva contraseña es obligatoria.")
+        
+        # Longitud mínima
+        if len(password1) < 8:
+            raise ValidationError("La contraseña debe tener al menos 8 caracteres.")
+        
+        # Al menos una mayúscula
+        if not re.search(r'[A-Z]', password1):
+            raise ValidationError("La contraseña debe contener al menos una letra mayúscula.")
+        
+        # Al menos una minúscula
+        if not re.search(r'[a-z]', password1):
+            raise ValidationError("La contraseña debe contener al menos una letra minúscula.")
+        
+        # Al menos un número
+        if not re.search(r'\d', password1):
+            raise ValidationError("La contraseña debe contener al menos un número.")
+        
+        # No puede ser muy común
+        common_passwords = ['12345678', 'password', 'contraseña', 'qwerty123', '87654321']
+        if password1.lower() in common_passwords:
+            raise ValidationError("Esta contraseña es muy común. Por favor elige una más segura.")
+        
+        return password1
+    
+    def clean_new_password2(self):
+        """Validar que las contraseñas coincidan"""
+        password1 = self.cleaned_data.get('new_password1')
+        password2 = self.cleaned_data.get('new_password2')
+        
+        if password1 and password2:
+            if password1 != password2:
+                raise ValidationError("Las nuevas contraseñas no coinciden.")
+        
+        return password2

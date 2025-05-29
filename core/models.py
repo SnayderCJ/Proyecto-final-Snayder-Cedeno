@@ -7,12 +7,16 @@ from django.utils import timezone
 from datetime import timedelta
 
 class UserSettings(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='core_settings')
     language = models.CharField(max_length=50, default='es')
     timezone = models.CharField(max_length=100, default='America/Guayaquil')
 
     def __str__(self):
         return f"Configuración de {self.user.username}"
+    
+    class Meta:
+        verbose_name = "Configuración de Usuario"
+        verbose_name_plural = "Configuraciones de Usuario"
 
 class PasswordSetupToken(models.Model):
     """Modelo para tokens de establecimiento/cambio de contraseña"""
@@ -22,7 +26,7 @@ class PasswordSetupToken(models.Model):
         ('reset_password', 'Resetear Contraseña'),
     ]
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_tokens')
     token = models.CharField(max_length=6, unique=True)
     token_type = models.CharField(max_length=20, choices=TOKEN_TYPES, default='set_password')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -63,3 +67,5 @@ class PasswordSetupToken(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        verbose_name = "Token de Contraseña"
+        verbose_name_plural = "Tokens de Contraseña"
