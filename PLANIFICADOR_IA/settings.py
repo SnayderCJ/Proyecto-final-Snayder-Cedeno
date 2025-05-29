@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.user_context',
             ],
         },
     },
@@ -96,6 +97,14 @@ DATABASES = {
 
 # Asegurar codificación por defecto
 DEFAULT_CHARSET = 'utf-8'
+
+# Configuración de archivos multimedia (agregar al final del archivo)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuración de Pillow para imágenes
+ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

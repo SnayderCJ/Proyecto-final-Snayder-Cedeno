@@ -14,16 +14,21 @@
       <div class="photo-upload-container">
          <div class="profile-photo">
             <img id="profileImage"
-                 src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
+                 src="{% if user_avatar %}{{ user_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
                  alt="Foto de perfil">
-            {% if not is_google_user %}
-              <label for="fileInput" class="photo-upload-icon"></label>
+            <label for="fileInput" class="photo-upload-icon"></label>
+         </div>
+         <input type="file" id="fileInput" accept="image/*" style="display: none;">
+         <div class="photo-buttons">
+            <button type="button" class="upload-btn" id="uploadBtn">
+               <i class="fas fa-camera"></i> Cambiar Foto
+            </button>
+            {% if user_avatar %}
+            <button type="button" class="remove-btn" id="removeBtn">
+               <i class="fas fa-trash"></i> Eliminar
+            </button>
             {% endif %}
          </div>
-         {% if not is_google_user %}
-           <input type="file" id="fileInput" accept="image/*" style="display: none;">
-           <button class="upload-btn">Cambiar Foto de Perfil</button>
-         {% endif %}
       </div>
 
       <!-- Formulario de información personal -->
@@ -276,32 +281,178 @@
          }
       }
 
-      // Previsualización de imagen de perfil (si no es usuario de Google)
+      // Funcionalidad de subida de avatar
       const fileInput = document.getElementById('fileInput');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const removeBtn = document.getElementById('removeBtn');
+      const profileImage = document.getElementById('profileImage');
+
+      // Manejar click en botón de subir
+      if (uploadBtn) {
+         uploadBtn.addEventListener('click', function() {
+            fileInput.click();
+         });
+      }
+
+      // Manejar selección de archivo
       if (fileInput) {
          fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
+               // Validar tamaño (5MB máximo)
+               if (file.size > 5 * 1024 * 1024) {
+                  alert('El archivo es demasiado grande. Máximo 5MB.');
+                  return;
+               }
+
+               // Validar tipo
+               const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+               if (!allowedTypes.includes(file.type)) {
+                  alert('Tipo de archivo no permitido. Solo se permiten JPG, PNG y GIF.');
+                  return;
+               }
+
+               // Mostrar preview inmediato
                const reader = new FileReader();
                reader.onload = function(e) {
-                  const profileImage = document.getElementById('profileImage');
-                  if (profileImage) {
-                     profileImage.src = e.target.result;
-                  }
+                  profileImage.src = e.target.result;
                };
                reader.readAsDataURL(file);
+
+               // Subir archivo
+               uploadAvatar(file);
             }
          });
       }
 
-      // Botón de cambiar foto
-      const uploadBtn = document.querySelector('.upload-btn');
-      if (uploadBtn) {
-         uploadBtn.addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            if (fileInput) {
-               fileInput.click();
+      // Función para subir avatar
+      function uploadAvatar(file) {
+         const formData = new FormData();
+         formData.append('avatar', file);
+         
+         // Agregar token CSRF
+         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+         formData.append('csrfmiddlewaretoken', csrfToken);
+
+         // Mostrar indicador de carga
+         uploadBtn.disabled = true;
+         uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+
+         fetch('{% url "core:upload_avatar" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+               'X-CSRFToken': csrfToken
             }
+         })
+         .then(response => response.json())
+         .then(data => {
+            if (data.success) {
+               // Actualizar imagen de perfil
+               profileImage.src = data.avatar_url + '?t=' + new Date().getTime();
+               
+               // Mostrar mensaje de éxito
+               showMessage(data.message, 'success');
+               
+               // Mostrar botón de eliminar si no existe
+               if (!removeBtn) {
+                  location.reload();
+               }
+            } else {
+               showMessage(data.error, 'error');
+               // Revertir imagen si hay error
+               location.reload();
+            }
+         })
+         .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error al subir la imagen', 'error');
+            location.reload();
+         })
+         .finally(() => {
+            // Restaurar botón
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-camera"></i> Cambiar Foto';
+         });
+      }
+
+      // Manejar eliminación de avatar
+      if (removeBtn) {
+         removeBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que quieres eliminar tu foto de perfil?')) {
+               removeAvatar();
+            }
+         });
+      }
+
+      // Función para eliminar avatar
+      function removeAvatar() {
+         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+         // Mostrar indicador de carga
+         removeBtn.disabled = true;
+         removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+
+         fetch('{% url "core:remove_avatar" %}', {
+            method: 'POST',
+            headers: {
+               'X-CSRFToken': csrfToken,
+               'Content-Type': 'application/json'
+            }
+         })
+         .then(response => response.json())
+         .then(data => {
+            if (data.success) {
+               showMessage(data.message, 'success');
+               // Recargar página para actualizar UI
+               setTimeout(() => {
+                  location.reload();
+               }, 1000);
+            } else {
+               showMessage(data.error, 'error');
+            }
+         })
+         .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error al eliminar la imagen', 'error');
+         })
+         .finally(() => {
+            // Restaurar botón
+            removeBtn.disabled = false;
+            removeBtn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
+         });
+      }
+
+      // Función para mostrar mensajes
+      function showMessage(message, type) {
+         // Crear elemento de mensaje
+         const messageDiv = document.createElement('div');
+         messageDiv.className = `custom-toast ${type === 'success' ? 'success' : 'error'}`;
+         messageDiv.innerHTML = `
+            <div class="toast-content">
+               <span class="toast-message">${message}</span>
+            </div>
+            <button class="close-toast" type="button">&times;</button>
+         `;
+
+         // Agregar a container de mensajes o crear uno nuevo
+         let container = document.querySelector('.toast-container');
+         if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+         }
+
+         container.appendChild(messageDiv);
+
+         // Auto-cerrar después de 5 segundos
+         setTimeout(() => {
+            messageDiv.remove();
+         }, 5000);
+
+         // Manejar click en botón de cerrar
+         messageDiv.querySelector('.close-toast').addEventListener('click', () => {
+            messageDiv.remove();
          });
       }
 

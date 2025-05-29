@@ -6,9 +6,9 @@
       <div class="welcome-content">
         <div class="welcome-user">
           <div class="avatar">
-            <img src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
-                 alt="Avatar de usuario"
-                 onerror="this.src=&quot;https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&amp;background=8b5cf6&amp;color=fff&amp;size=150&quot;">
+            <img src="{% if user_avatar %}{{ user_avatar }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                 alt="Avatar de {{ user_display_name|default:'Usuario' }}"
+                 onerror="this.src='https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&background=8b5cf6&color=fff&size=150';">
           </div>
           <div>
             <h1 class="welcome-title">

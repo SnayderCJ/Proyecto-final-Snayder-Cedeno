@@ -5,15 +5,19 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.utils.html import format_html
 from django.urls import reverse
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from allauth.socialaccount.models import SocialAccount
 from .forms import (
     SettingsForm, ProfileForm, CustomPasswordChangeForm,
     VerifyCodeForm, SetPasswordForm
 )
-from .models import UserSettings, PasswordSetupToken
+from .models import UserSettings, PasswordSetupToken, UserProfile
 from .utils import send_password_setup_email
 from datetime import datetime
 import unicodedata
+import json
 
 def normalize_text(text):
     """Normaliza el texto para manejar correctamente caracteres especiales"""
@@ -90,6 +94,24 @@ def format_user_name(user):
         # No tiene nombres, usar email
         return user.email.split('@')[0] if user.email else "Usuario"
 
+def get_user_avatar(user):
+    """Función para obtener el avatar del usuario (personalizado o de Google)"""
+    # Primero verificar si tiene avatar personalizado
+    try:
+        profile = UserProfile.objects.get(user=user)
+        if profile.avatar:
+            return profile.avatar.url
+    except UserProfile.DoesNotExist:
+        pass
+    
+    # Si no tiene avatar personalizado, verificar si es usuario de Google
+    google_account = SocialAccount.objects.filter(user=user, provider='google').first()
+    if google_account and 'picture' in google_account.extra_data:
+        return google_account.extra_data['picture']
+    
+    # Si no tiene ningún avatar, retornar None
+    return None
+
 def home(request):
     context = {
         'greeting': get_greeting(),
@@ -103,7 +125,7 @@ def home(request):
         context.update({
             'user_display_name': format_user_name(request.user),
             'is_google_user': bool(google_account),
-            'google_avatar': google_account.extra_data.get('picture') if google_account else None,
+            'user_avatar': get_user_avatar(request.user),
         })
     
     return render(request, 'pages/home.html', context)
@@ -113,6 +135,9 @@ def perfil(request):
     google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
     is_google_user = bool(google_account)
     user_has_password = request.user.has_usable_password()
+    
+    # Obtener o crear perfil del usuario
+    user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     
     # Inicializar formularios
     profile_form = ProfileForm(instance=request.user)
@@ -162,12 +187,98 @@ def perfil(request):
         'user_display_name': format_user_name(request.user),
         'is_google_user': is_google_user,
         'user_has_password': user_has_password,
-        'google_avatar': google_account.extra_data.get('picture') if google_account else None,
+        'user_avatar': get_user_avatar(request.user),
         'profile_form': profile_form,
         'password_form': password_form,
     }
 
     return render(request, 'pages/perfil.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def upload_avatar(request):
+    """Vista para subir foto de perfil vía AJAX"""
+    try:
+        if 'avatar' not in request.FILES:
+            return JsonResponse({
+                'success': False,
+                'error': 'No se seleccionó ningún archivo'
+            })
+        
+        avatar_file = request.FILES['avatar']
+        
+        # Validar tipo de archivo
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+        if avatar_file.content_type not in allowed_types:
+            return JsonResponse({
+                'success': False,
+                'error': 'Tipo de archivo no permitido. Solo se permiten JPG, PNG y GIF.'
+            })
+        
+        # Validar tamaño (5MB máximo)
+        if avatar_file.size > 5 * 1024 * 1024:
+            return JsonResponse({
+                'success': False,
+                'error': 'El archivo es demasiado grande. Máximo 5MB.'
+            })
+        
+        # Obtener o crear perfil del usuario
+        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+        
+        # Actualizar avatar
+        user_profile.avatar = avatar_file
+        user_profile.save()
+        
+        return JsonResponse({
+            'success': True,
+            'avatar_url': user_profile.avatar.url,
+            'message': '¡Foto de perfil actualizada exitosamente!'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al subir la imagen: {str(e)}'
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def remove_avatar(request):
+    """Vista para eliminar foto de perfil"""
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        
+        if user_profile.avatar:
+            # Eliminar archivo físico
+            if user_profile.avatar.path:
+                import os
+                if os.path.isfile(user_profile.avatar.path):
+                    os.remove(user_profile.avatar.path)
+            
+            # Limpiar campo de la base de datos
+            user_profile.avatar = None
+            user_profile.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Foto de perfil eliminada exitosamente'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'No tienes una foto de perfil para eliminar'
+            })
+            
+    except UserProfile.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Perfil no encontrado'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error al eliminar la imagen: {str(e)}'
+        })
 
 @login_required
 def request_password_setup(request):
@@ -207,6 +318,7 @@ def request_password_setup(request):
         'greeting': get_greeting(),
         'current_date': get_formatted_date(),
         'user_display_name': format_user_name(request.user),
+        'user_avatar': get_user_avatar(request.user),
     }
     
     return render(request, 'pages/emails/request_password_setup.html', context)
@@ -214,7 +326,6 @@ def request_password_setup(request):
 @login_required
 def verify_password_code(request):
     """Vista para verificar código de 6 dígitos"""
-    # CORRECCIÓN: Línea 166 - era request.user en lugar de user=request.user
     google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
     
     # Solo usuarios de Google sin contraseña pueden acceder
@@ -250,6 +361,7 @@ def verify_password_code(request):
         'current_date': get_formatted_date(),
         'user_display_name': format_user_name(request.user),
         'user_email': request.user.email,
+        'user_avatar': get_user_avatar(request.user),
     }
     
     return render(request, 'pages/emails/verify_password_code.html', context)
@@ -313,6 +425,7 @@ def set_password(request):
         'greeting': get_greeting(),
         'current_date': get_formatted_date(),
         'user_display_name': format_user_name(request.user),
+        'user_avatar': get_user_avatar(request.user),
         'token': token,
     }
     
@@ -342,6 +455,7 @@ def settings(request):
         'form': form,
         'greeting': get_greeting(),
         'current_date': get_formatted_date(),
+        'user_avatar': get_user_avatar(request.user),
     }
 
     return render(request, 'pages/settings.html', context)

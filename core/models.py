@@ -5,6 +5,17 @@ import random
 import string
 from django.utils import timezone
 from datetime import timedelta
+import os
+from PIL import Image
+
+def user_avatar_path(instance, filename):
+    """Función para generar la ruta donde se guardarán las fotos de perfil"""
+    # Obtener la extensión del archivo
+    ext = filename.split('.')[-1]
+    # Generar nombre único
+    filename = f"avatar_{instance.user.id}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+    # Retornar la ruta completa
+    return f'profile_photos/{filename}'
 
 class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='core_settings')
@@ -17,6 +28,76 @@ class UserSettings(models.Model):
     class Meta:
         verbose_name = "Configuración de Usuario"
         verbose_name_plural = "Configuraciones de Usuario"
+
+class UserProfile(models.Model):
+    """Modelo para información adicional del perfil del usuario"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(
+        upload_to=user_avatar_path,
+        null=True,
+        blank=True,
+        help_text="Foto de perfil del usuario"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Perfil de {self.user.username}"
+    
+    def save(self, *args, **kwargs):
+        # Eliminar foto anterior si existe
+        if self.pk:
+            try:
+                old_avatar = UserProfile.objects.get(pk=self.pk).avatar
+                if old_avatar and old_avatar != self.avatar:
+                    if os.path.isfile(old_avatar.path):
+                        os.remove(old_avatar.path)
+            except UserProfile.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
+        
+        # Redimensionar imagen si es necesario
+        if self.avatar:
+            self.resize_avatar()
+    
+    def resize_avatar(self):
+        """Redimensiona la imagen de perfil a un tamaño estándar"""
+        try:
+            img = Image.open(self.avatar.path)
+            
+            # Convertir a RGB si es necesario
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            
+            # Redimensionar manteniendo proporción
+            max_size = (300, 300)
+            img.thumbnail(max_size, Image.Resampling.LANCZOS)
+            
+            # Guardar imagen redimensionada
+            img.save(self.avatar.path, optimize=True, quality=85)
+            
+        except Exception as e:
+            print(f"Error redimensionando imagen: {e}")
+    
+    def get_avatar_url(self):
+        """Obtiene la URL del avatar del usuario"""
+        if self.avatar:
+            return self.avatar.url
+        return None
+    
+    @classmethod
+    def get_user_avatar(cls, user):
+        """Método estático para obtener el avatar de un usuario"""
+        try:
+            profile = cls.objects.get(user=user)
+            return profile.get_avatar_url()
+        except cls.DoesNotExist:
+            return None
+    
+    class Meta:
+        verbose_name = "Perfil de Usuario"
+        verbose_name_plural = "Perfiles de Usuario"
 
 class PasswordSetupToken(models.Model):
     """Modelo para tokens de establecimiento/cambio de contraseña"""
