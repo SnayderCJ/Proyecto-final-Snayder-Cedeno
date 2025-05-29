@@ -8,14 +8,14 @@ class EventForm(forms.ModelForm):
         model = Event
         fields = ['title', 'description', 'event_type', 'priority', 'start_time', 'end_time', 'due_date', 'is_completed']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Título del evento'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Descripción detallada'}),
-            'event_type': forms.Select(attrs={'class': 'form-select'}),
-            'priority': forms.Select(attrs={'class': 'form-select'}),
-            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'is_completed': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'title': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'Título del evento'}),
+            'description': forms.Textarea(attrs={'class': 'input-field', 'rows': 3, 'placeholder': 'Descripción detallada'}),
+            'event_type': forms.Select(attrs={'class': 'input-field'}),
+            'priority': forms.Select(attrs={'class': 'input-field'}),
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'input-field'}),
+            'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'input-field'}),
+            'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'input-field'}),
+            'is_completed': forms.CheckboxInput(attrs={'class': 'checkbox-field'}),
         }
         labels = {
             'title': 'Título',
