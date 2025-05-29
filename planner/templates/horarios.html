@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load planner_tags %}
+{% load static %}
+
+{% block title %}Horarios{% endblock %}
+
+{% block content %}
+<div class="container mt-4"> {# Añadir container para mejor espaciado #}
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <div class="month-year">
+                <span style="color: #8338ec">{{ current_month_name|capfirst }}</span> {# Mes actual #}
+                <span>{{ current_week_range }}</span> {# Rango de la semana #}
+            </div>
+            <div class="view-toggle">
+                <button class="toggle-btn">Optimizar Horario</button> {# Esto será para el Módulo 3 #}
+                <a href="{% url 'planner:event_create' %}" class="toggle-btn active">Agregar Tareas</a> {# Enlace para agregar #}
+            </div>
+        </div>
+
+        <div class="calendar-grid">
+            <div class="time-column">
+                <div class="day-header"></div> {# Celda vacía para la esquina #}
+                {% for hour_slot in time_slots %}
+                    <div class="time-slot">{{ hour_slot }}</div>
+                {% endfor %}
+            </div>
+
+            {% for day_data in week_days_data %}
+            <div class="day-column {% if day_data.is_today %}today{% endif %}">
+                <div class="day-header">
+                    <div>{{ day_data.day_num }}</div>
+                    <div style="font-size: 12px; color: {% if not day_data.is_today %}#6a6a7a{% else %}#8338ec{% endif %}">{{ day_data.day_name_short|capfirst }}</div>
+                </div>
+
+                {# Iterar sobre los eventos de este día #}
+                {% for event in events_by_day|get_item:day_data.date.weekday %}
+                <a href="{% url 'planner:event_detail' event.id %}" class="event {{ event.css_class }}" style="{{ event.style }}">
+                    <div class="event-title">{{ event.title }}</div>
+                    <div class="event-time">{{ event.start_time|date:"H:i" }}</div>
+                    {% if event.description %}
+                        <div style="margin-top: 5px; font-size: 11px">{{ event.description|truncatechars:30 }}</div>
+                    {% endif %}
+                    {% if event.is_completed %}
+                        <span class="badge bg-success position-absolute top-0 end-0 m-1">✓</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="categories mt-4"> {# Añadir margen superior #}
+            <div class="category">
+                <div class="category-dot event-task"></div>
+                <span>Tareas/Estudio</span>
+            </div>
+            <div class="category">
+                <div class="category-dot event-class"></div>
+                <span>Clases/Académico</span>
+            </div>
+            <div class="category">
+                <div class="category-dot event-break"></div>
+                <span>Descansos</span>
+            </div>
+            <div class="category">
+                <div class="category-dot event-personal"></div>
+                <span>Personal</span>
+            </div>
+            <div class="category">
+                <div class="category-dot event-other"></div>
+                <span>Otro</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

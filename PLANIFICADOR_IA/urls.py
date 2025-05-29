@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('allauth/', include('allauth.urls')),  # URLs de allauth
+    path('planner/', include('planner.urls', namespace='planner')),
 ]
