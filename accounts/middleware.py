@@ -9,6 +9,12 @@ class CleanSocialLoginMessagesMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # PROCESAR ANTES DE LA VISTA - Verificar mensaje de conexión social
+        if request.user.is_authenticated and 'social_connect_message' in request.session:
+            connect_msg = request.session['social_connect_message']
+            messages.success(request, connect_msg)
+            del request.session['social_connect_message']
+        
         response = self.get_response(request)
         
         # Si el usuario está autenticado, limpiar mensajes de allauth
@@ -16,6 +22,23 @@ class CleanSocialLoginMessagesMiddleware:
             # Obtener todos los mensajes
             storage = messages.get_messages(request)
             messages_list = list(storage)
+            
+            # VERIFICAR SI YA HAY UN MENSAJE DE REGISTRO/LOGIN MANUAL
+            has_manual_message = False
+            for message in messages_list:
+                message_text = str(message.message).lower()
+                if any(phrase in message_text for phrase in [
+                    'tu cuenta ha sido creada',
+                    'bienvenido de nuevo',
+                    'cuenta creada con éxito',
+                    'perfecto! hemos conectado'
+                ]):
+                    has_manual_message = True
+                    break
+            
+            # SI YA HAY MENSAJE MANUAL, NO INTERFERIR
+            if has_manual_message:
+                return response
             
             # Buscar mensajes de allauth que queremos reemplazar
             has_allauth_message = False
@@ -39,14 +62,22 @@ class CleanSocialLoginMessagesMiddleware:
                 # Agregar nuestro mensaje personalizado
                 display_name = self.format_user_name(request.user)
                 
-                # Determinar si es registro o login
+                # Determinar si es registro o login por tiempo
                 from django.utils import timezone
                 import datetime
                 
                 if (timezone.now() - request.user.date_joined) < datetime.timedelta(seconds=30):
-                    messages.success(request, format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name))
+                    # USAR format_html PARA RENDERIZAR HTML CORRECTAMENTE
+                    messages.success(
+                        request, 
+                        format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name)
+                    )
                 else:
-                    messages.success(request, format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name))
+                    # USAR format_html PARA RENDERIZAR HTML CORRECTAMENTE
+                    messages.success(
+                        request, 
+                        format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name)
+                    )
         
         return response
     

@@ -12,27 +12,26 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from django.contrib.messages import constants as messages
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
-
+# Cargar variables de entorno
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0_t8o-5_g%y@lw9hme6(wl_@h_rer!bko)=5-m&e=oy7x0!xqx'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if not DEBUG else []
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -78,13 +77,13 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.user_context',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'PLANIFICADOR_IA.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -98,6 +97,14 @@ DATABASES = {
 
 # Asegurar codificación por defecto
 DEFAULT_CHARSET = 'utf-8'
+
+# Configuración de archivos multimedia (agregar al final del archivo)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuración de Pillow para imágenes
+ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif']
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5MB
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -117,18 +124,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'es-ec'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -142,7 +144,6 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 MESSAGE_TAGS = {
     messages.DEBUG: 'debug',
     messages.INFO: 'info',
@@ -153,7 +154,6 @@ MESSAGE_TAGS = {
 
 LOGIN_REDIRECT_URL = '/'
 
-
 # Configuración de Django Allauth
 SITE_ID = 1
 
@@ -162,18 +162,28 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',  # Allauth
 ]
 
+# ===== CONFIGURACIÓN ACTUALIZADA DE ALLAUTH =====
+
+# Adaptadores personalizados
+ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
+
 # Configuración de cuentas
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # Cambiado de SOCIALACCOUNT_EMAIL_VERIFICATION
+ACCOUNT_UNIQUE_EMAIL = True  # AGREGADO - Email debe ser único
 
-# Configuración para ir directo a Google sin página intermedia
-SOCIALACCOUNT_LOGIN_ON_GET = True  # Esta es la clave principal
+# Configuración de cuentas sociales
 SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_AUTO_SIGNUP = True  # Registro automático
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_STORE_TOKENS = False
+
+# CONFIGURACIÓN PARA LOGIN DIRECTO CON GOOGLE
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Regresamos a True para login directo
 
 # Deshabilitar mensajes automáticos de allauth
 ACCOUNT_MESSAGES_ENABLED = False  # Deshabilitar TODOS los mensajes de account
@@ -195,8 +205,19 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'OAUTH_PKCE_ENABLED': True,
         'VERIFIED_EMAIL': True,
+        'FETCH_USERINFO': True,  # AGREGADO - Permite extraer información del perfil
     }
 }
 
-# Adaptador personalizado para las URLs de callback y procesamiento de nombres
-SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
+# CONFIGURACIÓN DE EMAIL
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# Configuración del sitio
+SITE_NAME = os.getenv('SITE_NAME', 'Planificador IA')
