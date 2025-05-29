@@ -141,29 +141,41 @@ def perfil(request):
     # Obtener o crear perfil del usuario
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     
-    # Inicializar formularios
-    profile_form = ProfileForm(instance=request.user)
+    # Inicializar formularios - IMPORTANTE: pasar is_google_user al formulario
+    profile_form = ProfileForm(instance=request.user, is_google_user=is_google_user)
     password_form = CustomPasswordChangeForm(request.user) if user_has_password else None
     
     # Procesamiento de formularios
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
         
-        if form_type == 'profile' and not is_google_user:
-            profile_form = ProfileForm(request.POST, instance=request.user)
-            if profile_form.is_valid():
-                profile_form.save()
-                # Actualizar el username con el nuevo email
-                request.user.username = request.user.email
-                request.user.save()
-                messages.success(request, format_html("¡Tu información personal ha sido actualizada exitosamente!"))
-                return redirect('core:perfil')
+        if form_type == 'profile':
+            # Pasar is_google_user también al procesar el POST
+            profile_form = ProfileForm(request.POST, instance=request.user, is_google_user=is_google_user)
+            
+            # Solo procesar si no es usuario de Google
+            if not is_google_user:
+                if profile_form.is_valid():
+                    # Guardar cambios
+                    user = profile_form.save()
+                    # Actualizar el username con el nuevo email si cambió
+                    if user.email != user.username:
+                        user.username = user.email
+                        user.save()
+                    
+                    messages.success(request, format_html("¡Tu información personal ha sido actualizada exitosamente!"))
+                    return redirect('core:perfil')
+                else:
+                    # Mostrar errores específicos
+                    for field, errors in profile_form.errors.items():
+                        for error in errors:
+                            if field == '__all__':
+                                messages.error(request, error)
+                            else:
+                                field_label = profile_form.fields[field].label if field in profile_form.fields else field.replace('_', ' ').title()
+                                messages.error(request, f"{field_label}: {error}")
             else:
-                # Mostrar errores específicos
-                for field, errors in profile_form.errors.items():
-                    for error in errors:
-                        field_label = profile_form.fields[field].label if field in profile_form.fields else field.replace('_', ' ').title()
-                        messages.error(request, f"{field_label}: {error}")
+                messages.warning(request, "No puedes modificar tu información personal porque iniciaste sesión con Google.")
         
         elif form_type == 'password' and user_has_password:
             password_form = CustomPasswordChangeForm(request.user, request.POST)
