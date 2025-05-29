@@ -10,14 +10,14 @@ User = get_user_model()
 
 class SettingsForm(forms.Form):
     language = forms.ChoiceField(
-        label="Idioma",
+        label="Idiomas (Más próximamente)",
         choices=[
             ('es', 'Español'),
         ],
         widget=forms.Select(attrs={'class': 'input-field'})
     )
     timezone = forms.ChoiceField(
-        label="Zona Horaria",
+        label="Zona Horaria (Más próximamente)",
         choices=[
             ('America/Guayaquil', 'Ecuador (GMT-5)'),
             ('America/Lima', 'Perú (GMT-5)'),
