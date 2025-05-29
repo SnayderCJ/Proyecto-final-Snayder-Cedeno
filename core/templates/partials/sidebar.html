@@ -14,8 +14,10 @@
             </a>
         </div>
         <div class="menu-item">
-            <i class="fa-solid fa-calendar"></i>
-            <span>Horarios</span>
+            <a href="{% url 'planner:horarios' %}">
+                <i class="fa-solid fa-calendar"></i>
+                <span>Horarios</span>
+            </a>
         </div>
         <div class="menu-item">
             <i class="fa-solid fa-list-check"></i>
@@ -38,8 +40,10 @@
             </a>
         </div>
         <div class="menu-item">
-            <i class="fa-solid fa-gear"></i>
-            <span>Configuración</span>
+            <a href="{% url 'core:settings' %}">
+                <i class="fa-solid fa-gear"></i>
+                <span>Configuración</span>
+            </a>
         </div>
 
         <div class="menu-item"> 

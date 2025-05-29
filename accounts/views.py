@@ -1,11 +1,22 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
-from .forms import CustomAuthenticationForm, CustomUserCreationForm
+from .forms import (
+    CustomAuthenticationForm, CustomUserCreationForm,
+    PasswordResetRequestForm, PasswordResetVerifyForm, PasswordResetForm
+)
 from allauth.socialaccount.models import SocialApp
 from django.utils.html import format_html
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+
+# IMPORTACIONES CENTRALIZADAS
+from core.models import PasswordSetupToken
+from core.utils import send_password_reset_email
 
 import unicodedata
+
+User = get_user_model()
 
 def normalize_text(text):
     """Normaliza el texto para manejar correctamente caracteres especiales"""
@@ -54,25 +65,6 @@ def format_user_name(user):
         # No tiene nombres, usar email
         return user.email.split('@')[0] if user.email else "Usuario"
 
-def process_full_name(full_name):
-    """Procesa el nombre completo y lo divide en first_name y last_name"""
-    if not full_name:
-        return "", ""
-    
-    names = full_name.strip().split()
-    if len(names) == 1:
-        return names[0].title(), ""
-    elif len(names) == 2:
-        return names[0].title(), names[1].title()
-    elif len(names) >= 3:
-        # Si hay 3 o más nombres, asumimos que los primeros son nombres y los últimos apellidos
-        middle_point = len(names) // 2
-        first_names = " ".join(names[:middle_point])
-        last_names = " ".join(names[middle_point:])
-        return first_names.title(), last_names.title()
-    
-    return "", ""
-
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("core:home")
@@ -82,11 +74,24 @@ def login_view(request):
     if request.method == "POST":
         if form.is_valid():
             user = form.get_user()
+            
+            # Implementar "Recordarme"
+            remember_me = request.POST.get('remember')
+            if remember_me:
+                request.session.set_expiry(1209600)  # 2 semanas
+            else:
+                request.session.set_expiry(0)  # Se cierra al cerrar navegador
+            
+            # HACER LOGIN PRIMERO
             login(request, user)
             
-            # Formatear el nombre para el mensaje
+            # USAR format_html PARA RENDERIZAR CORRECTAMENTE
             display_name = format_user_name(user)
-            messages.success(request, format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name))
+            messages.success(
+                request, 
+                format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name)
+            )
+            
             return redirect("core:home")
         else:
             # Errores generales
@@ -115,13 +120,29 @@ def register_view(request):
         if form.is_valid():
             try:
                 user = form.save()
-                login(request, user)
                 
-                # Formatear el nombre para el mensaje
-                display_name = format_user_name(user)
-                messages.success(request, format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name))
-                return redirect("core:home")
-            except Exception as e:
+                # Autenticar automáticamente después del registro
+                authenticated_user = authenticate(
+                    username=user.email, 
+                    password=form.cleaned_data['password1']
+                )
+                
+                if authenticated_user:
+                    # HACER LOGIN PRIMERO
+                    login(request, authenticated_user)
+                    
+                    # USAR format_html PARA RENDERIZAR CORRECTAMENTE
+                    display_name = format_user_name(authenticated_user)
+                    messages.success(
+                        request, 
+                        format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name)
+                    )
+                    
+                    return redirect("core:home")
+                else:
+                    messages.error(request, "Cuenta creada exitosamente, pero hubo un problema al iniciar sesión automáticamente.")
+                    return redirect("accounts:login")
+            except Exception:
                 messages.error(request, "Hubo un error al crear tu cuenta. Por favor intenta de nuevo.")
         else:
             # Mostrar errores específicos de validación
@@ -142,11 +163,164 @@ def register_view(request):
     }
     return render(request, "register.html", context)
 
+# ===== NUEVAS VISTAS PARA RECUPERACIÓN DE CONTRASEÑA =====
+
+def password_reset_request(request):
+    """Vista para solicitar recuperación de contraseña"""
+    if request.user.is_authenticated:
+        return redirect("core:home")
+    
+    form = PasswordResetRequestForm()
+    
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            # Obtener el email del formulario y buscar el usuario
+            email = form.cleaned_data['email']
+            user = User.objects.filter(email=email).first()
+            if not user:
+                messages.error(request, "No existe una cuenta asociada a ese correo electrónico.")
+                return render(request, 'emails/password_reset_request.html', {'form': form})
+
+            # Invalidar tokens anteriores del usuario
+            PasswordSetupToken.objects.filter(
+                user=user,
+                token_type='reset_password',
+                is_used=False
+            ).update(is_used=True)
+            
+            # Crear nuevo token
+            token = PasswordSetupToken.objects.create(
+                user=user,
+                token_type='reset_password'
+            )
+            
+            # Enviar email
+            if send_password_reset_email(user, token):
+                messages.success(request, format_html(
+                    "¡Código enviado! Revisa tu correo <strong>{}</strong> y ingresa el código de 6 dígitos.",
+                    email
+                ))
+                # Guardar email en sesión para el siguiente paso
+                request.session['reset_email'] = email
+                return redirect('accounts:password_reset_verify')
+            else:
+                messages.error(request, "Hubo un error enviando el código. Por favor intenta de nuevo.")
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'emails/password_reset_request.html', context)
+
+def password_reset_verify(request):
+    """Vista para verificar código de recuperación"""
+    if request.user.is_authenticated:
+        return redirect("core:home")
+    
+    # Verificar que tengamos el email en sesión
+    if 'reset_email' not in request.session:
+        messages.error(request, "Sesión expirada. Solicita un nuevo código.")
+        return redirect('accounts:password_reset_request')
+    
+    email = request.session['reset_email']
+    user = get_object_or_404(User, email=email)
+    form = PasswordResetVerifyForm(user=user)
+    
+    if request.method == 'POST':
+        form = PasswordResetVerifyForm(user=user, data=request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            
+            # Buscar y validar token
+            token = PasswordSetupToken.objects.filter(
+                user=user,
+                token=code,
+                token_type='reset_password'
+            ).first()
+            
+            if token and token.is_valid():
+                # Guardar token en sesión para el siguiente paso
+                request.session['verified_reset_token_id'] = token.id
+                messages.success(request, "¡Código verificado correctamente! Ahora establece tu nueva contraseña.")
+                return redirect('accounts:password_reset_confirm')
+            else:
+                messages.error(request, "El código es inválido o ha expirado.")
+    
+    context = {
+        'form': form,
+        'user_email': email,
+    }
+    return render(request, 'emails/password_reset_verify.html', context)
+
+def password_reset_confirm(request):
+    """Vista para establecer nueva contraseña"""
+    if request.user.is_authenticated:
+        return redirect("core:home")
+    
+    # Verificar permisos y token en sesión
+    if ('reset_email' not in request.session or 
+        'verified_reset_token_id' not in request.session):
+        messages.error(request, "Sesión expirada. Solicita un nuevo código.")
+        return redirect('accounts:password_reset_request')
+    
+    # Verificar que el token siga siendo válido
+    token = get_object_or_404(
+        PasswordSetupToken,
+        id=request.session['verified_reset_token_id'],
+        token_type='reset_password'
+    )
+    
+    if not token.is_valid():
+        # Limpiar sesión
+        if 'reset_email' in request.session:
+            del request.session['reset_email']
+        if 'verified_reset_token_id' in request.session:
+            del request.session['verified_reset_token_id']
+        messages.error(request, "El código ha expirado. Solicita uno nuevo.")
+        return redirect('accounts:password_reset_request')
+    
+    form = PasswordResetForm()
+    
+    if request.method == 'POST':
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            # Establecer la nueva contraseña
+            user = token.user
+            user.set_password(form.cleaned_data['new_password1'])
+            user.save()
+            
+            # Marcar token como usado
+            token.mark_as_used()
+            
+            # Limpiar sesión
+            if 'reset_email' in request.session:
+                del request.session['reset_email']
+            if 'verified_reset_token_id' in request.session:
+                del request.session['verified_reset_token_id']
+            
+            messages.success(request, format_html(
+                "¡Contraseña cambiada exitosamente! Ya puedes iniciar sesión con tu nueva contraseña."
+            ))
+            return redirect('accounts:login')
+        else:
+            # Mostrar errores específicos
+            for field, errors in form.errors.items():
+                for error in errors:
+                    field_label = form.fields[field].label if field in form.fields else field.replace('_', ' ').title()
+                    messages.error(request, f"{field_label}: {error}")
+    
+    context = {
+        'form': form,
+        'token': token,
+    }
+    return render(request, 'emails/password_reset_confirm.html', context)
+
 def social_login_cancelled(request):
     """Vista personalizada para cuando se cancela el login social"""
     messages.info(request, "Has cancelado el inicio de sesión con Google.")
-    return render(request, "login_cancelled.html")  # Quitar "accounts/"
+    return render(request, "login_cancelled.html")
 
+@login_required
 def signout(request):
     logout(request)
     messages.info(request, "Has cerrado sesión correctamente.")

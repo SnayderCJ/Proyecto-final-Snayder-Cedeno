@@ -1,10 +1,20 @@
 {% if messages %}
-        <div class="toast-container">
-        {% for message in messages %}
-        <div class="custom-toast {{ message.tags }}">
-            <span>{{ message }}</span>
-            <button class="close-toast" onclick="this.parentElement.style.display='none';">&times;</button>
+<div class="toast-container" aria-live="polite" aria-label="Notificaciones">
+    {% for message in messages %}
+    <div class="custom-toast {{ message.tags }}" 
+         role="alert" 
+         aria-atomic="true"
+         data-message-id="{{ forloop.counter }}">
+        <div class="toast-content">
+            <span class="toast-message">{{ message|safe }}</span>
         </div>
-        {% endfor %}
-        </div>
-        {% endif %}
+        <button class="close-toast" 
+                type="button"
+                aria-label="Cerrar notificación"
+                title="Cerrar">
+            &times;
+        </button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
