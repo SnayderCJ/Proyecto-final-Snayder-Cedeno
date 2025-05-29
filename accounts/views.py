@@ -82,11 +82,16 @@ def login_view(request):
             else:
                 request.session.set_expiry(0)  # Se cierra al cerrar navegador
             
+            # HACER LOGIN PRIMERO
             login(request, user)
             
-            # Formatear el nombre para el mensaje
+            # USAR format_html PARA RENDERIZAR CORRECTAMENTE
             display_name = format_user_name(user)
-            messages.success(request, format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name))
+            messages.success(
+                request, 
+                format_html("¡Bienvenido de nuevo, <strong>{}</strong>!", display_name)
+            )
+            
             return redirect("core:home")
         else:
             # Errores generales
@@ -115,22 +120,29 @@ def register_view(request):
         if form.is_valid():
             try:
                 user = form.save()
+                
                 # Autenticar automáticamente después del registro
                 authenticated_user = authenticate(
                     username=user.email, 
                     password=form.cleaned_data['password1']
                 )
+                
                 if authenticated_user:
+                    # HACER LOGIN PRIMERO
                     login(request, authenticated_user)
-                    # Formatear el nombre para el mensaje
+                    
+                    # USAR format_html PARA RENDERIZAR CORRECTAMENTE
                     display_name = format_user_name(authenticated_user)
-                    messages.success(request, format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name))
+                    messages.success(
+                        request, 
+                        format_html("¡Tu cuenta ha sido creada con éxito! Bienvenido, <strong>{}</strong>!", display_name)
+                    )
+                    
                     return redirect("core:home")
                 else:
                     messages.error(request, "Cuenta creada exitosamente, pero hubo un problema al iniciar sesión automáticamente.")
                     return redirect("accounts:login")
-            except Exception as e:
-                print(f"Error en registro: {e}")  # Para debugging
+            except Exception:
                 messages.error(request, "Hubo un error al crear tu cuenta. Por favor intenta de nuevo.")
         else:
             # Mostrar errores específicos de validación
