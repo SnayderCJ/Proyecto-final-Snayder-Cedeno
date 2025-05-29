@@ -13,9 +13,8 @@ class SettingsForm(forms.Form):
         label="Idioma",
         choices=[
             ('es', 'Español'),
-            ('en', 'English'),
         ],
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={'class': 'input-field'})
     )
     timezone = forms.ChoiceField(
         label="Zona Horaria",
@@ -25,7 +24,7 @@ class SettingsForm(forms.Form):
             ('America/Bogota', 'Colombia (GMT-5)'),
             ('America/Mexico_City', 'México (GMT-6)'),
         ],
-        widget=forms.Select(attrs={'class': 'form-select'})
+        widget=forms.Select(attrs={'class': 'input-field'})
     )
 
 class ProfileForm(forms.ModelForm):

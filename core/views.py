@@ -19,6 +19,25 @@ from datetime import datetime
 import unicodedata
 import json
 
+@login_required
+def home(request):
+    context = {
+        'greeting': get_greeting(),
+        'current_date': get_formatted_date(),
+    }
+    
+    # Agregar información del usuario y Google si está autenticado
+    if request.user.is_authenticated:
+        google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
+        
+        context.update({
+            'user_display_name': format_user_name(request.user),
+            'is_google_user': bool(google_account),
+            'user_avatar': get_user_avatar(request.user),
+        })
+    
+    return render(request, 'pages/home.html', context)
+
 def normalize_text(text):
     """Normaliza el texto para manejar correctamente caracteres especiales"""
     if not text:
@@ -112,23 +131,6 @@ def get_user_avatar(user):
     # Si no tiene ningún avatar, retornar None
     return None
 
-def home(request):
-    context = {
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
-    }
-    
-    # Agregar información del usuario y Google si está autenticado
-    if request.user.is_authenticated:
-        google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
-        
-        context.update({
-            'user_display_name': format_user_name(request.user),
-            'is_google_user': bool(google_account),
-            'user_avatar': get_user_avatar(request.user),
-        })
-    
-    return render(request, 'pages/home.html', context)
 
 @login_required
 def perfil(request):
