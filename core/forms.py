@@ -53,56 +53,140 @@ class ProfileForm(forms.ModelForm):
             'email': 'Correo Electrónico',
         }
 
+    def __init__(self, *args, **kwargs):
+        self.is_google_user = kwargs.pop('is_google_user', False)
+        super().__init__(*args, **kwargs)
+        
+        # Si es usuario de Google, marcar campos como de solo lectura
+        if self.is_google_user:
+            self.fields['first_name'].widget.attrs['readonly'] = True
+            self.fields['last_name'].widget.attrs['readonly'] = True
+            self.fields['email'].widget.attrs['readonly'] = True
+            
+            # Agregar clases CSS adicionales para indicar que está deshabilitado
+            for field_name in ['first_name', 'last_name', 'email']:
+                current_class = self.fields[field_name].widget.attrs.get('class', '')
+                self.fields[field_name].widget.attrs['class'] = f"{current_class} disabled-field"
+
     def clean_email(self):
         """Validar que el email no esté en uso por otro usuario"""
+        # Si es usuario de Google, no validar cambios (no debería poder cambiarlos)
+        if self.is_google_user:
+            return self.instance.email
+            
         email = self.cleaned_data.get('email', '').lower().strip()
         
         if not email:
             raise ValidationError("El correo electrónico es obligatorio.")
         
-        # Verificar formato básico
-        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        # Verificar formato básico con regex más robusto
+        email_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
             raise ValidationError("Ingresa una dirección de correo electrónico válida.")
         
+        # Verificar longitud
+        if len(email) > 254:  # RFC 5321 estándar
+            raise ValidationError("El correo electrónico es demasiado largo.")
+        
+        # Verificar que la parte local no sea muy larga
+        local_part = email.split('@')[0]
+        if len(local_part) > 64:  # RFC 5321 estándar
+            raise ValidationError("La parte local del correo electrónico es demasiado larga.")
+        
         # Verificar que no exista ya (excluyendo el usuario actual)
-        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+        existing_user = User.objects.filter(email=email).exclude(pk=self.instance.pk).first()
+        if existing_user:
             raise ValidationError("Ya existe una cuenta con este correo electrónico.")
+        
+        # Verificar dominios bloqueados o sospechosos (opcional)
+        blocked_domains = [
+            '10minutemail.com', 'temp-mail.org', 'guerrillamail.com',
+            'mailinator.com', 'throwaway.email', 'tempmail.edu.vn'
+        ]
+        domain = email.split('@')[1].lower()
+        if domain in blocked_domains:
+            raise ValidationError("Este dominio de correo no está permitido.")
         
         return email
 
     def clean_first_name(self):
         """Validar el nombre"""
+        # Si es usuario de Google, no validar cambios
+        if self.is_google_user:
+            return self.instance.first_name
+            
         first_name = self.cleaned_data.get('first_name', '').strip()
         
         if not first_name:
             raise ValidationError("El nombre es obligatorio.")
         
-        # Verificar que solo contenga letras, espacios y algunos caracteres especiales
-        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\'\.]+$', first_name):
-            raise ValidationError("El nombre solo puede contener letras, espacios, guiones y apostrofes.")
-        
-        # Verificar longitud
+        # Verificar longitud mínima y máxima
         if len(first_name) < 2:
             raise ValidationError("El nombre debe tener al menos 2 caracteres.")
+        
+        if len(first_name) > 50:
+            raise ValidationError("El nombre no debe exceder 50 caracteres.")
+        
+        # Verificar que solo contenga letras, espacios y algunos caracteres especiales
+        name_pattern = r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\'\.]+$'
+        if not re.match(name_pattern, first_name):
+            raise ValidationError("El nombre solo puede contener letras, espacios, guiones y apostrofes.")
+        
+        # Verificar que no tenga solo espacios o caracteres especiales
+        if not re.search(r'[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]', first_name):
+            raise ValidationError("El nombre debe contener al menos una letra.")
+        
+        # Verificar que no tenga múltiples espacios consecutivos
+        if '  ' in first_name:
+            raise ValidationError("El nombre no puede tener espacios consecutivos.")
         
         return first_name.title()
 
     def clean_last_name(self):
         """Validar el apellido"""
+        # Si es usuario de Google, no validar cambios
+        if self.is_google_user:
+            return self.instance.last_name
+            
         last_name = self.cleaned_data.get('last_name', '').strip()
         
         if not last_name:
             raise ValidationError("El apellido es obligatorio.")
         
-        # Verificar que solo contenga letras, espacios y algunos caracteres especiales
-        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\-\'\.]+$', last_name):
-            raise ValidationError("El apellido solo puede contener letras, espacios, guiones y apostrofes.")
-        
-        # Verificar longitud
+        # Verificar longitud mínima y máxima
         if len(last_name) < 2:
             raise ValidationError("El apellido debe tener al menos 2 caracteres.")
         
+        if len(last_name) > 50:
+            raise ValidationError("El apellido no debe exceder 50 caracteres.")
+        
+        # Verificar que solo contenga letras, espacios y algunos caracteres especiales
+        name_pattern = r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-\'\.]+$'
+        if not re.match(name_pattern, last_name):
+            raise ValidationError("El apellido solo puede contener letras, espacios, guiones y apostrofes.")
+        
+        # Verificar que no tenga solo espacios o caracteres especiales
+        if not re.search(r'[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]', last_name):
+            raise ValidationError("El apellido debe contener al menos una letra.")
+        
+        # Verificar que no tenga múltiples espacios consecutivos
+        if '  ' in last_name:
+            raise ValidationError("El apellido no puede tener espacios consecutivos.")
+        
         return last_name.title()
+
+    def clean(self):
+        """Validación general del formulario"""
+        cleaned_data = super().clean()
+        
+        # Si es usuario de Google, no permitir cambios
+        if self.is_google_user:
+            # Restaurar valores originales para usuarios de Google
+            cleaned_data['first_name'] = self.instance.first_name
+            cleaned_data['last_name'] = self.instance.last_name
+            cleaned_data['email'] = self.instance.email
+        
+        return cleaned_data
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     """Formulario personalizado para cambio de contraseña"""
@@ -137,9 +221,12 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         if not password1:
             raise ValidationError("La nueva contraseña es obligatoria.")
         
-        # Longitud mínima
+        # Longitud mínima y máxima
         if len(password1) < 8:
             raise ValidationError("La contraseña debe tener al menos 8 caracteres.")
+        
+        if len(password1) > 128:
+            raise ValidationError("La contraseña no debe exceder 128 caracteres.")
         
         # Al menos una mayúscula
         if not re.search(r'[A-Z]', password1):
@@ -153,9 +240,16 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         if not re.search(r'\d', password1):
             raise ValidationError("La contraseña debe contener al menos un número.")
         
+        # Opcional: al menos un carácter especial
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password1):
+            raise ValidationError("La contraseña debe contener al menos un carácter especial (!@#$%^&*(),.?\":{}|<>).")
+        
         # No puede ser muy común
-        common_passwords = ['12345678', 'password', 'contraseña', 'qwerty123', '87654321']
-        if password1.lower() in common_passwords:
+        common_passwords = [
+            '12345678', 'password', 'contraseña', 'qwerty123', '87654321',
+            'password123', 'admin123', '123456789', 'Password1', 'Qwerty123'
+        ]
+        if password1.lower() in [p.lower() for p in common_passwords]:
             raise ValidationError("Esta contraseña es muy común. Por favor elige una más segura.")
         
         # No puede ser igual a la contraseña actual
@@ -237,7 +331,7 @@ class SetPasswordForm(forms.Form):
             'class': 'input-field',
             'placeholder': '••••••••',
         }),
-        help_text="La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas y números.",
+        help_text="La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales.",
     )
     new_password2 = forms.CharField(
         label="Confirmar Nueva Contraseña",
@@ -254,9 +348,12 @@ class SetPasswordForm(forms.Form):
         if not password1:
             raise ValidationError("La nueva contraseña es obligatoria.")
         
-        # Longitud mínima
+        # Longitud mínima y máxima
         if len(password1) < 8:
             raise ValidationError("La contraseña debe tener al menos 8 caracteres.")
+        
+        if len(password1) > 128:
+            raise ValidationError("La contraseña no debe exceder 128 caracteres.")
         
         # Al menos una mayúscula
         if not re.search(r'[A-Z]', password1):
@@ -270,9 +367,16 @@ class SetPasswordForm(forms.Form):
         if not re.search(r'\d', password1):
             raise ValidationError("La contraseña debe contener al menos un número.")
         
+        # Al menos un carácter especial
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password1):
+            raise ValidationError("La contraseña debe contener al menos un carácter especial (!@#$%^&*(),.?\":{}|<>).")
+        
         # No puede ser muy común
-        common_passwords = ['12345678', 'password', 'contraseña', 'qwerty123', '87654321']
-        if password1.lower() in common_passwords:
+        common_passwords = [
+            '12345678', 'password', 'contraseña', 'qwerty123', '87654321',
+            'password123', 'admin123', '123456789', 'Password1', 'Qwerty123'
+        ]
+        if password1.lower() in [p.lower() for p in common_passwords]:
             raise ValidationError("Esta contraseña es muy común. Por favor elige una más segura.")
         
         return password1
