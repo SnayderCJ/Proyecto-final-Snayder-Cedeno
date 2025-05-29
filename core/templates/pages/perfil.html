@@ -3,107 +3,470 @@
 
 {% block content %}
 
+   <!-- Sección de Información Personal -->
    <div class="card">
-   <div class="card-header">
-      <div class="card-title">Información Personal</div>
-      <div class="status-indicator">•</div>
+      <div class="card-header">
+         <div class="card-title">Información Personal</div>
+         <div class="status-indicator">•</div>
+      </div>
+
+      <!-- Sección de foto de perfil -->
+      <div class="photo-upload-container">
+         <div class="profile-photo">
+            <img id="profileImage"
+                 src="{% if user_avatar %}{{ user_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
+                 alt="Foto de perfil">
+            <label for="fileInput" class="photo-upload-icon"></label>
+         </div>
+         <input type="file" id="fileInput" accept="image/*" style="display: none;">
+         <div class="photo-buttons">
+            <button type="button" class="upload-btn" id="uploadBtn">
+               <i class="fas fa-camera"></i> Cambiar Foto
+            </button>
+            {% if user_avatar %}
+            <button type="button" class="remove-btn" id="removeBtn">
+               <i class="fas fa-trash"></i> Eliminar
+            </button>
+            {% endif %}
+         </div>
+      </div>
+
+      <!-- Formulario de información personal -->
+      <form method="post" id="profileForm">
+         {% csrf_token %}
+         <input type="hidden" name="form_type" value="profile">
+         
+         <div class="input-group">
+            <div class="input-label">{{ profile_form.first_name.label }}</div>
+            {% if is_google_user %}
+               <input type="text" class="input-field" 
+                      value="{{ request.user.first_name }}" 
+                      disabled>
+               <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                  Este campo no se puede editar porque iniciaste sesión con Google
+               </small>
+            {% else %}
+               {{ profile_form.first_name }}
+               {% for error in profile_form.first_name.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            {% endif %}
+         </div>
+
+         <div class="input-group">
+            <div class="input-label">{{ profile_form.last_name.label }}</div>
+            {% if is_google_user %}
+               <input type="text" class="input-field" 
+                      value="{{ request.user.last_name }}" 
+                      disabled>
+               <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                  Este campo no se puede editar porque iniciaste sesión con Google
+               </small>
+            {% else %}
+               {{ profile_form.last_name }}
+               {% for error in profile_form.last_name.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            {% endif %}
+         </div>
+
+         <div class="input-group">
+            <div class="input-label">{{ profile_form.email.label }}</div>
+            {% if is_google_user %}
+               <input type="email" class="input-field" 
+                      value="{{ request.user.email }}" 
+                      disabled>
+               <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                  Este campo no se puede editar porque iniciaste sesión con Google
+               </small>
+            {% else %}
+               {{ profile_form.email }}
+               {% for error in profile_form.email.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            {% endif %}
+         </div>
+
+         {% if not is_google_user %}
+         <div class="button-group">
+            <button type="button" class="btn btn-cancel">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+         </div>
+         {% endif %}
+      </form>
    </div>
 
-   <!-- Sección de foto de perfil -->
-   <div class="photo-upload-container">
-      <div class="profile-photo">
-         <img id="profileImage"
-              src="{% if is_google_user and google_avatar %}{{ google_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
-              alt="Foto de perfil">
-         {% if not is_google_user %}
-           <label for="fileInput" class="photo-upload-icon"></label>
-         {% endif %}
+   <!-- Sección de Seguridad -->
+   <div class="card">
+      <div class="card-header">
+         <div class="card-title">Seguridad</div>
+         <div class="status-indicator">•</div>
       </div>
-      {% if not is_google_user %}
-        <input type="file" id="fileInput" accept="image/*">
-        <button class="upload-btn">Cambiar Foto de Perfil</button>
+
+      {% if is_google_user and not user_has_password %}
+         <!-- Usuario de Google sin contraseña establecida -->
+         <div style="text-align: center; padding: 20px;">
+            <div style="margin-bottom: 20px;">
+               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="color: #8b5cf6; margin-bottom: 15px;">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+               </svg>
+               <h3 style="color: #fff; margin-bottom: 10px;">Establece una Contraseña</h3>
+               <p style="color: #aaa; margin-bottom: 20px;">
+                  Para mayor seguridad, puedes establecer una contraseña específica para esta aplicación.
+                  Esto te permitirá iniciar sesión tanto con Google como con tu contraseña.
+               </p>
+            </div>
+            
+            <a href="{% url 'core:request_password_setup' %}" class="btn btn-primary">
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="12" cy="16" r="1" fill="currentColor"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
+               </svg>
+               Establecer Contraseña
+            </a>
+            
+            <div style="margin-top: 15px;">
+               <small style="color: #888; font-size: 12px;">
+                  Te enviaremos un código de verificación a tu correo electrónico
+               </small>
+            </div>
+         </div>
+         
+      {% elif is_google_user and user_has_password %}
+         <!-- Usuario de Google con contraseña ya establecida -->
+         <div style="text-align: center; padding: 20px;">
+            <div style="margin-bottom: 20px;">
+               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style="color: #10b981; margin-bottom: 15px;">
+                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" stroke="currentColor" stroke-width="2" fill="none"/>
+                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
+               </svg>
+               <h3 style="color: #fff; margin-bottom: 10px;">Contraseña Configurada</h3>
+               <p style="color: #aaa; margin-bottom: 20px;">
+                  Ya tienes una contraseña establecida. Puedes iniciar sesión con Google o con tu contraseña.
+               </p>
+            </div>
+            
+            <!-- Formulario de cambio de contraseña -->
+            <details style="text-align: left; margin-top: 20px;">
+               <summary style="cursor: pointer; color: #8b5cf6; font-weight: 500; margin-bottom: 15px;">
+                  Cambiar Contraseña
+               </summary>
+               
+               <form method="post" id="passwordForm">
+                  {% csrf_token %}
+                  <input type="hidden" name="form_type" value="password">
+                  
+                  <div class="input-group">
+                     <div class="input-label">{{ password_form.old_password.label }}</div>
+                     {{ password_form.old_password }}
+                     {% for error in password_form.old_password.errors %}
+                        <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+                     {% endfor %}
+                  </div>
+
+                  <div class="input-group">
+                     <div class="input-label">{{ password_form.new_password1.label }}</div>
+                     {{ password_form.new_password1 }}
+                     {% if password_form.new_password1.help_text %}
+                        <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                           {{ password_form.new_password1.help_text }}
+                        </small>
+                     {% endif %}
+                     {% for error in password_form.new_password1.errors %}
+                        <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+                     {% endfor %}
+                  </div>
+
+                  <div class="input-group">
+                     <div class="input-label">{{ password_form.new_password2.label }}</div>
+                     {{ password_form.new_password2 }}
+                     {% for error in password_form.new_password2.errors %}
+                        <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+                     {% endfor %}
+                  </div>
+
+                  <div class="button-group">
+                     <button type="button" class="btn btn-cancel">Cancelar</button>
+                     <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                  </div>
+               </form>
+            </details>
+         </div>
+         
+      {% else %}
+         <!-- Usuario normal (no Google) -->
+         <form method="post" id="passwordForm">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="password">
+            
+            <div class="input-group">
+               <div class="input-label">{{ password_form.old_password.label }}</div>
+               {{ password_form.old_password }}
+               {% for error in password_form.old_password.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            </div>
+
+            <div class="input-group">
+               <div class="input-label">{{ password_form.new_password1.label }}</div>
+               {{ password_form.new_password1 }}
+               {% if password_form.new_password1.help_text %}
+                  <small style="color: #888; font-size: 12px; margin-top: 5px; display: block;">
+                     {{ password_form.new_password1.help_text }}
+                  </small>
+               {% endif %}
+               {% for error in password_form.new_password1.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            </div>
+
+            <div class="input-group">
+               <div class="input-label">{{ password_form.new_password2.label }}</div>
+               {{ password_form.new_password2 }}
+               {% for error in password_form.new_password2.errors %}
+                  <div class="error-message" style="color: #ef4444; font-size: 12px; margin-top: 5px;">{{ error }}</div>
+               {% endfor %}
+            </div>
+
+            <div class="button-group">
+               <button type="button" class="btn btn-cancel">Cancelar</button>
+               <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+            </div>
+         </form>
       {% endif %}
    </div>
 
-   <div class="input-group">
-      <div class="input-label">Nombre Completo</div>
-      <input type="text" class="input-field"
-            value="{{ request.user.first_name }} {{ request.user.last_name }}"
-            {% if is_google_user %}disabled{% endif %}>
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Correo Electrónico</div>
-      <input type="email" class="input-field"
-            value="{{ request.user.email }}"
-            {% if is_google_user %}disabled{% endif %}>
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Rol</div>
-      <input type="text" class="input-field" value="Estudiante" disabled>
-   </div>
-
-   <div class="button-group">
-      <button class="btn btn-cancel">Cancelar</button>
-      <button class="btn btn-primary">Guardar Cambios</button>
-      
-   </div>
-   </div>
-
+   <!-- Sección de Preferencias de Notificación -->
    <div class="card">
-   <div class="card-header">
-      <div class="card-title">Seguridad</div>
-      <div class="status-indicator">•</div>
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Contraseña Actual</div>
-      <input type="password" class="input-field">
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Nueva Contraseña</div>
-      <input type="password" class="input-field">
-   </div>
-
-   <div class="input-group">
-      <div class="input-label">Confirmar Contraseña</div>
-      <input type="password" class="input-field">
-   </div>
-
-   <div class="button-group">
-      <button class="btn btn-cancel">Cancelar</button>
-      <button class="btn btn-primary">Guardar Cambios</button>
-   </div>
-   </div>
-
-   <div class="card">
-   <div class="card-header">
-      <div class="card-title">Preferencias de Notificación</div>
-   </div>
-
-   <div class="notification-item">
-      <div>
-         <div>Notificaciones por Email</div>
-         <div style="font-size: 12px; color: #aaa;">Recordatorios y alertas del sistema</div>
+      <div class="card-header">
+         <div class="card-title">Preferencias de Notificación</div>
       </div>
-      <label class="toggle-switch">
-         <input type="checkbox" checked>
-         <span class="slider"></span>
-      </label>
+
+      <div class="notification-item">
+         <div>
+            <div>Notificaciones por Email</div>
+            <div style="font-size: 12px; color: #aaa;">Recordatorios y alertas del sistema</div>
+         </div>
+         <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="slider"></span>
+         </label>
+      </div>
+
+      <div class="notification-item">
+         <div>
+            <div>Recordatorio de Tareas</div>
+            <div style="font-size: 12px; color: #aaa;">Alertas de vencimientos</div>
+         </div>
+         <label class="toggle-switch">
+            <input type="checkbox">
+            <span class="slider"></span>
+         </label>
+      </div>
    </div>
 
-   <div class="notification-item">
-      <div>
-         <div>Recordatorio de Tareas</div>
-         <div style="font-size: 12px; color: #aaa;">Alertas de vencimientos</div>
-      </div>
-      <label class="toggle-switch">
-         <input type="checkbox">
-         <span class="slider"></span>
-      </label>
-   </div>
-   </div>
+   <script>
+      // Función para limpiar formularios
+      function clearPasswordForm() {
+         const passwordForm = document.getElementById('passwordForm');
+         if (passwordForm) {
+            passwordForm.reset();
+         }
+      }
+
+      // Funcionalidad de subida de avatar
+      const fileInput = document.getElementById('fileInput');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const removeBtn = document.getElementById('removeBtn');
+      const profileImage = document.getElementById('profileImage');
+
+      // Manejar click en botón de subir
+      if (uploadBtn) {
+         uploadBtn.addEventListener('click', function() {
+            fileInput.click();
+         });
+      }
+
+      // Manejar selección de archivo
+      if (fileInput) {
+         fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+               // Validar tamaño (5MB máximo)
+               if (file.size > 5 * 1024 * 1024) {
+                  alert('El archivo es demasiado grande. Máximo 5MB.');
+                  return;
+               }
+
+               // Validar tipo
+               const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+               if (!allowedTypes.includes(file.type)) {
+                  alert('Tipo de archivo no permitido. Solo se permiten JPG, PNG y GIF.');
+                  return;
+               }
+
+               // Mostrar preview inmediato
+               const reader = new FileReader();
+               reader.onload = function(e) {
+                  profileImage.src = e.target.result;
+               };
+               reader.readAsDataURL(file);
+
+               // Subir archivo
+               uploadAvatar(file);
+            }
+         });
+      }
+
+      // Función para subir avatar
+      function uploadAvatar(file) {
+         const formData = new FormData();
+         formData.append('avatar', file);
+         
+         // Agregar token CSRF
+         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+         formData.append('csrfmiddlewaretoken', csrfToken);
+
+         // Mostrar indicador de carga
+         uploadBtn.disabled = true;
+         uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+
+         fetch('{% url "core:upload_avatar" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+               'X-CSRFToken': csrfToken
+            }
+         })
+         .then(response => response.json())
+         .then(data => {
+            if (data.success) {
+               // Actualizar imagen de perfil
+               profileImage.src = data.avatar_url + '?t=' + new Date().getTime();
+               
+               // Mostrar mensaje de éxito
+               showMessage(data.message, 'success');
+               
+               // Mostrar botón de eliminar si no existe
+               if (!removeBtn) {
+                  location.reload();
+               }
+            } else {
+               showMessage(data.error, 'error');
+               // Revertir imagen si hay error
+               location.reload();
+            }
+         })
+         .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error al subir la imagen', 'error');
+            location.reload();
+         })
+         .finally(() => {
+            // Restaurar botón
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-camera"></i> Cambiar Foto';
+         });
+      }
+
+      // Manejar eliminación de avatar
+      if (removeBtn) {
+         removeBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que quieres eliminar tu foto de perfil?')) {
+               removeAvatar();
+            }
+         });
+      }
+
+      // Función para eliminar avatar
+      function removeAvatar() {
+         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+         // Mostrar indicador de carga
+         removeBtn.disabled = true;
+         removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+
+         fetch('{% url "core:remove_avatar" %}', {
+            method: 'POST',
+            headers: {
+               'X-CSRFToken': csrfToken,
+               'Content-Type': 'application/json'
+            }
+         })
+         .then(response => response.json())
+         .then(data => {
+            if (data.success) {
+               showMessage(data.message, 'success');
+               // Recargar página para actualizar UI
+               setTimeout(() => {
+                  location.reload();
+               }, 1000);
+            } else {
+               showMessage(data.error, 'error');
+            }
+         })
+         .catch(error => {
+            console.error('Error:', error);
+            showMessage('Error al eliminar la imagen', 'error');
+         })
+         .finally(() => {
+            // Restaurar botón
+            removeBtn.disabled = false;
+            removeBtn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
+         });
+      }
+
+      // Función para mostrar mensajes
+      function showMessage(message, type) {
+         // Crear elemento de mensaje
+         const messageDiv = document.createElement('div');
+         messageDiv.className = `custom-toast ${type === 'success' ? 'success' : 'error'}`;
+         messageDiv.innerHTML = `
+            <div class="toast-content">
+               <span class="toast-message">${message}</span>
+            </div>
+            <button class="close-toast" type="button">&times;</button>
+         `;
+
+         // Agregar a container de mensajes o crear uno nuevo
+         let container = document.querySelector('.toast-container');
+         if (!container) {
+            container = document.createElement('div');
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+         }
+
+         container.appendChild(messageDiv);
+
+         // Auto-cerrar después de 5 segundos
+         setTimeout(() => {
+            messageDiv.remove();
+         }, 5000);
+
+         // Manejar click en botón de cerrar
+         messageDiv.querySelector('.close-toast').addEventListener('click', () => {
+            messageDiv.remove();
+         });
+      }
+
+      // Confirmación antes de enviar formulario de contraseña
+      const passwordForm = document.getElementById('passwordForm');
+      if (passwordForm) {
+         passwordForm.addEventListener('submit', function(e) {
+            if (!confirm('¿Estás seguro de que quieres cambiar tu contraseña?')) {
+               e.preventDefault();
+            }
+         });
+      }
+
+      // Botones de cancelar
+      document.querySelectorAll('.btn-cancel').forEach(function(btn) {
+         btn.addEventListener('click', function() {
+            window.location.reload();
+         });
+      });
+   </script>
 
 {% endblock content %}
