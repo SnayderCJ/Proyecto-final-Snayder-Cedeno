@@ -13,6 +13,7 @@ urlpatterns = [
     # URLs para funcionalidad de avatar
     path('upload-avatar/', views.upload_avatar, name='upload_avatar'),
     path('remove-avatar/', views.remove_avatar, name='remove_avatar'),
+    path('get-datetime/', views.get_current_datetime, name='get_datetime'),
     
     # URLs para establecimiento de contraseña (usuarios de Google)
     path('password/setup/', views.request_password_setup, name='request_password_setup'),
