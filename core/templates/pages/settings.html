@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/settings.css' %}">
+{% endblock %}
+
 {% block content %}
 
 <div class="card">
@@ -9,7 +13,7 @@
       <div class="status-indicator">•</div>
    </div>
 
-   <form method="post">
+   <form method="post" onsubmit="handleFormSubmit()">
       {% csrf_token %}
 
       <div class="input-group">
@@ -20,6 +24,7 @@
       <div class="input-group">
          <div class="input-label">{{ form.timezone.label }}</div>
          {{ form.timezone }}
+         <small class="help-text">Los cambios se aplicarán automáticamente en toda la aplicación</small>
       </div>
 
       <div class="button-group">
@@ -30,3 +35,7 @@
 </div>
 
 {% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}

@@ -17,14 +17,38 @@ class SettingsForm(forms.Form):
         widget=forms.Select(attrs={'class': 'input-field'})
     )
     timezone = forms.ChoiceField(
-        label="Zona Horaria (Más próximamente)",
+        label="Zona Horaria",
         choices=[
             ('America/Guayaquil', 'Ecuador (GMT-5)'),
             ('America/Lima', 'Perú (GMT-5)'),
             ('America/Bogota', 'Colombia (GMT-5)'),
-            ('America/Mexico_City', 'México (GMT-6)'),
+            ('America/Caracas', 'Venezuela (GMT-4)'),
+            ('America/La_Paz', 'Bolivia (GMT-4)'),
+            ('America/Santiago', 'Chile (GMT-3/GMT-4)'),
+            ('America/Argentina/Buenos_Aires', 'Argentina (GMT-3)'),
+            ('America/Sao_Paulo', 'Brasil - São Paulo (GMT-3)'),
+            ('America/Mexico_City', 'México Central (GMT-6)'),
+            ('America/Cancun', 'México - Cancún (GMT-5)'),
+            ('America/Tijuana', 'México - Tijuana (GMT-8)'),
+            ('America/Guatemala', 'Guatemala (GMT-6)'),
+            ('America/Tegucigalpa', 'Honduras (GMT-6)'),
+            ('America/Managua', 'Nicaragua (GMT-6)'),
+            ('America/Costa_Rica', 'Costa Rica (GMT-6)'),
+            ('America/Panama', 'Panamá (GMT-5)'),
+            ('America/Havana', 'Cuba (GMT-5)'),
+            ('America/Santo_Domingo', 'República Dominicana (GMT-4)'),
+            ('America/Puerto_Rico', 'Puerto Rico (GMT-4)'),
+            ('Europe/Madrid', 'España (GMT+1/GMT+2)'),
+            ('Europe/London', 'Reino Unido (GMT+0/GMT+1)'),
+            ('Europe/Paris', 'Francia (GMT+1/GMT+2)'),
+            ('Europe/Rome', 'Italia (GMT+1/GMT+2)'),
+            ('Europe/Berlin', 'Alemania (GMT+1/GMT+2)'),
+            ('US/Eastern', 'EE.UU. - Este (GMT-5/GMT-4)'),
+            ('US/Central', 'EE.UU. - Central (GMT-6/GMT-5)'),
+            ('US/Mountain', 'EE.UU. - Montaña (GMT-7/GMT-6)'),
+            ('US/Pacific', 'EE.UU. - Pacífico (GMT-8/GMT-7)'),
         ],
-        widget=forms.Select(attrs={'class': 'input-field'})
+        widget=forms.Select(attrs={'class': 'input-field', 'id': 'timezone-select'})
     )
 
 class ProfileForm(forms.ModelForm):
