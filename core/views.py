@@ -18,12 +18,14 @@ from .utils import send_password_setup_email
 from datetime import datetime
 import unicodedata
 import json
+import pytz
+from django.utils import timezone
 
 @login_required
 def home(request):
     context = {
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
     }
     
     # Agregar información del usuario y Google si está autenticado
@@ -47,9 +49,25 @@ def normalize_text(text):
     normalized = unicodedata.normalize('NFC', str(text))
     return normalized
 
-def get_greeting():
-    """Devuelve el saludo apropiado según la hora del día"""
-    now = datetime.now()
+def get_user_timezone(user):
+    """Obtiene la zona horaria del usuario"""
+    try:
+        user_settings = UserSettings.objects.get(user=user)
+        return pytz.timezone(user_settings.timezone)
+    except (UserSettings.DoesNotExist, pytz.exceptions.UnknownTimeZoneError):
+        # Zona horaria por defecto si no existe configuración
+        return pytz.timezone('America/Guayaquil')
+
+def get_greeting(user=None):
+    """Devuelve el saludo apropiado según la hora del día en la zona horaria del usuario"""
+    if user and user.is_authenticated:
+        user_tz = get_user_timezone(user)
+        now = timezone.now().astimezone(user_tz)
+    else:
+        # Para usuarios no autenticados, usar zona horaria por defecto
+        default_tz = pytz.timezone('America/Guayaquil')
+        now = timezone.now().astimezone(default_tz)
+    
     hour = now.hour
     
     if 5 <= hour < 12:
@@ -59,9 +77,15 @@ def get_greeting():
     else:
         return "Buenas noches"
 
-def get_formatted_date():
-    """Devuelve la fecha formateada en español"""
-    now = datetime.now()
+def get_formatted_date(user=None):
+    """Devuelve la fecha formateada en español en la zona horaria del usuario"""
+    if user and user.is_authenticated:
+        user_tz = get_user_timezone(user)
+        now = timezone.now().astimezone(user_tz)
+    else:
+        # Para usuarios no autenticados, usar zona horaria por defecto
+        default_tz = pytz.timezone('America/Guayaquil')
+        now = timezone.now().astimezone(default_tz)
     
     # Nombres de días y meses en español
     days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -73,7 +97,10 @@ def get_formatted_date():
     month_name = months[now.month - 1]
     year = now.year
     
-    return f"{day_name}, {day_number} de {month_name} de {year}"
+    # Agregar la hora
+    hour = now.strftime('%H:%M')
+    
+    return f"{day_name}, {day_number} de {month_name} de {year} - {hour}"
 
 def safe_title_case(text):
     """Aplica title case de forma segura con caracteres especiales"""
@@ -130,7 +157,6 @@ def get_user_avatar(user):
     
     # Si no tiene ningún avatar, retornar None
     return None
-
 
 @login_required
 def perfil(request):
@@ -196,8 +222,8 @@ def perfil(request):
                             messages.error(request, f"{field_label}: {error}")
 
     context = {
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
         'user_display_name': format_user_name(request.user),
         'is_google_user': is_google_user,
         'user_has_password': user_has_password,
@@ -329,8 +355,8 @@ def request_password_setup(request):
             messages.error(request, "Hubo un error enviando el código. Por favor intenta de nuevo.")
     
     context = {
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
         'user_display_name': format_user_name(request.user),
         'user_avatar': get_user_avatar(request.user),
     }
@@ -371,8 +397,8 @@ def verify_password_code(request):
     
     context = {
         'form': form,
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
         'user_display_name': format_user_name(request.user),
         'user_email': request.user.email,
         'user_avatar': get_user_avatar(request.user),
@@ -436,8 +462,8 @@ def set_password(request):
     
     context = {
         'form': form,
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
         'user_display_name': format_user_name(request.user),
         'user_avatar': get_user_avatar(request.user),
         'token': token,
@@ -467,9 +493,26 @@ def settings(request):
 
     context = {
         'form': form,
-        'greeting': get_greeting(),
-        'current_date': get_formatted_date(),
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
         'user_avatar': get_user_avatar(request.user),
+        'user_display_name': format_user_name(request.user),
     }
 
     return render(request, 'pages/settings.html', context)
+
+@login_required
+def get_current_datetime(request):
+    """Vista AJAX para obtener fecha y hora actual del usuario"""
+    try:
+        data = {
+            'greeting': get_greeting(request.user),
+            'current_date': get_formatted_date(request.user),
+            'success': True
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
