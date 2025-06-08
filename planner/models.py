@@ -60,27 +60,3 @@ class Event(models.Model):
         if self.end_time < self.start_time:
             raise ValidationError('La hora de fin no puede ser anterior a la hora de inicio.')
 
-# Opcional: Si también necesitas un modelo para Cursos
-# class Course(models.Model):
-#     """
-#     Modelo para representar un curso o asignatura.
-#     Podrías vincular eventos (clases, tareas) a un curso específico.
-#     """
-#     user = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         related_name='courses',
-#         verbose_name='Usuario'
-#     )
-#     name = models.CharField(max_length=100, verbose_name='Nombre del Curso')
-#     code = models.CharField(max_length=20, blank=True, null=True, unique=True, verbose_name='Código del Curso')
-#     description = models.TextField(blank=True, null=True, verbose_name='Descripción del Curso')
-#     # Podrías añadir instructor, horario fijo del curso, etc.
-
-#     class Meta:
-#         verbose_name = "Curso"
-#         verbose_name_plural = "Cursos"
-#         ordering = ['name']
-
-#     def __str__(self):
-#         return self.name
