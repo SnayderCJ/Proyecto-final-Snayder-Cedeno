@@ -1,132 +1,384 @@
-/* Main Content */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* ===== CSS PARA VISTA DE TAREAS - ESTILO EXACTO ===== */
+
+/* Contenedor principal de tareas */
+.tareas-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #0f0f23 0%, #16213e 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.content-area {
-  flex: 1;
-  padding: 30px;
-  overflow-y: auto;
+/* Header de tareas */
+.tareas-header {
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-.days-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  max-width: 1200px;
+.tareas-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 10px;
 }
 
-.day-card {
-  background: #16213e;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #2a3f5f;
-  transition: transform 0.2s, box-shadow 0.2s;
+.tareas-week-range {
+    font-size: 1.1rem;
+    color: #a0a0a0;
+    font-weight: 400;
+    margin-bottom: 15px;
 }
 
-.day-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+/* Barra de estadísticas compacta */
+.tareas-stats-bar {
+    background: rgba(26, 26, 46, 0.8);
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    border: 1px solid #2a2a3e;
 }
 
-.day-header {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #4facfe;
-  text-align: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #2a3f5f;
+.tareas-stat-item {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #ffffff;
 }
 
-.task-list {
-  list-style: none;
+.tareas-stat-number {
+    font-weight: 700;
+    margin-right: 5px;
 }
 
-.task-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  transition: background 0.2s;
+.tareas-stat-item.total .tareas-stat-number {
+    color: #60a5fa;
+}
+.tareas-stat-item.completed .tareas-stat-number {
+    color: #34d399;
+}
+.tareas-stat-item.pending .tareas-stat-number {
+    color: #fbbf24;
 }
 
-.task-item:last-child {
-  border-bottom: none;
+/* Grid semanal de tareas */
+.tareas-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 15px;
 }
 
-.task-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  margin: 0 -10px;
-  padding: 10px;
+/* Columna de cada día */
+.tareas-day-column {
+    background: #1a1a2e;
+    border-radius: 8px;
+    border: 1px solid #2a2a3e;
+    overflow: hidden;
+    min-height: 400px;
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
 }
 
-.task-checkbox {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #4facfe;
-  border-radius: 3px;
-  margin-right: 10px;
-  position: relative;
-  cursor: pointer;
+.tareas-day-column.today {
+    border-color: #4f46e5;
+    box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
 }
 
-.task-checkbox.completed {
-  background: #4facfe;
+/* Header del día */
+.tareas-day-header {
+    background: #2a2a3e;
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #3a3a4e;
 }
 
-.task-checkbox.completed::after {
-  content: "✓";
-  position: absolute;
-  color: white;
-  font-size: 12px;
-  top: -2px;
-  left: 1px;
+.tareas-day-column.today .tareas-day-header {
+    background: #4f46e5;
 }
 
-.task-text {
-  flex: 1;
-  font-size: 14px;
-  line-height: 1.4;
+.tareas-day-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.task-text.completed {
-  text-decoration: line-through;
-  opacity: 0.6;
+.tareas-day-number {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #ffffff;
 }
 
-.task-urgent {
-  color: #ff6b6b;
+/* Contenedor de eventos del día */
+.tareas-events-list {
+    padding: 8px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(600px - 70px);
 }
 
-.task-important {
-  color: #feca57;
+/* Scrollbar personalizada */
+.tareas-events-list::-webkit-scrollbar {
+    width: 2px;
 }
 
-.task-normal {
-  color: #48dbfb;
+.tareas-events-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tareas-events-list::-webkit-scrollbar-thumb {
+    background: #4a4a5e;
+    border-radius: 1px;
+}
+
+/* Item individual de evento/tarea - ESTILO EXACTO */
+.tareas-event-item {
+    background: #16213e;
+    margin-bottom: 6px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+}
+
+.tareas-event-item:hover {
+    background: #1e2a47;
+    transform: translateX(1px);
+}
+
+.tareas-event-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Icono/indicador circular */
+.tareas-event-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-color: #6b7280;
+}
+
+/* Colores de indicadores por tipo */
+.tareas-event-item.event-tarea .tareas-event-indicator {
+    background-color: #22c55e;
+}
+
+.tareas-event-item.event-clase .tareas-event-indicator {
+    background-color: #3b82f6;
+}
+
+.tareas-event-item.event-descanso .tareas-event-indicator {
+    background-color: #f59e0b;
+}
+
+.tareas-event-item.event-personal .tareas-event-indicator {
+    background-color: #8b5cf6;
+}
+
+.tareas-event-item.event-otro .tareas-event-indicator {
+    background-color: #6b7280;
+}
+
+/* Contenido del evento */
+.tareas-event-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Títulos de eventos */
+.tareas-event-title {
+    font-weight: 500;
+    color: #ffffff;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Tiempo del evento */
+.tareas-event-time {
+    color: #ef4444;
+    font-size: 0.7rem;
+    font-weight: 500;
+    margin: 0;
+    margin-top: 1px;
+}
+
+/* Estados especiales */
+.tareas-event-item.completed {
+    opacity: 0.5;
+}
+
+.tareas-event-item.completed .tareas-event-title {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+
+.tareas-event-item.completed .tareas-event-indicator {
+    background-color: #34d399 !important;
+}
+
+/* Prioridad alta - punto rojo especial */
+.tareas-event-item.priority-alta .tareas-event-indicator {
+    background-color: #ef4444 !important;
+    box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+}
+
+/* Categorías específicas con checkboxes */
+.tareas-event-item.categoria-biologia::before {
+    content: "🧬";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+}
+
+.tareas-event-item.categoria-matematicas::before {
+    content: "📐";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+}
+
+.tareas-event-item.categoria-quimica::before {
+    content: "⚗️";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+}
+
+.tareas-event-item.categoria-fisica::before {
+    content: "⚛️";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+}
+
+.tareas-event-item.categoria-filosofia::before {
+    content: "🤔";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.7rem;
+}
+
+/* Checkbox para eventos completados */
+.tareas-event-checkbox {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border: 1px solid #6b7280;
+    border-radius: 2px;
+    background: transparent;
+    display: none;
+}
+
+.tareas-event-item:hover .tareas-event-checkbox {
+    display: block;
+}
+
+.tareas-event-item.completed .tareas-event-checkbox {
+    background: #34d399;
+    border-color: #34d399;
+    display: block;
+}
+
+.tareas-event-item.completed .tareas-event-checkbox::after {
+    content: "✓";
+    color: white;
+    font-size: 0.6rem;
+    position: absolute;
+    top: -1px;
+    left: 1px;
+}
+
+/* Sin eventos */
+.tareas-no-events {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 30px;
+    padding: 20px;
+    font-size: 0.8rem;
+}
+
+.tareas-no-events::before {
+    content: "📅";
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    opacity: 0.5;
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+    .tareas-week-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
+    .tareas-container {
+        padding: 15px;
+    }
+    
+    .tareas-week-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .tareas-title {
+        font-size: 1.8rem;
+    }
+    
+    .tareas-stats-bar {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .tareas-day-column {
+        min-height: 300px;
+        max-height: 400px;
+    }
+}
 
-  .sidebar {
-    width: 100%;
-    height: auto;
-    order: 2;
-  }
-
-  .main-content {
-    order: 1;
-  }
-
-  .days-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 480px) {
+    .tareas-week-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tareas-title {
+        font-size: 1.6rem;
+    }
+    
+    .tareas-day-column {
+        min-height: 250px;
+        max-height: 350px;
+    }
 }

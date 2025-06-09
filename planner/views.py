@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime, timedelta
+from django.utils import timezone
 from .models import Event
 from .forms import EventForm
 from django.http import JsonResponse
@@ -212,35 +213,75 @@ def toggle_event_completion(request, pk):
 
 # Tareas 
 
+@login_required
 def tareas_view(request):
+    # Obtener la fecha actual
     today = datetime.now().date()
+    
+    # Calcular el inicio y fin de la semana (lunes a domingo)
     start_of_week = today - timedelta(days=today.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
+    # Filtrar eventos para la semana actual del usuario
     user_events = Event.objects.filter(
         user=request.user,
         start_time__date__gte=start_of_week,
-        end_time__date__lte=end_of_week + timedelta(days=1)
+        start_time__date__lte=end_of_week
     ).order_by('start_time')
 
-    events_by_day = {}
-    for i in range(7):  # Initialize for all days of the week
-        events_by_day[i] = []
+    # Nombres de los días en español
+    day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
+    # Inicializar diccionario para eventos por día
+    events_by_day = {i: [] for i in range(7)}
+    
+    # Agrupar eventos por día de la semana
     for event in user_events:
         day_of_week = event.start_time.weekday()
-        if day_of_week in events_by_day:
-            events_by_day[day_of_week].append(event)
+        events_by_day[day_of_week].append({
+            'id': event.pk,
+            'title': event.title,
+            'description': event.description,
+            'start_time': event.start_time,
+            'end_time': event.end_time,
+            'event_type': event.event_type,
+            'is_completed': event.is_completed,
+            'priority': event.priority,
+            'due_date': event.due_date,
+            'css_class': f"event-{event.event_type}",
+        })
 
-    day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    week_days_data = [{
-        'day_name': day_names_es[i],
-        'day_num': (start_of_week + timedelta(days=i)).day,
-        'is_today': (start_of_week + timedelta(days=i)) == today
-    } for i in range(7)]
+    # Crear datos para cada día de la semana
+    week_days_data = []
+    for i in range(7):
+        current_day_date = start_of_week + timedelta(days=i)
+        week_days_data.append({
+            'day_name': day_names_es[i],
+            'day_name_short': day_names_es[i][:3],  # Para versión corta (Lun, Mar, etc.)
+            'day_num': current_day_date.day,
+            'date': current_day_date,
+            'is_today': current_day_date == today,
+            'events': events_by_day[i],  # Eventos para este día
+            'event_count': len(events_by_day[i]),  # Contador de eventos
+        })
+
+    # Estadísticas útiles
+    total_events = sum(len(events) for events in events_by_day.values())
+    completed_events = sum(1 for events in events_by_day.values() for event in events if event.get('is_completed', False))
+    pending_events = total_events - completed_events
 
     context = {
-        'events_by_day': events_by_day,
         'week_days_data': week_days_data,
+        'events_by_day': events_by_day,
+        'seven_days_range': range(7),
+        'start_of_week': start_of_week,
+        'end_of_week': end_of_week,
+        'today': today,
+        'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} {start_of_week.strftime('%B')} {start_of_week.year}",
+        # Estadísticas
+        'total_events': total_events,
+        'completed_events': completed_events,
+        'pending_events': pending_events,
     }
+    
     return render(request, 'tareas.html', context)

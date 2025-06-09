@@ -13,4 +13,5 @@ urlpatterns = [
    path('event/<int:pk>/toggle-completion/', views.toggle_event_completion, name='toggle_event_completion'),
    
    # Tareas
+   path('tareas/', views.tareas_view, name='tareas')
 ]

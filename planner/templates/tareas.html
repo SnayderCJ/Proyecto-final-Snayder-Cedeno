@@ -1,42 +1,74 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %} {% load planner_tags %} {% block content %}
+<div class="tareas-container">
+  <div class="tareas-header">
+    <h1 class="tareas-title">Tareas de la Semana</h1>
+    <div class="tareas-week-range">{{ current_week_range }}</div>
+  </div>
 
-{% block content %}
-    <div class="content-area">
-        <div class="days-grid">
-            {% for i in range(7) %}
-                <div class="day-card">
-                    <div class="day-header">{{ week_days_data|get_item:i }}: {{ week_days_data|get_item:i }}</div>
-                    <ul class="task-list">
-                        {% for event in events_by_day|get_item:i %}
-                            <li class="task-item">
-                                <div class="task-checkbox {% if event.is_completed %}completed{% endif %}"></div>
-                                <span class="task-text {% if event.is_completed %}completed{% endif %}">{{ event.title }}</span>
-                                <p>{{ event.description }}</p>  <p>Due Date: {{ event.due_date }}</p> </li>
-                        {% empty %}
-                            <li>No tasks for this day.</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endfor %}
-        </div>
+  <div class="tareas-stats-bar">
+    <div class="tareas-stat-item total">
+      <span class="tareas-stat-number">{{ total_events }}</span> Total
     </div>
+    <div class="tareas-stat-item completed">
+      <span class="tareas-stat-number">{{ completed_events }}</span> Completadas
+    </div>
+    <div class="tareas-stat-item pending">
+      <span class="tareas-stat-number">{{ pending_events }}</span> Pendientes
+    </div>
+  </div>
 
-    <script>
-        // Funcionalidad para marcar/desmarcar tareas
-        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('click', function() {
-                this.classList.toggle('completed');
-                const taskText = this.nextElementSibling;
-                taskText.classList.toggle('completed');
-            });
-        });
+  <div class="tareas-week-grid">
+    {% for day_data in week_days_data %}
+    <div class="tareas-day-column {% if day_data.is_today %}today{% endif %}">
+      <div class="tareas-day-header">
+        <div class="tareas-day-name">{{ day_data.day_name }}</div>
+        <div class="tareas-day-number">{{ day_data.day_num }}</div>
+      </div>
 
-        // Funcionalidad para navegación del sidebar
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-    </script>
+      <div class="tareas-events-list">
+        {% if day_data.events %} {% for event in day_data.events %}
+        <div
+          class="tareas-event-item {% if event.is_completed %}completed{% endif %} event-{{ event.event_type }} priority-{{ event.priority|lower }}"
+          onclick="toggleEventCompletion({{ event.id }})"
+        >
+          <div class="tareas-event-checkbox"></div>
+
+          <div class="tareas-event-content">
+            <div class="tareas-event-title">{{ event.title }}</div>
+            <div class="tareas-event-time">
+              {{ event.start_time|time:"d/m/Y" }}
+            </div>
+          </div>
+
+          <div class="tareas-event-indicator"></div>
+        </div>
+        {% endfor %} {% else %}
+        <div class="tareas-no-events">Sin eventos programados</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% csrf_token %}
+<script>
+  // Función para actualizar estado de completado via AJAX
+  function toggleEventCompletion(eventId) {
+    fetch(`/planner/event/${eventId}/toggle/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+          .value,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          location.reload(); // Recargar para mostrar cambios
+        }
+      });
+  }
+</script>
 {% endblock content %}

@@ -485,7 +485,7 @@
     background: #6a6a7e;
 }
 
-/* ===== ANIMACIONES SUTILES ===== */
+
 @keyframes eventAppear {
     from {
         opacity: 0;
@@ -501,18 +501,14 @@
     animation: eventAppear 0.2s ease-out;
 }
 
-/* ===== MEJORAS PARA TOOLTIPS ===== */
 .custom-tooltip {
     position: absolute;
-    /* La posición del tooltip será manejada por JS ahora, estas propiedades se pueden dejar pero JS las sobrescribirá */
-    /* bottom: calc(100% + 5px); */
-    /* left: 50%; */
-    /* transform: translateX(-50%); */ 
+   
     background-color: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 4px 8px; /* Más compacto */
-    border-radius: 3px; /* Más compacto */
-    font-size: 10px; /* Más compacto */
+    padding: 4px 8px; 
+    border-radius: 3px; 
+    font-size: 10px; 
     white-space: nowrap;
     z-index: 100;
     pointer-events: none;
@@ -531,14 +527,12 @@
     border-top-color: rgba(0, 0, 0, 0.9);
 }
 
-/* El hover para mostrar tooltip ahora lo gestionará el JS, 
-   pero esta regla puede servir como fallback o referencia visual */
+
 .event:hover .custom-tooltip {
     opacity: 1;
     visibility: visible;
 }
 
-/* Ocultar la descripción en eventos pequeños para evitar desbordamiento */
 .event[style*="height: 30px"] .event-description,
 .event[style*="height: 40px"] .event-description,
 .event[style*="height: 50px"] .event-description {
@@ -547,11 +541,11 @@
 
 /* Resaltar la hora actual en el calendario */
 .time-slot.current-hour {
-    color: #8b5cf6; /* Cambia el color del texto para que resalte */
-    font-weight: 700; /* Haz el texto más audaz */
-    background-color: rgba(139, 92, 246, 0.1); /* Agrega un fondo sutil */
-    border-radius: 4px; /* Un poco de borde redondeado */
-    border-left: 3px solid #7c3aed; /* Borde izquierdo para resaltar */
+    color: #8b5cf6; 
+    font-weight: 700; 
+    background-color: rgba(139, 92, 246, 0.1); 
+    border-radius: 4px; 
+    border-left: 3px solid #7c3aed;
 }
 
 /* Formulario de los eventos */
