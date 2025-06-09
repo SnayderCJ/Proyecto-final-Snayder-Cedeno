@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="content-area">
+        <div class="days-grid">
+            {% for i in range(7) %}
+                <div class="day-card">
+                    <div class="day-header">{{ week_days_data|get_item:i }}: {{ week_days_data|get_item:i }}</div>
+                    <ul class="task-list">
+                        {% for event in events_by_day|get_item:i %}
+                            <li class="task-item">
+                                <div class="task-checkbox {% if event.is_completed %}completed{% endif %}"></div>
+                                <span class="task-text {% if event.is_completed %}completed{% endif %}">{{ event.title }}</span>
+                                <p>{{ event.description }}</p>  <p>Due Date: {{ event.due_date }}</p> </li>
+                        {% empty %}
+                            <li>No tasks for this day.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Funcionalidad para marcar/desmarcar tareas
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                this.classList.toggle('completed');
+                const taskText = this.nextElementSibling;
+                taskText.classList.toggle('completed');
+            });
+        });
+
+        // Funcionalidad para navegación del sidebar
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+{% endblock content %}

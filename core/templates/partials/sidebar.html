@@ -4,7 +4,7 @@
   <nav class="sidebar">
     <div class="menu-items">
         <div class="sidebar-header">
-            <img src="{% static 'images/logo.png' %}" alt="Logo StudyFly">
+            <img src="{% static 'img/Logo2.png' %}" alt="Logo StudyFly">
         </div>
 
         <div class="menu-item active">
@@ -20,8 +20,10 @@
             </a>
         </div>
         <div class="menu-item">
+            <a href="{% url 'core:home' %}">
             <i class="fa-solid fa-list-check"></i>
             <span>Tareas</span>
+            </a>
         </div>
         <div class="menu-item">
             <i class="fa-solid fa-chart-simple"></i>
