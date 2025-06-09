@@ -119,7 +119,8 @@ def event_create(request):
     Vista para crear un nuevo evento.
     """
     if request.method == 'POST':
-        form = EventForm(request.POST)
+        # Pasar el usuario al formulario para las validaciones
+        form = EventForm(request.POST, user=request.user)
         if form.is_valid():
             event = form.save(commit=False)
             event.user = request.user
@@ -134,7 +135,8 @@ def event_create(request):
             'start_time': datetime.now().strftime('%Y-%m-%dT%H:%M'),
             'end_time': (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M'),
         }
-        form = EventForm(initial=initial_data)
+        # También pasar el usuario al formulario vacío
+        form = EventForm(initial=initial_data, user=request.user)
     
     return render(request, 'pages/horarios/event_form.html', {'form': form, 'form_type': 'Crear'})
 
@@ -146,7 +148,8 @@ def event_edit(request, pk):
     """
     event = get_object_or_404(Event, pk=pk, user=request.user)
     if request.method == 'POST':
-        form = EventForm(request.POST, instance=event)
+        # Pasar el usuario y la instancia al formulario
+        form = EventForm(request.POST, instance=event, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f'✅ Evento "{event.title}" actualizado exitosamente.')
@@ -154,7 +157,8 @@ def event_edit(request, pk):
         else:
             messages.error(request, '❌ Hubo errores en el formulario. Por favor revisa los datos.')
     else:
-        form = EventForm(instance=event)
+        # También pasar el usuario al formulario de edición
+        form = EventForm(instance=event, user=request.user)
     
     return render(request, 'pages/horarios/event_form.html', {
         'form': form, 
