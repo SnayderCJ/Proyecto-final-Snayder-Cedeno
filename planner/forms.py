@@ -1,6 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from datetime import datetime, timedelta
+from django.utils import timezone # ¡Importa timezone de Django!
 from .models import Event
 
 class EventForm(forms.ModelForm):
@@ -92,12 +93,19 @@ class EventForm(forms.ModelForm):
         start_time = self.cleaned_data.get('start_time')
         
         if start_time:
+            # Asegurarse de que start_time sea 'aware' antes de compararlo con timezone.now()
+            if timezone.is_naive(start_time):
+                start_time = timezone.make_aware(start_time, timezone=timezone.get_current_timezone())
+
+            # Obtener el tiempo actual como 'aware'
+            now_aware = timezone.now()
+            
             # Verificar que no sea muy en el pasado (más de 1 día)
-            if start_time < datetime.now() - timedelta(days=1):
+            if start_time < now_aware - timedelta(days=1):
                 raise ValidationError("No puedes crear eventos de hace más de un día.")
             
             # Verificar que no sea muy en el futuro (más de 1 año)
-            if start_time > datetime.now() + timedelta(days=365):
+            if start_time > now_aware + timedelta(days=365):
                 raise ValidationError("No puedes crear eventos con más de un año de anticipación.")
         
         return start_time
@@ -107,7 +115,12 @@ class EventForm(forms.ModelForm):
         start_time = self.cleaned_data.get('start_time')
         
         if end_time and start_time:
-            if end_time <= start_time:
+            # Asegurarse de que end_time sea 'aware'
+            if timezone.is_naive(end_time):
+                end_time = timezone.make_aware(end_time, timezone=timezone.get_current_timezone())
+
+            # start_time ya debería ser 'aware' si pasó por clean_start_time
+            if start_time and end_time <= start_time:
                 raise ValidationError("La hora de fin debe ser posterior a la hora de inicio.")
             
             # Verificar duración máxima (12 horas)
@@ -126,11 +139,15 @@ class EventForm(forms.ModelForm):
         start_time = self.cleaned_data.get('start_time')
         
         if due_date:
+            # Obtener la fecha actual como un objeto date
+            today_date = timezone.localdate() # Esto es un objeto date 'naive'
+            
             # Verificar que la fecha de vencimiento no sea en el pasado
-            if due_date < datetime.now().date():
+            if due_date < today_date:
                 raise ValidationError("La fecha de vencimiento no puede ser en el pasado.")
             
             # Si hay start_time, verificar coherencia
+            # start_time ya es 'aware' de clean_start_time, así que podemos obtener su .date()
             if start_time and due_date < start_time.date():
                 raise ValidationError("La fecha de vencimiento no puede ser anterior al inicio del evento.")
         
@@ -144,6 +161,8 @@ class EventForm(forms.ModelForm):
         
         # Validaciones cruzadas adicionales
         if start_time and end_time:
+            # Ambos start_time y end_time ya son 'aware' en este punto.
+            
             # Verificar horarios razonables
             start_hour = start_time.hour
             end_hour = end_time.hour

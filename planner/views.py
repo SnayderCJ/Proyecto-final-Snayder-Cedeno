@@ -70,7 +70,7 @@ def calendar_view(request):
     events_for_template = []
     for event in user_events:
         start_hour_float = event.start_time.hour + event.start_time.minute / 60.0
-        top_px = (start_hour_float - CALENDAR_START_HOUR) * PIXELS_PER_HOUR + 50
+        top_px = (start_hour_float - CALENDAR_START_HOUR) * PIXELS_PER_HOUR
 
         # Calcular la altura del evento
         duration_minutes = (event.end_time - event.start_time).total_seconds() / 60.0
@@ -123,10 +123,10 @@ def event_create(request):
             event = form.save(commit=False)
             event.user = request.user
             event.save()
-            messages.success(request, 'Evento creado exitosamente.')
+            messages.success(request, f'✅ Evento "{event.title}" creado exitosamente.')
             return redirect('planner:horarios')
         else:
-            messages.error(request, 'Hubo un error al crear el evento. Por favor, revisa los datos.')
+            messages.error(request, '❌ Hubo errores en el formulario. Por favor revisa los datos.')
     else:
         # Pre-llenar fecha y hora actual
         initial_data = {
@@ -134,6 +134,7 @@ def event_create(request):
             'end_time': (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M'),
         }
         form = EventForm(initial=initial_data)
+    
     return render(request, 'pages/horarios/event_form.html', {'form': form, 'form_type': 'Crear'})
 
 # --- VISTA PARA EDITAR UN EVENTO EXISTENTE ---
@@ -147,13 +148,18 @@ def event_edit(request, pk):
         form = EventForm(request.POST, instance=event)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Evento actualizado exitosamente.')
+            messages.success(request, f'✅ Evento "{event.title}" actualizado exitosamente.')
             return redirect('planner:event_detail', pk=event.pk)
         else:
-            messages.error(request, 'Hubo un error al actualizar el evento. Por favor, revisa los datos.')
+            messages.error(request, '❌ Hubo errores en el formulario. Por favor revisa los datos.')
     else:
         form = EventForm(instance=event)
-    return render(request, 'pages/horarios/event_form.html', {'form': form, 'form_type': 'Editar', 'event': event})
+    
+    return render(request, 'pages/horarios/event_form.html', {
+        'form': form, 
+        'form_type': 'Editar', 
+        'event': event
+    })
 
 # --- VISTA PARA ELIMINAR UN EVENTO ---
 @login_required
@@ -162,10 +168,13 @@ def event_delete(request, pk):
     Vista para eliminar un evento.
     """
     event = get_object_or_404(Event, pk=pk, user=request.user)
+    event_title = event.title  # Guardar el título antes de eliminar
+    
     if request.method == 'POST':
         event.delete()
-        messages.success(request, 'Evento eliminado exitosamente.')
+        messages.success(request, f'🗑️ Evento "{event_title}" eliminado exitosamente.')
         return redirect('planner:horarios')
+    
     return render(request, 'pages/horarios/event_confirm_delete.html', {'event': event})
 
 # --- VISTA PARA VER DETALLES DE UN EVENTO ---
@@ -201,66 +210,37 @@ def toggle_event_completion(request, pk):
     
     return JsonResponse({'success': False, 'error': 'Método no permitido'})
 
-# TAMBIÉN AGREGAR esta función para mejorar los mensajes
-@login_required
-def event_create(request):
-    """
-    Vista para crear un nuevo evento - VERSIÓN MEJORADA
-    """
-    if request.method == 'POST':
-        form = EventForm(request.POST)
-        if form.is_valid():
-            event = form.save(commit=False)
-            event.user = request.user
-            event.save()
-            messages.success(request, f'✅ Evento "{event.title}" creado exitosamente.')
-            return redirect('planner:horarios')
-        else:
-            messages.error(request, '❌ Hubo errores en el formulario. Por favor revisa los datos.')
-    else:
-        # Pre-llenar fecha y hora actual
-        initial_data = {
-            'start_time': datetime.now().strftime('%Y-%m-%dT%H:%M'),
-            'end_time': (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M'),
-        }
-        form = EventForm(initial=initial_data)
-    
-    return render(request, 'pages/horarios/event_form.html', {'form': form, 'form_type': 'Crear'})
+# Tareas 
 
-@login_required
-def event_edit(request, pk):
-    """
-    Vista para editar un evento existente - VERSIÓN MEJORADA
-    """
-    event = get_object_or_404(Event, pk=pk, user=request.user)
-    if request.method == 'POST':
-        form = EventForm(request.POST, instance=event)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f'✅ Evento "{event.title}" actualizado exitosamente.')
-            return redirect('planner:event_detail', pk=event.pk)
-        else:
-            messages.error(request, '❌ Hubo errores en el formulario. Por favor revisa los datos.')
-    else:
-        form = EventForm(instance=event)
-    
-    return render(request, 'pages/horarios/event_form.html', {
-        'form': form, 
-        'form_type': 'Editar', 
-        'event': event
-    })
+def tareas_view(request):
+    today = datetime.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
 
-@login_required
-def event_delete(request, pk):
-    """
-    Vista para eliminar un evento - VERSIÓN MEJORADA
-    """
-    event = get_object_or_404(Event, pk=pk, user=request.user)
-    event_title = event.title  # Guardar el título antes de eliminar
-    
-    if request.method == 'POST':
-        event.delete()
-        messages.success(request, f'🗑️ Evento "{event_title}" eliminado exitosamente.')
-        return redirect('planner:horarios')
-    
-    return render(request, 'pages/horarios/event_confirm_delete.html', {'event': event})
+    user_events = Event.objects.filter(
+        user=request.user,
+        start_time__date__gte=start_of_week,
+        end_time__date__lte=end_of_week + timedelta(days=1)
+    ).order_by('start_time')
+
+    events_by_day = {}
+    for i in range(7):  # Initialize for all days of the week
+        events_by_day[i] = []
+
+    for event in user_events:
+        day_of_week = event.start_time.weekday()
+        if day_of_week in events_by_day:
+            events_by_day[day_of_week].append(event)
+
+    day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    week_days_data = [{
+        'day_name': day_names_es[i],
+        'day_num': (start_of_week + timedelta(days=i)).day,
+        'is_today': (start_of_week + timedelta(days=i)) == today
+    } for i in range(7)]
+
+    context = {
+        'events_by_day': events_by_day,
+        'week_days_data': week_days_data,
+    }
+    return render(request, 'tareas.html', context)

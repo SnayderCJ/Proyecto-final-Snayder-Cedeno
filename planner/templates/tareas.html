@@ -1,181 +1,24 @@
+{% extends 'base.html' %}
 
-{% block content%}
-
-
-            <div class="content-area">
-                <div class="days-grid">
-                    <div class="day-card">
-                        <div class="day-header">Jueves</div>
-                        <ul class="task-list">
+{% block content %}
+    <div class="content-area">
+        <div class="days-grid">
+            {% for i in range(7) %}
+                <div class="day-card">
+                    <div class="day-header">{{ week_days_data|get_item:i }}: {{ week_days_data|get_item:i }}</div>
+                    <ul class="task-list">
+                        {% for event in events_by_day|get_item:i %}
                             <li class="task-item">
-                                <div class="task-checkbox completed"></div>
-                                <span class="task-text completed">Presentación Coca Cola</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Documentación carta Autor</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-urgent">Ensayo 300 palabras</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox completed"></div>
-                                <span class="task-text completed">Filosofía</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Preparar dispositivos</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Reunión QCMMC y Subgrupo</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-important">Preguntas Cap. 12</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Biología</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="day-card">
-                        <div class="day-header">Lunes</div>
-                        <ul class="task-list">
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-urgent">Tesis paginas #5</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Tarea pendiente</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Química</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Trigonometría</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Cuadrículas</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-normal">Ver... Khan Academy</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Matemáticas</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Dispositivos ecosistemas</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="day-card">
-                        <div class="day-header">Martes</div>
-                        <ul class="task-list">
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Escuela</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Documento carta</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-urgent">Ensayo 300 palabras</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Filosofía</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Libros de Newton</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Trabajo creativo</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-normal">Leer Cap. 8</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Física</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="day-card">
-                        <div class="day-header">Miércoles</div>
-                        <ul class="task-list">
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-urgent">Química hoja #5</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Matemáticas</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Química</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="day-card">
-                        <div class="day-header">Viernes</div>
-                        <ul class="task-list">
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Trigonometría</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Cuadrículas</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-normal">Ver... Khan Academy</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Matemáticas</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Problemas Newton</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Creativo</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text task-normal">Leer Cap. 5</span>
-                            </li>
-                            <li class="task-item">
-                                <div class="task-checkbox"></div>
-                                <span class="task-text">Física</span>
-                            </li>
-                        </ul>
-                    </div>
+                                <div class="task-checkbox {% if event.is_completed %}completed{% endif %}"></div>
+                                <span class="task-text {% if event.is_completed %}completed{% endif %}">{{ event.title }}</span>
+                                <p>{{ event.description }}</p>  <p>Due Date: {{ event.due_date }}</p> </li>
+                        {% empty %}
+                            <li>No tasks for this day.</li>
+                        {% endfor %}
+                    </ul>
                 </div>
-            </div>
-        </div>  
+            {% endfor %}
+        </div>
     </div>
 
     <script>
@@ -195,7 +38,5 @@
                 this.classList.add('active');
             });
         });
-
     </script>
-
 {% endblock content %}
