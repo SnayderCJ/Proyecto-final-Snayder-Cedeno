@@ -1,0 +1,215 @@
+<!-- reminders/templates/reminder_email.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio - {{ reminder.title }}</title>
+    <style>
+        /* Estilos inline para compatibilidad con clientes de email */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .reminder-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .reminder-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .reminder-time {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .ai-message {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 5px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .calendar-section {
+            background: #e8f5e8;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .unsubscribe {
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        .unsubscribe a {
+            color: #999;
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media screen and (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 5px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔔 Recordatorio Inteligente</h1>
+            <p>Tu asistente de productividad académica - StudiFly</p>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="content">
+            <!-- Tarjeta del recordatorio -->
+            <div class="reminder-card">
+                <div class="reminder-title">
+                    📌 {{ reminder.title }}
+                </div>
+                <div class="reminder-time">
+                    🕐 <strong>Fecha objetivo:</strong> {{ reminder.target_datetime|date:"l, d \d\e F \d\e Y \a \l\a\s H:i" }}
+                </div>
+                {% if reminder.description %}
+                <div style="color: #555; margin-top: 10px;">
+                    {{ reminder.description|linebreaks }}
+                </div>
+                {% endif %}
+                
+                <!-- Información del timing -->
+                <div style="font-size: 14px; color: #666; margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <strong>⏰ Configuración:</strong> {{ reminder.get_timing_display }} | 
+                    <strong>📧 Tipo:</strong> {{ reminder.get_reminder_type_display }}
+                </div>
+            </div>
+            
+            <!-- Mensaje de la IA -->
+            <div class="ai-message">
+                <h3 style="margin-top: 0; color: #1976d2;">🤖 Mensaje de tu Asistente IA</h3>
+                {{ ai_message|safe }}
+            </div>
+            
+            <!-- Enlace a Google Calendar si existe -->
+            {% if calendar_link %}
+            <div class="calendar-section">
+                <h4 style="margin-top: 0; color: #2e7d32;">📅 Evento en Google Calendar</h4>
+                <p style="margin: 10px 0;">
+                    Este recordatorio también se ha agregado a tu Google Calendar.
+                </p>
+                <a href="{{ calendar_link }}" style="background: #4285f4; color: white; padding: 8px 16px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                    📅 Ver en Google Calendar
+                </a>
+            </div>
+            {% endif %}
+            
+            <!-- Botones de acción -->
+            <div class="action-buttons">
+                <h3 style="color: #333; margin-bottom: 20px;">¿Qué quieres hacer?</h3>
+                <a href="{{ respond_urls.completed }}" class="btn btn-success">
+                    ✅ ¡Ya lo completé!
+                </a>
+                <a href="{{ respond_urls.snooze }}" class="btn btn-warning">
+                    ⏰ Recordar en 15 min
+                </a>
+                <a href="{{ respond_urls.cancel }}" class="btn btn-secondary">
+                    ❌ Cancelar recordatorio
+                </a>
+            </div>
+            
+            <!-- Información adicional -->
+            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107;">
+                <small>
+                    <strong>💡 Tip:</strong> Responder a estos recordatorios ayuda a mejorar las sugerencias futuras de tu asistente IA y ajusta automáticamente la frecuencia según tus hábitos.
+                </small>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>
+                📧 Este recordatorio fue generado automáticamente por tu <strong>Sistema de Recordatorios IA</strong><br>
+                👤 Usuario: {{ user_name }} ({{ user_email }})
+            </p>
+            
+            <div class="unsubscribe">
+                <a href="{{ unsubscribe_url }}">Desuscribirse de todos los recordatorios</a> | 
+                <a href="{{ site_url }}/reminders/configuration/">Cambiar configuración</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
