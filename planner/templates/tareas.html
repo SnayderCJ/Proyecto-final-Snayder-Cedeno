@@ -1,42 +1,149 @@
-{% extends 'base.html' %}
-
-{% block content %}
-    <div class="content-area">
-        <div class="days-grid">
-            {% for i in range(7) %}
-                <div class="day-card">
-                    <div class="day-header">{{ week_days_data|get_item:i }}: {{ week_days_data|get_item:i }}</div>
-                    <ul class="task-list">
-                        {% for event in events_by_day|get_item:i %}
-                            <li class="task-item">
-                                <div class="task-checkbox {% if event.is_completed %}completed{% endif %}"></div>
-                                <span class="task-text {% if event.is_completed %}completed{% endif %}">{{ event.title }}</span>
-                                <p>{{ event.description }}</p>  <p>Due Date: {{ event.due_date }}</p> </li>
-                        {% empty %}
-                            <li>No tasks for this day.</li>
-                        {% endfor %}
-                    </ul>
+{% extends 'base.html' %} {% load planner_tags %} {% block content %}
+ <div class="tareas-container">
+        <div class="tareas-header">
+            <h1 class="tareas-title">Tareas de la Semana</h1>
+            <div class="tareas-week-range">{{ current_week_range }}</div>
+        </div>
+        
+        <div class="tareas-stats-bar">
+            <div class="tareas-stat-item total">
+                <span class="tareas-stat-number">{{ total_events }}</span> Total
+            </div>
+            <div class="tareas-stat-item completed">
+                <span class="tareas-stat-number">{{ completed_events }}</span> Completadas
+            </div>
+            <div class="tareas-stat-item pending">
+                <span class="tareas-stat-number">{{ pending_events }}</span> Pendientes
+            </div>
+        </div>
+        
+        <div class="tareas-week-grid">
+            {% for day_data in week_days_data %}
+            <div class="tareas-day-column {% if day_data.is_today %}today{% endif %}">
+                <div class="tareas-day-header">
+                    <div class="tareas-day-name">{{ day_data.day_name }}</div>
+                    <div class="tareas-day-number">{{ day_data.day_num }}</div>
                 </div>
+                
+                <div class="tareas-events-list">
+                    {% if day_data.subjects %}
+                        {% for subject, events in day_data.subjects.items %}
+                        <div class="tareas-subject-group subject-{{ subject|lower }} {% for event in events %}{% if event.is_completed %}completed-event {% endif %}{% endfor %}">
+                            <div class="tareas-subject-header">
+                                <div class="tareas-subject-indicator"></div>
+                                <div class="tareas-subject-name">{{ subject }}</div>
+                                <div class="tareas-subject-count">{{ events|length }}</div>
+                            </div>
+                            
+                            <div class="tareas-subject-tasks">
+                                {% for event in events %}
+                                <div class="tareas-task-item {% if event.is_completed %}completed{% endif %}" 
+                                     onclick="toggleEventCompletion({{ event.id }})">
+                                    
+                                    <div class="tareas-task-checkbox {% if event.is_completed %}checked{% endif %}"></div>
+                                    
+                                    <div class="tareas-task-content">
+                                        <div class="tareas-task-title">{{ event.description|default:"Sin descripción" }}</div>
+                                        <div class="tareas-task-date">{{ event.start_time|time:"H:i" }} - {{ event.start_time|date:"d/m/Y" }}</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="tareas-no-events">
+                        Sin eventos programados
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
             {% endfor %}
         </div>
     </div>
-
+    
+    {% csrf_token %}
     <script>
-        // Funcionalidad para marcar/desmarcar tareas
-        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('click', function() {
-                this.classList.toggle('completed');
-                const taskText = this.nextElementSibling;
-                taskText.classList.toggle('completed');
+        // Función para actualizar estado del checkbox en tiempo real
+        function toggleEventCompletion(eventId) {
+            console.log('Toggling event:', eventId); // Debug
+            
+            const taskItem = document.querySelector(`[onclick="toggleEventCompletion(${eventId})"]`);
+            if (!taskItem) {
+                console.error('No se encontró el elemento de la tarea');
+                return;
+            }
+            
+            const checkbox = taskItem.querySelector('.tareas-task-checkbox');
+            const title = taskItem.querySelector('.tareas-task-title');
+            const date = taskItem.querySelector('.tareas-task-date');
+            
+            if (!checkbox) {
+                console.error('No se encontró el checkbox');
+                return;
+            }
+            
+            // Determinar estado actual
+            const isCurrentlyCompleted = checkbox.classList.contains('checked');
+            console.log('Estado actual completado:', isCurrentlyCompleted); // Debug
+            
+            // Enviar petición AJAX
+            fetch(`/planner/event/${eventId}/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                console.log('Respuesta recibida:', response); // Debug
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos de respuesta:', data); // Debug
+                if (data.success) {
+                    // Actualizar estado visual basado en la respuesta del servidor
+                    if (data.is_completed) {
+                        // Marcar como completado
+                        checkbox.classList.add('checked');
+                        taskItem.classList.add('completed');
+                        if (title) {
+                            title.style.textDecoration = 'line-through';
+                            title.style.color = '#9ca3af';
+                        }
+                        if (date) {
+                            date.style.textDecoration = 'line-through';
+                            date.style.color = '#6b7280';
+                        }
+                        console.log('Marcado como completado'); // Debug
+                    } else {
+                        // Marcar como no completado
+                        checkbox.classList.remove('checked');
+                        taskItem.classList.remove('completed');
+                        if (title) {
+                            title.style.textDecoration = 'none';
+                            title.style.color = '#ffffff';
+                        }
+                        if (date) {
+                            date.style.textDecoration = 'none';
+                            date.style.color = '#ef4444';
+                        }
+                        console.log('Marcado como no completado'); // Debug
+                    }
+                } else {
+                    console.error('Error en la respuesta:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la petición:', error);
             });
-        });
-
-        // Funcionalidad para navegación del sidebar
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-            });
+        }
+        
+        // Verificar que el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado correctamente');
+            const taskItems = document.querySelectorAll('.tareas-task-item');
+            console.log('Elementos de tarea encontrados:', taskItems.length);
         });
     </script>
 {% endblock content %}

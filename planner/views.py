@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime, timedelta
+from django.utils import timezone
 from .models import Event
 from .forms import EventForm
 from django.http import JsonResponse
@@ -118,7 +119,8 @@ def event_create(request):
     Vista para crear un nuevo evento.
     """
     if request.method == 'POST':
-        form = EventForm(request.POST)
+        # Pasar el usuario al formulario para las validaciones
+        form = EventForm(request.POST, user=request.user)
         if form.is_valid():
             event = form.save(commit=False)
             event.user = request.user
@@ -133,7 +135,8 @@ def event_create(request):
             'start_time': datetime.now().strftime('%Y-%m-%dT%H:%M'),
             'end_time': (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M'),
         }
-        form = EventForm(initial=initial_data)
+        # También pasar el usuario al formulario vacío
+        form = EventForm(initial=initial_data, user=request.user)
     
     return render(request, 'pages/horarios/event_form.html', {'form': form, 'form_type': 'Crear'})
 
@@ -145,7 +148,8 @@ def event_edit(request, pk):
     """
     event = get_object_or_404(Event, pk=pk, user=request.user)
     if request.method == 'POST':
-        form = EventForm(request.POST, instance=event)
+        # Pasar el usuario y la instancia al formulario
+        form = EventForm(request.POST, instance=event, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f'✅ Evento "{event.title}" actualizado exitosamente.')
@@ -153,7 +157,8 @@ def event_edit(request, pk):
         else:
             messages.error(request, '❌ Hubo errores en el formulario. Por favor revisa los datos.')
     else:
-        form = EventForm(instance=event)
+        # También pasar el usuario al formulario de edición
+        form = EventForm(instance=event, user=request.user)
     
     return render(request, 'pages/horarios/event_form.html', {
         'form': form, 
@@ -194,8 +199,12 @@ def toggle_event_completion(request, pk):
     if request.method == 'POST':
         try:
             event = get_object_or_404(Event, pk=pk, user=request.user)
+            
+            # Cambiar el estado
             event.is_completed = not event.is_completed
             event.save()
+            
+            print(f"Evento {event.pk} actualizado. Completado: {event.is_completed}")  # Debug
             
             return JsonResponse({
                 'success': True,
@@ -203,6 +212,7 @@ def toggle_event_completion(request, pk):
                 'message': 'Completado' if event.is_completed else 'Pendiente'
             })
         except Exception as e:
+            print(f"Error al actualizar evento: {str(e)}")  # Debug
             return JsonResponse({
                 'success': False,
                 'error': str(e)
@@ -212,35 +222,126 @@ def toggle_event_completion(request, pk):
 
 # Tareas 
 
+@login_required
 def tareas_view(request):
-    today = datetime.now().date()
+    """
+    Vista para mostrar las tareas organizadas por días de la semana y agrupadas por materia.
+    """
+    # Obtener la fecha actual
+    today = timezone.localdate()
+    
+    # Calcular el inicio y fin de la semana (lunes a domingo)
     start_of_week = today - timedelta(days=today.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
+    # Filtrar eventos para la semana actual del usuario
     user_events = Event.objects.filter(
         user=request.user,
         start_time__date__gte=start_of_week,
-        end_time__date__lte=end_of_week + timedelta(days=1)
+        start_time__date__lte=end_of_week
     ).order_by('start_time')
 
-    events_by_day = {}
-    for i in range(7):  # Initialize for all days of the week
-        events_by_day[i] = []
+    # Nombres de los días en español
+    day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
+    # Inicializar diccionario para eventos por día
+    events_by_day = {i: [] for i in range(7)}
+    
+    # Función para extraer materia del título
+    def extract_subject_from_title(title):
+        # Normalizar el título
+        title_lower = title.lower().strip()
+        
+        # Mapeo de palabras clave a materias (buscar en el título)
+        subject_keywords = {
+            'Matemáticas': ['matematicas', 'matemáticas', 'algebra', 'álgebra', 'calculo', 'cálculo', 'geometria', 'geometría', 'trigonometria', 'trigonometría'],
+            'Filosofía': ['filosofia', 'filosofía', 'etica', 'ética', 'logica', 'lógica'],
+            'Biología': ['biologia', 'biología', 'anatomia', 'anatomía', 'celula', 'célula', 'genetica', 'genética'],
+            'Física': ['fisica', 'física', 'mecanica', 'mecánica', 'termodinamica', 'termodinámica', 'optica', 'óptica'],
+            'Química': ['quimica', 'química', 'organica', 'orgánica', 'inorganica', 'inorgánica', 'laboratorio'],
+            'Historia': ['historia', 'guerra', 'revolucion', 'revolución', 'antigua', 'medieval'],
+            'Inglés': ['ingles', 'inglés', 'english'],
+            'Francés': ['frances', 'francés', 'french'],
+            'Arte': ['arte', 'pintura', 'musica', 'música', 'teatro', 'danza', 'literatura'],
+            'Deportes': ['deportes', 'futbol', 'fútbol', 'basquet', 'natacion', 'natación', 'atletismo'],
+            'Programación': ['programacion', 'programación', 'codigo', 'código', 'python', 'javascript', 'html', 'css']
+        }
+        
+        # Buscar coincidencia exacta primero (si el título ES la materia)
+        for subject, keywords in subject_keywords.items():
+            if title_lower in [kw.lower() for kw in keywords] or title_lower == subject.lower():
+                return subject
+        
+        # Buscar si el título CONTIENE alguna palabra clave
+        for subject, keywords in subject_keywords.items():
+            if any(keyword in title_lower for keyword in keywords):
+                return subject
+        
+        # Si no encuentra nada específico, usar el título como está (capitalizado)
+        return title.strip().title()
+    
+    # Agrupar eventos por día de la semana
     for event in user_events:
         day_of_week = event.start_time.weekday()
-        if day_of_week in events_by_day:
-            events_by_day[day_of_week].append(event)
+        subject = extract_subject_from_title(event.title)
+        
+        events_by_day[day_of_week].append({
+            'id': event.pk,
+            'title': event.title,
+            'description': event.description or 'Sin descripción',
+            'start_time': event.start_time,
+            'end_time': event.end_time,
+            'event_type': event.event_type,
+            'is_completed': event.is_completed,
+            'priority': event.priority,
+            'due_date': event.due_date,
+            'css_class': f"event-{event.event_type}",
+            'subject': subject,  # El tema/materia extraído del título
+        })
 
-    day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    week_days_data = [{
-        'day_name': day_names_es[i],
-        'day_num': (start_of_week + timedelta(days=i)).day,
-        'is_today': (start_of_week + timedelta(days=i)) == today
-    } for i in range(7)]
+    # Crear datos para cada día de la semana
+    week_days_data = []
+    for i in range(7):
+        current_day_date = start_of_week + timedelta(days=i)
+        
+        # Agrupar eventos por materia para este día
+        day_events = events_by_day[i]
+        subjects_dict = {}
+        
+        for event in day_events:
+            subject = event['subject']
+            if subject not in subjects_dict:
+                subjects_dict[subject] = []
+            subjects_dict[subject].append(event)
+        
+        week_days_data.append({
+            'day_name': day_names_es[i],
+            'day_name_short': day_names_es[i][:3],
+            'day_num': current_day_date.day,
+            'date': current_day_date,
+            'is_today': current_day_date == today,
+            'events': day_events,  # Todos los eventos del día
+            'subjects': subjects_dict,  # Eventos agrupados por materia
+            'event_count': len(day_events),
+        })
+
+    # Estadísticas útiles
+    total_events = sum(len(events) for events in events_by_day.values())
+    completed_events = sum(1 for events in events_by_day.values() for event in events if event.get('is_completed', False))
+    pending_events = total_events - completed_events
 
     context = {
-        'events_by_day': events_by_day,
         'week_days_data': week_days_data,
+        'events_by_day': events_by_day,
+        'seven_days_range': range(7),
+        'start_of_week': start_of_week,
+        'end_of_week': end_of_week,
+        'today': today,
+        'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} {start_of_week.strftime('%B')} {start_of_week.year}",
+        # Estadísticas
+        'total_events': total_events,
+        'completed_events': completed_events,
+        'pending_events': pending_events,
     }
+    
     return render(request, 'tareas.html', context)
