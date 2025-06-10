@@ -199,8 +199,12 @@ def toggle_event_completion(request, pk):
     if request.method == 'POST':
         try:
             event = get_object_or_404(Event, pk=pk, user=request.user)
+            
+            # Cambiar el estado
             event.is_completed = not event.is_completed
             event.save()
+            
+            print(f"Evento {event.pk} actualizado. Completado: {event.is_completed}")  # Debug
             
             return JsonResponse({
                 'success': True,
@@ -208,6 +212,7 @@ def toggle_event_completion(request, pk):
                 'message': 'Completado' if event.is_completed else 'Pendiente'
             })
         except Exception as e:
+            print(f"Error al actualizar evento: {str(e)}")  # Debug
             return JsonResponse({
                 'success': False,
                 'error': str(e)
@@ -219,8 +224,11 @@ def toggle_event_completion(request, pk):
 
 @login_required
 def tareas_view(request):
+    """
+    Vista para mostrar las tareas organizadas por días de la semana y agrupadas por materia.
+    """
     # Obtener la fecha actual
-    today = datetime.now().date()
+    today = timezone.localdate()
     
     # Calcular el inicio y fin de la semana (lunes a domingo)
     start_of_week = today - timedelta(days=today.weekday())
@@ -239,13 +247,48 @@ def tareas_view(request):
     # Inicializar diccionario para eventos por día
     events_by_day = {i: [] for i in range(7)}
     
+    # Función para extraer materia del título
+    def extract_subject_from_title(title):
+        # Normalizar el título
+        title_lower = title.lower().strip()
+        
+        # Mapeo de palabras clave a materias (buscar en el título)
+        subject_keywords = {
+            'Matemáticas': ['matematicas', 'matemáticas', 'algebra', 'álgebra', 'calculo', 'cálculo', 'geometria', 'geometría', 'trigonometria', 'trigonometría'],
+            'Filosofía': ['filosofia', 'filosofía', 'etica', 'ética', 'logica', 'lógica'],
+            'Biología': ['biologia', 'biología', 'anatomia', 'anatomía', 'celula', 'célula', 'genetica', 'genética'],
+            'Física': ['fisica', 'física', 'mecanica', 'mecánica', 'termodinamica', 'termodinámica', 'optica', 'óptica'],
+            'Química': ['quimica', 'química', 'organica', 'orgánica', 'inorganica', 'inorgánica', 'laboratorio'],
+            'Historia': ['historia', 'guerra', 'revolucion', 'revolución', 'antigua', 'medieval'],
+            'Inglés': ['ingles', 'inglés', 'english'],
+            'Francés': ['frances', 'francés', 'french'],
+            'Arte': ['arte', 'pintura', 'musica', 'música', 'teatro', 'danza', 'literatura'],
+            'Deportes': ['deportes', 'futbol', 'fútbol', 'basquet', 'natacion', 'natación', 'atletismo'],
+            'Programación': ['programacion', 'programación', 'codigo', 'código', 'python', 'javascript', 'html', 'css']
+        }
+        
+        # Buscar coincidencia exacta primero (si el título ES la materia)
+        for subject, keywords in subject_keywords.items():
+            if title_lower in [kw.lower() for kw in keywords] or title_lower == subject.lower():
+                return subject
+        
+        # Buscar si el título CONTIENE alguna palabra clave
+        for subject, keywords in subject_keywords.items():
+            if any(keyword in title_lower for keyword in keywords):
+                return subject
+        
+        # Si no encuentra nada específico, usar el título como está (capitalizado)
+        return title.strip().title()
+    
     # Agrupar eventos por día de la semana
     for event in user_events:
         day_of_week = event.start_time.weekday()
+        subject = extract_subject_from_title(event.title)
+        
         events_by_day[day_of_week].append({
             'id': event.pk,
             'title': event.title,
-            'description': event.description,
+            'description': event.description or 'Sin descripción',
             'start_time': event.start_time,
             'end_time': event.end_time,
             'event_type': event.event_type,
@@ -253,20 +296,33 @@ def tareas_view(request):
             'priority': event.priority,
             'due_date': event.due_date,
             'css_class': f"event-{event.event_type}",
+            'subject': subject,  # El tema/materia extraído del título
         })
 
     # Crear datos para cada día de la semana
     week_days_data = []
     for i in range(7):
         current_day_date = start_of_week + timedelta(days=i)
+        
+        # Agrupar eventos por materia para este día
+        day_events = events_by_day[i]
+        subjects_dict = {}
+        
+        for event in day_events:
+            subject = event['subject']
+            if subject not in subjects_dict:
+                subjects_dict[subject] = []
+            subjects_dict[subject].append(event)
+        
         week_days_data.append({
             'day_name': day_names_es[i],
-            'day_name_short': day_names_es[i][:3],  # Para versión corta (Lun, Mar, etc.)
+            'day_name_short': day_names_es[i][:3],
             'day_num': current_day_date.day,
             'date': current_day_date,
             'is_today': current_day_date == today,
-            'events': events_by_day[i],  # Eventos para este día
-            'event_count': len(events_by_day[i]),  # Contador de eventos
+            'events': day_events,  # Todos los eventos del día
+            'subjects': subjects_dict,  # Eventos agrupados por materia
+            'event_count': len(day_events),
         })
 
     # Estadísticas útiles

@@ -1,4 +1,4 @@
-/* ===== CSS PARA VISTA DE TAREAS - ESTILO EXACTO ===== */
+/* ===== CSS PARA VISTA DE TAREAS - ESTILO AGRUPADO POR MATERIA ===== */
 
 /* Contenedor principal de tareas */
 .tareas-container {
@@ -136,72 +136,197 @@
     border-radius: 1px;
 }
 
-/* Item individual de evento/tarea - ESTILO EXACTO */
-.tareas-event-item {
-    background: #16213e;
-    margin-bottom: 6px;
-    padding: 6px 8px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    position: relative;
-    border: none;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 32px;
+/* Grupo de materia/tema */
+.tareas-subject-group {
+    margin-bottom: 12px;
 }
 
-.tareas-event-item:hover {
-    background: #1e2a47;
-    transform: translateX(1px);
-}
-
-.tareas-event-item:last-child {
+.tareas-subject-group:last-child {
     margin-bottom: 0;
 }
 
-/* Icono/indicador circular */
-.tareas-event-indicator {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+/* Header del grupo de materia */
+.tareas-subject-header {
+    background: #16213e;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tareas-subject-header:hover {
+    background: #1e2a47;
+}
+
+/* Indicador de materia */
+.tareas-subject-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
     flex-shrink: 0;
-    background-color: #6b7280;
 }
 
-/* Colores de indicadores por tipo */
-.tareas-event-item.event-tarea .tareas-event-indicator {
-    background-color: #22c55e;
+/* Colores por materia - usando selectores más simples */
+.tareas-subject-group .tareas-subject-indicator {
+    background-color: #6b7280; /* Color por defecto */
 }
 
-.tareas-event-item.event-clase .tareas-event-indicator {
+/* Matemáticas */
+.tareas-subject-group[class*="matemáticas"] .tareas-subject-indicator,
+.tareas-subject-group[class*="matematicas"] .tareas-subject-indicator {
     background-color: #3b82f6;
 }
 
-.tareas-event-item.event-descanso .tareas-event-indicator {
-    background-color: #f59e0b;
-}
-
-.tareas-event-item.event-personal .tareas-event-indicator {
+/* Filosofía */
+.tareas-subject-group[class*="filosofía"] .tareas-subject-indicator,
+.tareas-subject-group[class*="filosofia"] .tareas-subject-indicator {
     background-color: #8b5cf6;
 }
 
-.tareas-event-item.event-otro .tareas-event-indicator {
-    background-color: #6b7280;
+/* Biología */
+.tareas-subject-group[class*="biología"] .tareas-subject-indicator,
+.tareas-subject-group[class*="biologia"] .tareas-subject-indicator {
+    background-color: #22c55e;
 }
 
-/* Contenido del evento */
-.tareas-event-content {
+/* Física */
+.tareas-subject-group[class*="física"] .tareas-subject-indicator,
+.tareas-subject-group[class*="fisica"] .tareas-subject-indicator {
+    background-color: #ef4444;
+}
+
+/* Química */
+.tareas-subject-group[class*="química"] .tareas-subject-indicator,
+.tareas-subject-group[class*="quimica"] .tareas-subject-indicator {
+    background-color: #f59e0b;
+}
+
+/* Historia */
+.tareas-subject-group[class*="historia"] .tareas-subject-indicator {
+    background-color: #a855f7;
+}
+
+/* Inglés */
+.tareas-subject-group[class*="inglés"] .tareas-subject-indicator,
+.tareas-subject-group[class*="ingles"] .tareas-subject-indicator {
+    background-color: #06b6d4;
+}
+
+/* Francés */
+.tareas-subject-group[class*="francés"] .tareas-subject-indicator,
+.tareas-subject-group[class*="frances"] .tareas-subject-indicator {
+    background-color: #14b8a6;
+}
+
+/* Arte */
+.tareas-subject-group[class*="arte"] .tareas-subject-indicator {
+    background-color: #ec4899;
+}
+
+/* Deportes */
+.tareas-subject-group[class*="deportes"] .tareas-subject-indicator {
+    background-color: #84cc16;
+}
+
+/* Programación */
+.tareas-subject-group[class*="programación"] .tareas-subject-indicator,
+.tareas-subject-group[class*="programacion"] .tareas-subject-indicator {
+    background-color: #f97316;
+}
+
+/* Nombre de la materia */
+.tareas-subject-name {
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: capitalize;
+}
+
+/* Contador de tareas en la materia */
+.tareas-subject-count {
+    font-size: 0.7rem;
+    color: #a0a0a0;
+    background: #2a2a3e;
+    padding: 2px 6px;
+    border-radius: 8px;
+    min-width: 16px;
+    text-align: center;
+}
+
+/* Lista de tareas de la materia */
+.tareas-subject-tasks {
+    margin-left: 8px;
+    border-left: 2px solid #2a2a3e;
+    padding-left: 8px;
+}
+
+/* Item individual de tarea */
+.tareas-task-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    margin-bottom: 3px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    min-height: 24px;
+}
+
+.tareas-task-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tareas-task-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Checkbox personalizado */
+.tareas-task-checkbox {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #4a4a5e;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tareas-task-checkbox:hover {
+    border-color: #8b5cf6;
+}
+
+.tareas-task-checkbox.checked {
+    background-color: #22c55e;
+    border-color: #22c55e;
+}
+
+.tareas-task-checkbox.checked::after {
+    content: "✓";
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+
+/* Contenido de la tarea */
+.tareas-task-content {
     flex: 1;
     min-width: 0;
 }
 
-/* Títulos de eventos */
-.tareas-event-title {
-    font-weight: 500;
+/* Título de la tarea */
+.tareas-task-title {
+    font-size: 0.75rem;
     color: #ffffff;
-    font-size: 0.8rem;
+    font-weight: 500;
     line-height: 1.2;
     margin: 0;
     overflow: hidden;
@@ -209,112 +334,49 @@
     white-space: nowrap;
 }
 
-/* Tiempo del evento */
-.tareas-event-time {
+/* Fecha de la tarea */
+.tareas-task-date {
+    font-size: 0.65rem;
     color: #ef4444;
-    font-size: 0.7rem;
-    font-weight: 500;
     margin: 0;
     margin-top: 1px;
 }
 
-/* Estados especiales */
-.tareas-event-item.completed {
-    opacity: 0.5;
+/* Estados de tareas completadas */
+.tareas-task-item.completed .tareas-task-title {
+    color: #9ca3af;
+    text-decoration: line-through;
 }
 
-.tareas-event-item.completed .tareas-event-title {
+.tareas-task-item.completed .tareas-task-date {
+    color: #6b7280;
     text-decoration: line-through;
+}
+
+/* Estado de grupo completado */
+.tareas-subject-group.all-completed .tareas-subject-header {
+    opacity: 0.7;
+}
+
+.tareas-subject-group.all-completed .tareas-subject-name {
     color: #9ca3af;
 }
 
-.tareas-event-item.completed .tareas-event-indicator {
-    background-color: #34d399 !important;
-}
-
-/* Prioridad alta - punto rojo especial */
-.tareas-event-item.priority-alta .tareas-event-indicator {
-    background-color: #ef4444 !important;
-    box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
-}
-
-/* Categorías específicas con checkboxes */
-.tareas-event-item.categoria-biologia::before {
-    content: "🧬";
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
+/* Contador */
+.tareas-subject-count {
     font-size: 0.7rem;
+    color: #a0a0a0;
+    background: #2a2a3e;
+    padding: 2px 6px;
+    border-radius: 8px;
+    min-width: 16px;
+    text-align: center;
 }
 
-.tareas-event-item.categoria-matematicas::before {
-    content: "📐";
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-}
-
-.tareas-event-item.categoria-quimica::before {
-    content: "⚗️";
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-}
-
-.tareas-event-item.categoria-fisica::before {
-    content: "⚛️";
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-}
-
-.tareas-event-item.categoria-filosofia::before {
-    content: "🤔";
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-}
-
-/* Checkbox para eventos completados */
-.tareas-event-checkbox {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    border: 1px solid #6b7280;
-    border-radius: 2px;
-    background: transparent;
-    display: none;
-}
-
-.tareas-event-item:hover .tareas-event-checkbox {
-    display: block;
-}
-
-.tareas-event-item.completed .tareas-event-checkbox {
-    background: #34d399;
-    border-color: #34d399;
-    display: block;
-}
-
-.tareas-event-item.completed .tareas-event-checkbox::after {
-    content: "✓";
-    color: white;
-    font-size: 0.6rem;
-    position: absolute;
-    top: -1px;
-    left: 1px;
+/* Estadísticas */
+.tareas-stat-number {
+    font-weight: 700;
+    margin-right: 5px;
 }
 
 /* Sin eventos */
