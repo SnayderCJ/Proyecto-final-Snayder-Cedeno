@@ -1,7 +1,14 @@
 {% extends "base.html" %} 
 {% load planner_tags %} 
 {% load static %}
-{% block title %}StudyFly - Horarios{% endblock %} {% block content %}
+
+{% block title %}StudyFly - Horarios{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/optimizer.css' %}">
+{% endblock %}
+
+{% block content %}
 <div class="calendar-container">
   <!-- Header del Calendario -->
   <div class="calendar-header">
@@ -26,7 +33,7 @@
           Semana Siguiente →
         </a>
       </div>
-      <button class="toggle-btn" onclick="optimizeSchedule()">
+      <button class="toggle-btn optimize-btn">
         🤖 Optimizar Horario
       </button>
       <a href="{% url 'planner:event_create' %}" class="toggle-btn active">
@@ -150,10 +157,6 @@
     });
   });
 
-  function optimizeSchedule() {
-    alert("🚀 ¡Función de optimización con IA próximamente en el Módulo 3!");
-  }
-
   // Atajos de teclado
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey) {
@@ -170,4 +173,8 @@
     }
   });
 </script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/optimizer.js' %}"></script>
 {% endblock %}
