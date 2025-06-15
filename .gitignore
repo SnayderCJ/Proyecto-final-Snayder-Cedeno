@@ -1,61 +1,121 @@
-# Python
+# ==============================================================================
+#  Archivo .gitignore completo para Proyectos Django y Tailwind CSS
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+#  Credenciales y Secretos (¡Lo más importante!)
+#  Nunca subas archivos que contengan contraseñas, tokens o claves de API.
+# ------------------------------------------------------------------------------
+# Archivos de entorno que contienen secretos
+.env
+.env.*
+*.env
+*.env.*
+env.py
+
+# Archivos de credenciales de Google (u otros servicios)
+studiFly_desktop_client.json
+token.json
+credentials.json
+*.pem
+*.key
+
+# ------------------------------------------------------------------------------
+#  Entornos Virtuales de Python
+#  Nunca subas tu entorno virtual completo.
+# ------------------------------------------------------------------------------
+.venv/
+venv/
+env/
+.env/
+ENV/
+
+# ------------------------------------------------------------------------------
+#  Archivos generados por Python y Django
+#  Son archivos temporales o generados automáticamente.
+# ------------------------------------------------------------------------------
 *.pyc
 *.pyo
 *.pyd
-*__pycache__/
-*.db
+__pycache__/
+*.egg-info/
+
+# Base de datos local de SQLite
 *.sqlite3
+*.db
+db.sqlite3
 
-# Tokens y credenciales claves del proyecto
-studiFly_desktop_client.json
-token.json
+# Archivos de sesión de Django
+*.session
 
-# Entornos virtuales
-venv/
-env/
-.env
-.venv/
-.ENV/
+# ------------------------------------------------------------------------------
+#  Archivos de Tailwind CSS y Node.js
+#  La carpeta node_modules puede contener miles de archivos y no debe subirse.
+# ------------------------------------------------------------------------------
+# Dependencias de Node.js
+node_modules/
 
-# Archivos de configuración de editor
+# Archivo de log de npm
+npm-debug.log
+
+# CSS compilado (si no quieres versionarlo)
+# Descomenta la siguiente línea si tu CSS compilado está en static/css/dist/
+# static/css/dist/
+
+# ------------------------------------------------------------------------------
+#  Archivos de Medios y Estáticos Recopilados
+#  Estos archivos son generados por `collectstatic` o subidos por los usuarios.
+#  Generalmente no se suben al repositorio.
+# ------------------------------------------------------------------------------
+/staticfiles/
+/media/
+
+# ------------------------------------------------------------------------------
+#  Configuraciones de Editores de Código e IDEs
+#  Cada desarrollador tiene sus propias configuraciones locales.
+# ------------------------------------------------------------------------------
 .idea/
 .vscode/
 *.sublime-project
 *.sublime-workspace
+nbproject/
 
-# Archivos de configuración de pruebas
+# ------------------------------------------------------------------------------
+#  Archivos de Sistema Operativo
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------------------------------------------------------------
+#  Logs, Cobertura de Pruebas y Archivos de Construcción
+# ------------------------------------------------------------------------------
+*.log
+logs/
+coverage.py
 .coverage
+.coverage.*
 .cache
 nosetests.xml
 coverage.xml
-*.cover
-
-# Archivos de log
-*.log
-
-
-# Archivos de medios
-media/
-staticfiles/
-
-# Archivo de configuración de Django
-*.pot
-*.mo
-*.pyc
-
-
-# Pytest
-.cache
-*.egg-info/
+htmlcov/
 dist/
 build/
-*__init__.py
 
-# Otros
-*.DS_Store
-*.env.*
+# ==============================================================================
+#  SECCIÓN OPCIONAL: Ignorar Archivos de Migración
+#  ADVERTENCIA: No se recomienda para proyectos en equipo.
+# ==============================================================================
+#
+#  Descomenta las siguientes líneas si trabajas SOLO y quieres evitar subir
+#  archivos de migración.
+#
+#  PROS: Evita conflictos de migraciones si reinicias tu base de datos a menudo.
+#  CONTRAS (muy importantes):
+#  - Imposibilita el trabajo en equipo, ya que la base de datos de cada
+#    desarrollador será inconsistente.
+#  - Dificulta el despliegue a producción, ya que no hay un historial de
+#    cambios de la base de datos.
+#
+# */migrations/*.py
+# !*/migrations/__init__.py
 
-
-# Archivos de documentación
-studiFly_desktop_client.json
-token.json
