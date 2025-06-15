@@ -1,4 +1,73 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Password strength meter
+    const passwordInput = document.querySelector('input[name="password1"]');
+    if (passwordInput) {
+        const strengthMeter = document.createElement('div');
+        strengthMeter.className = 'h-1 mt-1 rounded-full bg-border overflow-hidden transition-all duration-300';
+        const strengthBar = document.createElement('div');
+        strengthBar.className = 'h-full transition-all duration-300';
+        strengthMeter.appendChild(strengthBar);
+        
+        // Insert after password input
+        passwordInput.parentNode.insertBefore(strengthMeter, passwordInput.nextSibling);
+        
+        // Strength text indicator
+        const strengthText = document.createElement('div');
+        strengthText.className = 'text-xs mt-1 transition-all duration-300';
+        passwordInput.parentNode.insertBefore(strengthText, strengthMeter.nextSibling);
+
+        passwordInput.addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strength = calculatePasswordStrength(password);
+            
+            // Update strength bar
+            strengthBar.style.width = strength.score + '%';
+            
+            // Update colors based on strength
+            if (strength.score < 25) {
+                strengthBar.className = 'h-full bg-destructive transition-all duration-300';
+                strengthText.className = 'text-xs mt-1 text-destructive transition-all duration-300';
+                strengthText.textContent = 'Muy débil';
+            } else if (strength.score < 50) {
+                strengthBar.className = 'h-full bg-warning transition-all duration-300';
+                strengthText.className = 'text-xs mt-1 text-warning transition-all duration-300';
+                strengthText.textContent = 'Débil';
+            } else if (strength.score < 75) {
+                strengthBar.className = 'h-full bg-primary transition-all duration-300';
+                strengthText.className = 'text-xs mt-1 text-primary transition-all duration-300';
+                strengthText.textContent = 'Media';
+            } else {
+                strengthBar.className = 'h-full bg-success transition-all duration-300';
+                strengthText.className = 'text-xs mt-1 text-success transition-all duration-300';
+                strengthText.textContent = 'Fuerte';
+            }
+        });
+    }
+
+    function calculatePasswordStrength(password) {
+        let score = 0;
+        
+        // Length
+        if (password.length > 6) score += 20;
+        if (password.length > 8) score += 10;
+        if (password.length > 12) score += 10;
+        
+        // Complexity
+        if (/[A-Z]/.test(password)) score += 15; // Uppercase
+        if (/[a-z]/.test(password)) score += 15; // Lowercase
+        if (/[0-9]/.test(password)) score += 15; // Numbers
+        if (/[^A-Za-z0-9]/.test(password)) score += 15; // Special chars
+        
+        // Variety
+        const uniqueChars = new Set(password).size;
+        score += Math.min(uniqueChars * 2, 15); // Up to 15 points for variety
+        
+        return {
+            score: Math.min(score, 100) // Cap at 100%
+        };
+    }
+
+    // Toast notifications logic
     const toasts = document.querySelectorAll(".custom-toast");
 
     toasts.forEach(toast => {
@@ -52,5 +121,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 }, 2000);
             }
         });
+    });
+
+    // Form transition logic
+    const loginLink = document.querySelector('a[href*="login"]');
+    const registerLink = document.querySelector('a[href*="register"]');
+    const formContainer = document.querySelector('form').parentElement;
+
+    function animateFormTransition(e) {
+        e.preventDefault();
+        const href = e.currentTarget.getAttribute('href');
+        
+        // Animate form out
+        formContainer.style.transform = 'translateY(-20px)';
+        formContainer.style.opacity = '0';
+        
+        setTimeout(() => {
+            window.location.href = href;
+        }, 300);
+    }
+
+    if (loginLink) {
+        loginLink.addEventListener('click', animateFormTransition);
+    }
+    if (registerLink) {
+        registerLink.addEventListener('click', animateFormTransition);
+    }
+
+    // Animate form in on page load
+    formContainer.style.opacity = '0';
+    formContainer.style.transform = 'translateY(20px)';
+    formContainer.style.transition = 'all 0.5s ease';
+    
+    requestAnimationFrame(() => {
+        formContainer.style.opacity = '1';
+        formContainer.style.transform = 'translateY(0)';
     });
 });
