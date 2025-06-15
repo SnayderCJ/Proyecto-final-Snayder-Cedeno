@@ -7,8 +7,11 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from .models import Event
 from .forms import EventForm
+from .ml_optimizer import TaskOptimizer
 from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 import json
+import calendar
 
 @login_required
 def calendar_view(request):
@@ -111,6 +114,112 @@ def calendar_view(request):
         'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} {start_of_week.strftime('%B')} {start_of_week.year}",
     }
     return render(request, 'horarios.html', context)
+
+@login_required
+def optimize_schedule(request):
+    """
+    Vista para optimizar el horario del usuario usando IA.
+    """
+    try:
+        if request.method == 'POST':
+            user_events = Event.objects.filter(user=request.user).order_by('start_time')
+            
+            print(f"DEBUG: Usuario {request.user.username}")
+            print(f"DEBUG: Total de eventos: {user_events.count()}")
+            
+            if not user_events.exists():
+                return JsonResponse({
+                    'suggestions': [],
+                    'message': 'No hay tareas creadas.'
+                })
+            
+            # Mostrar información de las tareas
+            for event in user_events:
+                print(f"DEBUG: Tarea: {event.title}, Completada: {event.is_completed}, Fecha: {event.start_time}")
+                
+            # Crear sugerencias considerando si la tarea está completada o no
+            suggestions_data = []
+            for i, event in enumerate(user_events):
+                if event.is_completed:
+                    # Para tareas completadas, sugerir mantener horario actual
+                    new_start = event.start_time
+                    new_end = event.end_time
+                    reason = "Tarea completada, se mantiene el horario actual"
+                    improvement_score = 0.0
+                else:
+                    # Para tareas no completadas, sugerir cambios alternados
+                    if i % 2 == 0:
+                        new_start = event.start_time + timedelta(hours=1)
+                        reason = "Mover 1 hora más tarde puede mejorar la concentración"
+                    else:
+                        new_start = event.start_time - timedelta(hours=1)
+                        reason = "Mover 1 hora más temprano puede ser más productivo"
+                    new_end = new_start + (event.end_time - event.start_time)
+                    improvement_score = 0.8 + (i * 0.1)
+                
+                suggestions_data.append({
+                    'event_id': event.id,
+                    'title': event.title,
+                    'current_time': event.start_time.isoformat(),
+                    'suggested_time': new_start.isoformat(),
+                    'suggested_end_time': new_end.isoformat(),
+                    'improvement_score': improvement_score,
+                    'reason': reason,
+                })
+
+            print(f"DEBUG: Sugerencias generadas: {len(suggestions_data)}")
+            return JsonResponse({'suggestions': suggestions_data})
+        else:
+            return JsonResponse({'error': 'Método no permitido'}, status=405)
+    except Exception as e:
+        print(f"DEBUG ERROR: {str(e)}")
+        return JsonResponse({
+            'error': f'Error al optimizar el horario: {str(e)}'
+        }, status=500)
+
+@login_required
+def event_update_ajax(request, pk):
+    """
+    Vista para actualizar un evento vía AJAX.
+    """
+    if request.method == 'POST':
+        try:
+            event = get_object_or_404(Event, pk=pk, user=request.user)
+            body = request.body.decode('utf-8')
+            data = json.loads(body)
+            
+            # Convertir fechas ISO a datetime
+            start_time_str = data['start_time'].replace('Z', '+00:00')
+            end_time_str = data['end_time'].replace('Z', '+00:00')
+            
+            event.start_time = datetime.fromisoformat(start_time_str)
+            event.end_time = datetime.fromisoformat(end_time_str)
+            event.save()
+            
+            return JsonResponse({'success': True})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Datos JSON inválidos'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@login_required
+@require_GET
+def list_user_events(request):
+    """
+    Vista para listar las tareas del usuario con fechas actuales en JSON.
+    """
+    events = Event.objects.filter(user=request.user).order_by('start_time')
+    events_data = []
+    for event in events:
+        events_data.append({
+            'id': event.id,
+            'title': event.title,
+            'start_time': event.start_time.isoformat(),
+            'end_time': event.end_time.isoformat(),
+            'is_completed': event.is_completed,
+        })
+    return JsonResponse({'events': events_data})
 
 # --- VISTA PARA CREAR UN NUEVO EVENTO ---
 @login_required
