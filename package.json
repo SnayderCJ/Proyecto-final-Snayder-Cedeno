@@ -22,9 +22,6 @@
   "homepage": "https://github.com/SnayderCJ/AI-Powered_Student_Routine_Planner#readme",
   "devDependencies": {
     "concurrently": "^9.1.2",
-    "tailwindcss": "^4.1.10"
-  },
-  "dependencies": {
-    "@tailwindcss/cli": "^4.1.10"
+    "tailwindcss": "^3.4.0"
   }
 }
