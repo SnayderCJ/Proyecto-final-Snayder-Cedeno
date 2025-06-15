@@ -23,9 +23,41 @@ from django.utils import timezone
 
 @login_required
 def home(request):
+    from planner.models import Event
+    from datetime import timedelta
+    
+    # Obtener tareas del usuario para la semana actual
+    today = timezone.now().date()
+    now = timezone.now()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+    
+    # Filtrar eventos del usuario para la semana actual
+    user_events = Event.objects.filter(
+        user=request.user,
+        start_time__date__gte=start_of_week,
+        start_time__date__lte=end_of_week
+    ).order_by('start_time')
+    
+    # Separar tareas pendientes y completadas
+    pending_tasks = user_events.filter(is_completed=False)
+    completed_tasks = user_events.filter(is_completed=True)
+    
+    # Obtener próximas entregas (tareas futuras no completadas)
+    upcoming_tasks = Event.objects.filter(
+        user=request.user,
+        start_time__gte=now,  # Solo tareas futuras
+        is_completed=False    # Solo tareas no completadas
+    ).order_by('start_time')[:5]  # Limitar a las próximas 5 tareas
+    
     context = {
         'greeting': get_greeting(request.user),
         'current_date': get_formatted_date(request.user),
+        'pending_tasks': pending_tasks,
+        'completed_tasks': completed_tasks,
+        'pending_count': pending_tasks.count(),
+        'completed_count': completed_tasks.count(),
+        'upcoming_tasks': upcoming_tasks,
     }
     
     # Agregar información del usuario y Google si está autenticado
