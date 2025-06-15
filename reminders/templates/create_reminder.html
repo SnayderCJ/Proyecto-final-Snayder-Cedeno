@@ -1,0 +1,46 @@
+<!-- reminders/templates/reminders/create_reminder.html -->
+{% extends 'base.html' %}
+
+{% block title %}Crear Recordatorio{% endblock %}
+
+{% block content %}
+<h1>➕ Crear Nuevo Recordatorio</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.title.label_tag }}
+                {{ form.title }}
+            </div>
+            <div class="mb-3">
+                {{ form.description.label_tag }}
+                {{ form.description }}
+            </div>
+            <div class="mb-3">
+                {{ form.target_datetime.label_tag }}
+                {{ form.target_datetime }}
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.reminder_type.label_tag }}
+                        {{ form.reminder_type }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form.timing.label_tag }}
+                        {{ form.timing }}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Crear Recordatorio</button>
+                <a href="{% url 'reminders:list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

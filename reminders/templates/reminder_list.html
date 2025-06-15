@@ -1,0 +1,267 @@
+<!-- REEMPLAZA todo el contenido de reminders/templates/reminder_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Mis Recordatorios{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="text-primary">📋 Mis Recordatorios</h1>
+    <a href="{% url 'reminders:create' %}" class="btn btn-primary btn-lg">
+        ➕ Crear Recordatorio
+    </a>
+</div>
+
+<div class="row">
+    <!-- Sidebar de filtros -->
+    <div class="col-md-3 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h5 class="card-title mb-0">🔍 Filtros</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Estado:</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">Todos los estados</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>
+                                ⏳ Pendientes
+                            </option>
+                            <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>
+                                📤 Enviados
+                            </option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>
+                                ✅ Completados
+                            </option>
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>
+                                ❌ Cancelados
+                            </option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                        Aplicar Filtros
+                    </button>
+                    {% if status_filter %}
+                        <a href="{% url 'reminders:list' %}" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+                            Limpiar Filtros
+                        </a>
+                    {% endif %}
+                </form>
+                
+                <!-- Estadísticas rápidas -->
+                <hr>
+                <div class="text-center">
+                    <small class="text-muted">
+                        <strong>Total:</strong> {{ stats.total }} recordatorio{{ stats.total|pluralize }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de recordatorios -->
+    <div class="col-md-9">
+        {% if reminders %}
+            <div class="row">
+                {% for reminder in reminders %}
+                <div class="col-lg-6 mb-3">
+                    <div class="card reminder-card shadow-sm h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <strong class="text-truncate me-2">{{ reminder.title }}</strong>
+                            <span class="badge status-badge bg-{% if reminder.status == 'pending' %}warning text-dark{% elif reminder.status == 'sent' %}primary{% elif reminder.status == 'completed' %}success{% elif reminder.status == 'cancelled' %}secondary{% else %}danger{% endif %}">
+                                {% if reminder.status == 'pending' %}⏳{% elif reminder.status == 'sent' %}📤{% elif reminder.status == 'completed' %}✅{% elif reminder.status == 'cancelled' %}❌{% else %}🚫{% endif %}
+                                {{ reminder.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            {% if reminder.description %}
+                                <p class="card-text text-muted">
+                                    {{ reminder.description|truncatewords:15 }}
+                                </p>
+                            {% endif %}
+                            <div class="small text-muted">
+                                <div class="mb-1">
+                                    <strong>🎯 Objetivo:</strong> {{ reminder.target_datetime|date:"d/m/Y H:i" }}
+                                </div>
+                                <div class="mb-1">
+                                    <strong>📧 Tipo:</strong> {{ reminder.get_reminder_type_display }}
+                                </div>
+                                <div class="mb-1">
+                                    <strong>⏰ Envío:</strong> {{ reminder.get_timing_display }}
+                                </div>
+                                {% if reminder.scheduled_send_time %}
+                                <div>
+                                    <strong>📅 Programado:</strong> {{ reminder.scheduled_send_time|date:"d/m/Y H:i" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    {% if reminder.responded %}
+                                        ✅ Respondido
+                                    {% elif reminder.send_attempts > 0 %}
+                                        📤 {{ reminder.send_attempts }} intento{{ reminder.send_attempts|pluralize }}
+                                    {% else %}
+                                        🆕 Nuevo
+                                    {% endif %}
+                                </small>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" 
+                                            class="btn btn-outline-{% if reminder.status == 'pending' %}danger{% else %}success{% endif %}" 
+                                            onclick="toggleStatus('{{ reminder.id }}')"
+                                            title="{% if reminder.status == 'pending' %}Cancelar recordatorio{% else %}Reactivar recordatorio{% endif %}">
+                                        {% if reminder.status == 'pending' %}❌{% else %}🔄{% endif %}
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-outline-primary" 
+                                            onclick="testSend('{{ reminder.id }}')"
+                                            title="Enviar recordatorio de prueba">
+                                        🧪
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+        {% else %}
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="display-1">🤷‍♂️</i>
+                </div>
+                <h3 class="text-muted">No tienes recordatorios 
+                    {% if status_filter %}con este estado{% else %}aún{% endif %}
+                </h3>
+                <p class="text-muted mb-4">
+                    {% if status_filter %}
+                        Intenta cambiar los filtros o crear un nuevo recordatorio.
+                    {% else %}
+                        ¡Crea tu primer recordatorio para empezar a organizar tu tiempo!
+                    {% endif %}
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{% url 'reminders:create' %}" class="btn btn-primary btn-lg">
+                        ➕ Crear Mi Primer Recordatorio
+                    </a>
+                    {% if status_filter %}
+                        <a href="{% url 'reminders:list' %}" class="btn btn-outline-secondary">
+                            Ver Todos
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// FUNCIONES JAVASCRIPT CORREGIDAS
+
+function toggleStatus(reminderId) {
+    console.log('toggleStatus llamada con:', reminderId);
+    
+    if (!confirm('¿Estás seguro de que quieres cambiar el estado de este recordatorio?')) {
+        return;
+    }
+    
+    fetch(`/reminders/ajax/toggle-status/${reminderId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error en toggleStatus:', error);
+        alert('Error de conexión: ' + error.message);
+    });
+}
+
+function testSend(reminderId) {
+    console.log('testSend llamada con:', reminderId);
+    
+    if (!confirm('¿Enviar un recordatorio de prueba ahora?')) {
+        return;
+    }
+    
+    // Encontrar el botón que disparó el evento
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Mostrar indicador de carga
+    button.innerHTML = '⏳';
+    button.disabled = true;
+    
+    fetch(`/reminders/ajax/test-send/${reminderId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        // Restaurar botón
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Mostrar resultado
+        alert(data.message || (data.success ? '✅ Enviado correctamente' : '❌ Error al enviar'));
+    })
+    .catch(error => {
+        console.error('Error en testSend:', error);
+        
+        // Restaurar botón
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        alert(`❌ Error: ${error.message}`);
+    });
+}
+
+// Función helper para obtener el CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Verificar que todo está cargado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🧪 JavaScript de recordatorios cargado correctamente');
+    console.log('CSRF Token:', getCookie('csrftoken'));
+});
+</script>
+{% endblock %}
