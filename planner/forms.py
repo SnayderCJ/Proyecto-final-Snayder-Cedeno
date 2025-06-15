@@ -131,15 +131,15 @@ class EventForm(forms.ModelForm):
 
     def clean_start_time(self):
         start_time = self.cleaned_data.get('start_time')
-        
         if start_time:
             # Asegurarse de que start_time sea 'aware'
             if timezone.is_naive(start_time):
-                start_time = timezone.make_aware(start_time, timezone=timezone.get_current_timezone())
+                local_tz = timezone.get_current_timezone()
+                start_time = timezone.make_aware(start_time, timezone=local_tz)
 
             now_aware = timezone.now()
             
-            # Validaciones temporales mejoradas
+            # Validaciones temporales
             if start_time < now_aware - timedelta(days=1):
                 raise ValidationError("No puedes crear eventos de hace más de un día.")
             
@@ -152,10 +152,8 @@ class EventForm(forms.ModelForm):
                 raise ValidationError("¿Estás seguro? Programar eventos entre las 12:00 AM y 4:00 AM no es recomendable.")
             
             # Validar días de la semana para ciertos tipos
-            weekday = start_time.weekday()  # 0=Lunes, 6=Domingo
-            
-            # Advertencia para eventos académicos en domingo muy temprano
-            if weekday == 6 and hour < 8:  # Domingo antes de las 8 AM
+            weekday = start_time.weekday()
+            if weekday == 6 and hour < 8 and self.cleaned_data.get('event_type') == 'clase':
                 raise ValidationError("Los eventos académicos muy temprano en domingo pueden no ser productivos.")
         
         return start_time
@@ -167,7 +165,8 @@ class EventForm(forms.ModelForm):
         if end_time and start_time:
             # Asegurarse de que end_time sea 'aware'
             if timezone.is_naive(end_time):
-                end_time = timezone.make_aware(end_time, timezone=timezone.get_current_timezone())
+                local_tz = timezone.get_current_timezone()
+                end_time = timezone.make_aware(end_time, timezone=local_tz)
 
             # Validaciones básicas de tiempo
             if end_time <= start_time:

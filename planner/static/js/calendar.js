@@ -172,22 +172,16 @@ function navigateWeek(direction) {
     const currentUrl = new URL(window.location);
     currentUrl.searchParams.set('direction', direction);
 
-    // La dirección 'current' generalmente no necesita una fecha explícita
-    // porque el backend calculará la semana actual.
-    // Para 'prev' y 'next', la fecha base es importante.
     if (direction !== 'current') {
-        // Obtener la fecha actual de la URL o usar la fecha de hoy
         const urlDateParam = currentUrl.searchParams.get('date');
-        let baseDate;
-
-        if (urlDateParam) {
-            baseDate = new Date(urlDateParam + 'T12:00:00'); // Añadir hora para evitar problemas de zona horaria
-        } else {
+        let baseDate = urlDateParam ? new Date(urlDateParam + 'T12:00:00Z') : new Date();
+        
+        // Asegurarse de que baseDate sea válido
+        if (isNaN(baseDate.getTime())) {
             baseDate = new Date();
         }
 
         let newDate = new Date(baseDate);
-
         if (direction === 'prev') {
             newDate.setDate(baseDate.getDate() - 7);
         } else if (direction === 'next') {
@@ -195,11 +189,9 @@ function navigateWeek(direction) {
         }
         currentUrl.searchParams.set('date', newDate.toISOString().split('T')[0]);
     } else {
-        // Eliminar el parámetro 'date' para que el backend recalcule "hoy"
         currentUrl.searchParams.delete('date');
     }
 
-    // Agregar efecto de carga
     showLoading();
     window.location.href = currentUrl.toString();
 }
@@ -326,35 +318,26 @@ function createQuickEvent(dayColumn, clickEvent) {
     if (dayIndex < 0) return;
 
     const rect = dayColumn.getBoundingClientRect();
-
-    // Obtener la altura real de un slot de tiempo.
     const timeSlotElement = document.querySelector('.time-slot');
-    const timeSlotHeight = timeSlotElement ? timeSlotElement.offsetHeight : 50; // Fallback a 50px
+    const timeSlotHeight = timeSlotElement ? timeSlotElement.offsetHeight : 50;
 
-    // Obtener la posición Y del primer time-slot dentro de la columna de día
-    // Esto es crucial para un offset preciso.
-    let yOffset = 0;
-    const firstTimeSlotInColumn = dayColumn.querySelector('.time-slot');
-    if (firstTimeSlotInColumn) {
-        yOffset = firstTimeSlotInColumn.getBoundingClientRect().top - rect.top;
-    } else {
-        // Fallback si no se encuentran time-slots en la columna (ej. si la cuadrícula no está completamente renderizada).
-        // Si el header del calendario tiene una altura diferente a 50px, ajusta esto.
-        const calendarHeader = document.querySelector('.calendar-header');
-        yOffset = calendarHeader ? calendarHeader.offsetHeight : 50;
-    }
+    // Calcular el offset del primer slot de tiempo
+    const calendarGrid = document.querySelector('.calendar-grid');
+    const firstTimeSlot = calendarGrid.querySelector('.time-slot');
+    let yOffset = firstTimeSlot ? firstTimeSlot.getBoundingClientRect().top - rect.top : 50;
 
-
-    // Calcula la posición Y del clic dentro del área de la cuadrícula de eventos, restando el offset del encabezado
-    // Este cálculo es clave para la alineación vertical.
     const y = clickEvent.clientY - rect.top - yOffset;
-
-    // Calcula la hora basada en la posición Y y la altura del slot de tiempo
     const hour = Math.max(0, Math.min(23, Math.floor(y / timeSlotHeight)));
 
-    // Crear URL para nuevo evento con fecha y hora pre-llenadas
-    const today = new Date();
-    const weekStart = getWeekStart(today);
+    // Obtener la fecha base desde la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let baseDate = urlParams.get('date') ? new Date(urlParams.get('date') + 'T12:00:00Z') : new Date();
+    if (isNaN(baseDate.getTime())) {
+        baseDate = new Date();
+    }
+
+    // Calcular el inicio de la semana (lunes)
+    const weekStart = getWeekStart(baseDate);
     const targetDate = new Date(weekStart);
     targetDate.setDate(targetDate.getDate() + dayIndex);
 

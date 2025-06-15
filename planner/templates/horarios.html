@@ -1,14 +1,8 @@
-{% extends "base.html" %} 
-{% load planner_tags %} 
-{% load static %}
-
-{% block title %}StudyFly - Horarios{% endblock %}
-
+{% extends "base.html" %} {% load planner_tags %} {% load static %} 
+{% block title %}StudyFly - Horarios {% endblock %} 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/optimizer.css' %}">
-{% endblock %}
-
-{% block content %}
+<link rel="stylesheet" href="{% static 'css/optimizer.css' %}" />
+{% endblock %} {% block content %}
 <div class="calendar-container">
   <!-- Header del Calendario -->
   <div class="calendar-header">
@@ -33,9 +27,7 @@
           Semana Siguiente →
         </a>
       </div>
-      <button class="toggle-btn optimize-btn">
-        🤖 Optimizar Horario
-      </button>
+      <button class="toggle-btn optimize-btn">🤖 Optimizar Horario</button>
       <a href="{% url 'planner:event_create' %}" class="toggle-btn active">
         Agregar Tarea
       </a>
@@ -54,50 +46,50 @@
       </div>
 
       <!-- Columnas de Días -->
-      {% for day_data in week_days_data %}
-      <div class="day-column {% if day_data.is_today %}today{% endif %}">
-        <div class="day-header {% if day_data.is_today %}today{% endif %}">
-          <div style="font-size: 16px; font-weight: 700">
+{% for day_data in week_days_data %}
+<div class="day-column {% if day_data.is_today %}today{% endif %}">
+    <div class="day-header {% if day_data.is_today %}today{% endif %}">
+        <div style="font-size: 16px; font-weight: 700">
             {{ day_data.day_num }}
-          </div>
-          <div style="font-size: 11px; opacity: 0.9">
-            {{ day_data.day_name_short|capfirst }}
-          </div>
         </div>
+        <div style="font-size: 11px; opacity: 0.9">
+            {{ day_data.day_name_short|capfirst }}
+        </div>
+    </div>
 
-        <!-- Contenedor de Eventos para este Día -->
-        <div class="day-events-container">
-          {% for event in events_by_day|get_item:day_data.date.weekday %}
-          <a
+    <!-- Contenedor de Eventos para este Día -->
+    <div class="day-events-container">
+        {% for event in events_by_day|get_item:day_data.date.weekday %}
+        {% if event.start_time.date == day_data.date %}
+        <a
             href="{% url 'planner:event_detail' event.id %}"
             class="event {{ event.css_class }}{% if event.is_completed %} completed{% endif %}{% if event.due_date and event.due_date < today and not event.is_completed %} overdue{% endif %}"
             style="{{ event.style }}"
             data-event-id="{{ event.id }}"
             data-priority="{{ event.priority }}"
             title="{{ event.title }} - {{ event.start_time|date:'H:i' }} a {{ event.end_time|date:'H:i' }}"
-          >
+        >
             <div class="event-title">{{ event.title }}</div>
             <div class="event-time">{{ event.start_time|date:"H:i" }}</div>
 
             {% if event.description and event.description|length > 0 %}
             <div class="event-description">
-              {{ event.description|truncatechars:30 }}
+                {{ event.description|truncatechars:30 }}
             </div>
             {% endif %}
 
             <!-- Tooltip mejorado -->
             <div class="custom-tooltip">
-              <strong>{{ event.title }}</strong><br />
-              {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i"
-              }}<br />
-              {% if event.description %}{{ event.description|truncatechars:50
-              }}{% endif %}
+                <strong>{{ event.title }}</strong><br />
+                {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}<br />
+                {% if event.description %}{{ event.description|truncatechars:50 }}{% endif %}
             </div>
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
     </div>
   </div>
 
@@ -173,8 +165,6 @@
     }
   });
 </script>
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{% static 'js/optimizer.js' %}"></script>
 {% endblock %}
