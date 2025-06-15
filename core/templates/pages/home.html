@@ -2,6 +2,7 @@
    {% load static %}
 
    {% block content %}
+   <script src="{% static 'js/dashboard.js' %}"></script>
    <!-- Acciones rápidas -->
    
       <section class="quick-actions">
@@ -60,93 +61,51 @@
                   <div class="kanban-column">
                      <div class="column-header">
                      <h3>Pendientes</h3>
-                     <span class="badge">3</span>
+                     <span class="badge">{{ pending_count }}</span>
                      </div>
-                     <div class="task-card">
-                     <div class="task-header">
-                        <h4>Completar informe de laboratorio</h4>
-                        <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                     {% for task in pending_tasks %}
+                     <div class="task-card" data-task-id="{{ task.id }}" style="cursor: pointer;">
+                        <div class="task-header">
+                           <h4>{{ task.title }}</h4>
+                           <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                        </div>
+                        <div class="task-due-date">
+                           <i class="fas fa-clock"></i>
+                           <span>{{ task.start_time|date:"H:i" }}</span>
+                        </div>
+                        <div class="task-tags">
+                           <span class="tag subject-tag">{{ task.event_type }}</span>
+                           <span class="tag priority-{{ task.priority }}">{{ task.priority }}</span>
+                        </div>
                      </div>
-                     <div class="task-due-date">
-                        <i class="fas fa-clock"></i>
-                        <span>Hoy, 18:00</span>
-                     </div>
-                     <div class="task-tags">
-                        <span class="tag subject-tag">Química</span>
-                        <span class="tag priority-high">alta</span>
-                     </div>
-                     </div>
-                     <div class="task-card">
-                     <div class="task-header">
-                        <h4>Estudiar para examen de matemáticas</h4>
-                        <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
-                     </div>
-                     <div class="task-due-date">
-                        <i class="fas fa-clock"></i>
-                        <span>Mañana, 10:00</span>
-                     </div>
-                     <div class="task-tags">
-                        <span class="tag subject-tag">Matemáticas</span>
-                        <span class="tag priority-high">alta</span>
-                     </div>
-                     </div>
-                     <div class="task-card">
-                     <div class="task-header">
-                        <h4>Preparar presentación de proyecto</h4>
-                        <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
-                     </div>
-                     <div class="task-due-date">
-                        <i class="fas fa-clock"></i>
-                        <span>En 3 días</span>
-                     </div>
-                     <div class="task-tags">
-                        <span class="tag subject-tag">Programación</span>
-                        <span class="tag priority-medium">media</span>
-                     </div>
-                     </div>
-                  </div>
-                  <div class="kanban-column">
-                     <div class="column-header">
-                     <h3>En progreso</h3>
-                     <span class="badge">1</span>
-                     </div>
-                     <div class="task-card">
-                     <div class="task-header">
-                        <h4>Revisar notas de clase</h4>
-                        <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
-                     </div>
-                     <div class="task-due-date">
-                        <i class="fas fa-clock"></i>
-                        <span>En 5 días</span>
-                     </div>
-                     <div class="task-tags">
-                        <span class="tag subject-tag">Historia</span>
-                        <span class="tag priority-low">baja</span>
-                     </div>
-                     </div>
+                     {% endfor %}
                   </div>
                   <div class="kanban-column">
                      <div class="column-header">
                      <h3>Completadas</h3>
-                     <span class="badge">1</span>
+                     <span class="badge">{{ completed_count }}</span>
                      </div>
-                     <div class="task-card completed">
-                     <div class="task-header">
-                        <h4>Leer capítulo 5 de programación</h4>
-                        <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                     {% for task in completed_tasks %}
+                     <div class="task-card completed" data-task-id="{{ task.id }}" style="cursor: pointer;">
+                        <div class="task-header">
+                           <h4>{{ task.title }}</h4>
+                           <button class="task-menu"><i class="fas fa-ellipsis-h"></i></button>
+                        </div>
+                        <div class="task-due-date">
+                           <i class="fas fa-clock"></i>
+                           <span>Completada</span>
+                        </div>
+                        <div class="task-tags">
+                           <span class="tag subject-tag">{{ task.event_type }}</span>
+                           <span class="tag priority-{{ task.priority }}">{{ task.priority }}</span>
+                        </div>
                      </div>
-                     <div class="task-due-date">
-                        <i class="fas fa-clock"></i>
-                        <span>Completada</span>
-                     </div>
-                     <div class="task-tags">
-                        <span class="tag subject-tag">Programación</span>
-                        <span class="tag priority-medium">media</span>
-                     </div>
-                     </div>
+                     {% endfor %}
                   </div>
                </div>
+               
                </div>
+               {% csrf_token %}
                <div class="tab-content" id="calendarTab">
                <div class="calendar-view">
                   <div class="calendar-header">
@@ -266,85 +225,45 @@
                <h2>Vista Semanal</h2>
             </div>
             <div class="weekly-grid">
+               {% for day_index in "0123456" %}
                <div class="weekly-day">
-               <div class="day-header">Lun</div>
-               <div class="day-events">
-                  <div class="week-event class-event">
-                     <div>Matemáticas</div>
-                     <div>10:00 - 12:00</div>
+                  <div class="day-header">
+                     {% if day_index == "0" %}Lun
+                     {% elif day_index == "1" %}Mar
+                     {% elif day_index == "2" %}Mié
+                     {% elif day_index == "3" %}Jue
+                     {% elif day_index == "4" %}Vie
+                     {% elif day_index == "5" %}Sáb
+                     {% elif day_index == "6" %}Dom
+                     {% endif %}
                   </div>
-                  <div class="week-event study-event">
-                     <div>Estudio</div>
-                     <div>14:00 - 16:00</div>
-                  </div>
-               </div>
-               </div>
-               <div class="weekly-day">
-               <div class="day-header">Mar</div>
-               <div class="day-events">
-                  <div class="week-event class-event">
-                     <div>Física</div>
-                     <div>09:00 - 11:00</div>
-                  </div>
-                  <div class="week-event meeting-event">
-                     <div>Tutoría</div>
-                     <div>15:00 - 16:00</div>
-                  </div>
-               </div>
-               </div>
-               <div class="weekly-day">
-               <div class="day-header">Mié</div>
-               <div class="day-events">
-                  <div class="week-event class-event">
-                     <div>Programación</div>
-                     <div>13:00 - 15:00</div>
-                  </div>
-                  <div class="week-event meeting-event">
-                     <div>Proyecto Grupal</div>
-                     <div>16:00 - 17:30</div>
-                  </div>
-               </div>
-               </div>
-               <div class="weekly-day">
-               <div class="day-header">Jue</div>
-               <div class="day-events">
-                  <div class="week-event meeting-event">
-                     <div>Proyecto Grupal</div>
-                     <div>11:00 - 13:00</div>
-                  </div>
-                  <div class="week-event deadline-event">
-                     <div>Entrega Informe</div>
-                     <div>14:00</div>
+                  <div class="day-events">
+                     {% for task in pending_tasks %}
+                        {% if task.start_time.weekday|stringformat:"s" == day_index %}
+                        <div class="week-event {% if task.event_type == 'class' %}class-event{% elif task.event_type == 'study' %}study-event{% elif task.event_type == 'meeting' %}meeting-event{% elif task.event_type == 'exam' %}exam-event{% elif task.event_type == 'deadline' %}deadline-event{% else %}task-event{% endif %}">
+                           <div>{{ task.title }}</div>
+                           <div>{{ task.start_time|date:"H:i" }} - {{ task.end_time|date:"H:i" }}</div>
+                        </div>
+                        {% endif %}
+                     {% endfor %}
+                     {% for task in completed_tasks %}
+                        {% if task.start_time.weekday|stringformat:"s" == day_index %}
+                        <div class="week-event completed-event">
+                           <div>{{ task.title }}</div>
+                           <div>{{ task.start_time|date:"H:i" }} - {{ task.end_time|date:"H:i" }}</div>
+                        </div>
+                        {% endif %}
+                     {% endfor %}
+                     {% if not pending_tasks and not completed_tasks %}
+                        {% if day_index == "0" %}
+                        <div class="week-event no-events">
+                           <div>Sin eventos</div>
+                        </div>
+                        {% endif %}
+                     {% endif %}
                   </div>
                </div>
-               </div>
-               <div class="weekly-day">
-               <div class="day-header">Vie</div>
-               <div class="day-events">
-                  <div class="week-event exam-event">
-                     <div>Examen</div>
-                     <div>10:00 - 12:00</div>
-                  </div>
-               </div>
-               </div>
-               <div class="weekly-day">
-               <div class="day-header">Sáb</div>
-               <div class="day-events">
-                  <div class="week-event free-event">
-                     <div>Descanso</div>
-                     <div>Libre</div>
-                  </div>
-               </div>
-               </div>
-               <div class="weekly-day">
-               <div class="day-header">Dom</div>
-               <div class="day-events">
-                  <div class="week-event study-event">
-                     <div>Preparación Semanal</div>
-                     <div>15:00 - 18:00</div>
-                  </div>
-               </div>
-               </div>
+               {% endfor %}
             </div>
          </section>
          </div>
@@ -379,51 +298,31 @@
                <h2>Próximas entregas</h2>
             </div>
             <div class="deadlines-list">
+               {% for task in upcoming_tasks %}
                <div class="deadline-item">
-               <div class="deadline-icon">
-                  <i class="fas fa-calendar-day"></i>
-               </div>
-               <div class="deadline-content">
-                  <div class="deadline-header">
-                     <h3>Examen de Matemáticas</h3>
-                     <span class="tag priority-high">alta</span>
+                  <div class="deadline-icon">
+                     <i class="fas fa-calendar-day"></i>
                   </div>
-                  <div class="deadline-details">
-                     <span>Mañana, 10:00</span>
-                     <span class="tag subject-tag">Matemáticas</span>
+                  <div class="deadline-content">
+                     <div class="deadline-header">
+                        <h3>{{ task.title }}</h3>
+                        <span class="tag priority-{{ task.priority }}">{{ task.priority }}</span>
+                     </div>
+                     <div class="deadline-details">
+                        <span>{{ task.start_time|date:"l, j \d\e F \a \l\a\s H:i" }}</span>
+                        <span class="tag subject-tag">{{ task.event_type }}</span>
+                     </div>
                   </div>
                </div>
-               </div>
+               {% empty %}
                <div class="deadline-item">
-               <div class="deadline-icon">
-                  <i class="fas fa-calendar-day"></i>
-               </div>
-               <div class="deadline-content">
-                  <div class="deadline-header">
-                     <h3>Entrega de Proyecto</h3>
-                     <span class="tag priority-high">alta</span>
-                  </div>
-                  <div class="deadline-details">
-                     <span>Viernes, 23:59</span>
-                     <span class="tag subject-tag">Programación</span>
+                  <div class="deadline-content">
+                     <p style="text-align: center; color: #888; padding: 20px;">
+                        No tienes próximas entregas pendientes
+                     </p>
                   </div>
                </div>
-               </div>
-               <div class="deadline-item">
-               <div class="deadline-icon">
-                  <i class="fas fa-calendar-day"></i>
-               </div>
-               <div class="deadline-content">
-                  <div class="deadline-header">
-                     <h3>Informe de Laboratorio</h3>
-                     <span class="tag priority-medium">media</span>
-                  </div>
-                  <div class="deadline-details">
-                     <span>Próxima semana</span>
-                     <span class="tag subject-tag">Química</span>
-                  </div>
-               </div>
-               </div>
+               {% endfor %}
             </div>
          </section>
 
