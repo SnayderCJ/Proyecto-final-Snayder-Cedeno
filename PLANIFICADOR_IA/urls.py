@@ -25,6 +25,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
     path('allauth/', include('allauth.urls')),  # URLs de allauth
     path('planner/', include('planner.urls', namespace='planner')),
+    path('reminders/', include('reminders.urls', namespace='reminders')),
 ]
 
 # Servir archivos multimedia en desarrollo

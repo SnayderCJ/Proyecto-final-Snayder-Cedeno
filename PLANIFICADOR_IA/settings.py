@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'core', 
     'accounts.apps.AccountsConfig',  # Usar la configuración completa
     'planner.apps.PlannerConfig',  # Usar la configuración completa
+    'reminders.apps.RemindersConfig',  # Usar la configuración completa
     
     # App de Auth
     'allauth',
@@ -221,3 +222,40 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 # Configuración del sitio
 SITE_NAME = os.getenv('SITE_NAME', 'Planificador IA')
+
+# ===== CONFIGURACIÓN DE RECORDATORIOS =====
+
+# URL del sitio para enlaces en emails
+SITE_URL = 'http://localhost:8000'  # Cambiar en producción
+
+# Email para recordatorios (usar el mismo que ya tienes)
+DEFAULT_FROM_EMAIL = 'Planificador IA <cedenosnyder@gmail.com>'
+
+# Zona horaria para recordatorios
+USE_TZ = True
+TIME_ZONE = 'America/Guayaquil'  # Ecuador
+
+# Configuración de logging para recordatorios
+import logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'reminders.log'),
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'reminders': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

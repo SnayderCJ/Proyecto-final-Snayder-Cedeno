@@ -6,9 +6,6 @@
 *.db
 *.sqlite3
 
-# Tokens y credenciales claves del proyecto
-studiFly_desktop_client.json
-token.json
 
 # Entornos virtuales
 venv/
@@ -57,3 +54,5 @@ build/
 
 # Archivos de documentación
 studiFly_desktop_client.json
+token.json
+
