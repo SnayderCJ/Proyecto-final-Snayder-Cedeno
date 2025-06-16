@@ -61,7 +61,7 @@ npm --version
 Primero, clona el repositorio desde GitHub a tu máquina local.
 
 ```bash
-git clone [https://github.com/tu-usuario/tu-repositorio.git](https://github.com/tu-usuario/tu-repositorio.git)
+git clone https://github.com/SnayderCJ/Proyecto-final-Snayder-Cedeno.git
 cd tu-repositorio
 ```
 
