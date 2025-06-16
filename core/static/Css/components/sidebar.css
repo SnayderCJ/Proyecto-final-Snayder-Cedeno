@@ -82,3 +82,41 @@ i {
     width: 100%;
     padding: 10px;
 }
+
+.toggle-sidebar-btn {
+  position: fixed;
+  top: 100px; /* ANTES: top: 20px; */
+  left: 20px;
+  background-color: #5e17eb;
+  border: none;
+  color: white;
+  font-size: 20px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+
+.sidebar.collapsed {
+  width: 60px !important;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .menu-item span {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-header {
+  display: none;
+}
+
+.menu-item.active i,
+.menu-item.active span {
+  color: #22c55e; /* verde */
+  font-weight: bold;
+}
+.menu-item.active {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-left: 4px solid #22c55e;
+}

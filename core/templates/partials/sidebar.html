@@ -1,56 +1,76 @@
 {% load static %}
 
-<!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="menu-items">
-        <div class="sidebar-header">
-            <img src="{% static 'images/logo.png' %}" alt="Logo StudyFly">
-        </div>
+<!-- Botón de toggle para mostrar/ocultar sidebar -->
+<button id="toggle-sidebar" class="toggle-sidebar-btn">
+  <i class="fa fa-bars"></i>
+</button>
 
-        <div class="menu-item active">
-            <a href="{% url 'core:home' %}">
-            <i class="fa-solid fa-grip"></i>
-            <span>Dashboard</span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <a href="{% url 'planner:horarios' %}">
-                <i class="fa-solid fa-calendar"></i>
-                <span>Horarios</span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <i class="fa-solid fa-list-check"></i>
-            <span>Tareas</span>
-        </div>
-        <div class="menu-item">
-            <i class="fa-solid fa-chart-simple"></i>
-            <span>Productividad</span>
-        </div>
-        <div class="menu-item">
-            <i class="fa-solid fa-clock"></i>
-            <span>Tiempo de Enfoque</span>
-        </div>
-
-        <br><br><br><br><br><br><br><br><br>
-        <div class="menu-item">
-            <a href="{% url 'core:perfil' %}">
-                <i class="fa-solid fa-user"></i>
-                <span>Perfil </span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <a href="{% url 'core:settings' %}">
-                <i class="fa-solid fa-gear"></i>
-                <span>Configuración</span>
-            </a>
-        </div>
-
-        <div class="menu-item"> 
-            <a href="{% url 'accounts:logout' %}">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span> Cerrar Sesión</span>
-            </a>    
-        </div>
+<!-- Sidebar principal -->
+<nav class="sidebar">
+  <div class="menu-items">
+    <div class="sidebar-header">
+      <img src="{% static 'images/logo.png' %}" alt="Logo StudyFly">
     </div>
-  </nav>
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+      <a href="{% url 'core:home' %}">
+        <i class="fa-solid fa-grip"></i>
+        <span>Dashboard</span>
+      </a>
+    </div>
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'horarios' %}active{% endif %}">
+      <a href="{% url 'planner:horarios' %}">
+        <i class="fa-solid fa-calendar"></i>
+        <span>Horarios</span>
+      </a>
+    </div>
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'tareas' %}active{% endif %}">
+      <a href="#">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Tareas</span>
+      </a>
+    </div>
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'productividad' %}active{% endif %}">
+      <a href="{% url 'planner:productividad' %}">
+        <i class="fas fa-chart-bar"></i>
+        <span>Productividad</span>
+      </a>
+    </div>
+
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'focused_time' %}active{% endif %}"> 
+    <a href="{% url 'planner:focused_time' %}">
+        <i class="fa-solid fa-clock"></i>
+        <span>Tiempo de Enfoque</span>
+    </a>
+    </div>
+
+
+    <br><br><br><br><br><br><br><br><br>
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+      <a href="{% url 'core:perfil' %}">
+        <i class="fa-solid fa-user"></i>
+        <span>Perfil</span>
+      </a>
+    </div>
+
+    <div class="menu-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
+      <a href="{% url 'core:settings' %}">
+        <i class="fa-solid fa-gear"></i>
+        <span>Configuración</span>
+      </a>
+    </div>
+
+    <div class="menu-item">
+      <a href="{% url 'accounts:logout' %}">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Cerrar Sesión</span>
+      </a>
+    </div>
+  </div>
+</nav>
+

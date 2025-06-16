@@ -166,3 +166,82 @@ def event_detail(request, pk):
     """
     event = get_object_or_404(Event, pk=pk, user=request.user)
     return render(request, 'event_detail.html', {'event': event})
+
+#-- vista nuevaaaaaa
+from .optimizer import generar_bloques_enfocados
+from django.utils.timezone import make_aware
+from datetime import datetime, time
+
+
+"""#@login_required
+#def generar_bloques_view(request):
+    
+    #Vista que genera bloques de estudio y descanso para el usuario actual.
+    
+    if request.method == 'POST':
+        hoy = datetime.now().date()
+        inicio = make_aware(datetime.combine(hoy, time(8, 0)))  # 08:00 AM
+        fin = make_aware(datetime.combine(hoy, time(12, 0)))    # 12:00 PM
+
+        bloques = generar_bloques_enfocados(inicio, fin)
+
+        messages.success(request, f'Se generaron {len(bloques)} bloques exitosamente.')
+        return redirect('planner:horarios')
+
+    return render(request, 'generar_bloques_confirm.html')"""
+
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from datetime import datetime, time, timedelta
+from django.utils.timezone import localtime
+from .ia_generador import generar_bloques_enfocados_semana
+from collections import defaultdict
+
+@login_required
+def focused_time_view(request):
+    # Siempre usar valores fijos para la tabla
+    bloques = generar_bloques_enfocados_semana(request.user, duracion_enfoque=25, duracion_descanso=5)
+
+    # Paso 1: Agrupar eventos por día
+    eventos_por_dia = defaultdict(list)
+    eventos = Event.objects.filter(user=request.user).order_by("start_time")
+
+    for evento in eventos:
+        fecha = evento.start_time.date()
+        eventos_por_dia[fecha].append({
+            "title": evento.title,
+            "start_time": evento.start_time,
+            "end_time": evento.end_time,
+            "event_type": evento.event_type.lower()
+        })
+
+    # Paso 3: Formato para HTML
+    for bloque in bloques:
+        bloque["start_time"] = localtime(bloque["start_time"]).replace(tzinfo=None)
+        bloque["end_time"] = localtime(bloque["end_time"]).replace(tzinfo=None)
+        bloque["weekday"] = bloque["start_time"].weekday()
+
+    # Rango de horas de la tabla
+    horas = []
+    actual = datetime.combine(datetime.now().date(), time(6, 0))
+    final = datetime.combine(datetime.now().date(), time(22, 0))
+    while actual <= final:
+        horas.append(actual.strftime("%H:%M"))
+        actual += timedelta(minutes=30)
+
+    context = {
+        "bloques": bloques,
+        "horas": horas,
+    }
+    return render(request, "bloques_enfocados.html", context)
+
+#------------------------------
+
+from django.shortcuts import render
+
+def vista_productividad(request):
+    return render(request, 'productividad.html')
+
+

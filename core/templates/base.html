@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="{% static 'css/message.css' %}"/>
   <link rel="stylesheet" href="{% static 'css/horarios.css' %}"/>
   <link rel="stylesheet" href="{% static 'css/components/sidebar.css' %}"/>
+    <!-- Estilos específicos para productividad -->
+  <link rel="stylesheet" href="{% static 'planner/css/productividad.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 </head>
 <body class="dark-theme">
 
@@ -30,4 +34,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
   <script src="{% static 'js/auth.js' %}"></script>
 </body>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+  });
+</script>
+
 </html> 

@@ -1,0 +1,125 @@
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+.main-content {
+  margin-left: 270px;
+  margin-top: 80px;
+  padding: 20px;
+}
+
+.productividad {
+  background-color: #2B2046;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.productividad h2 {
+  color: #fff;
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+.productividad-grafico {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.grafico {
+  flex: 1;
+  min-width: 300px;
+}
+
+.informacion {
+  flex: 1;
+}
+
+.porcentaje p,
+.sugerencias p {
+  font-size: 1rem;
+  color: #ddd;
+  margin-bottom: 10px;
+}
+
+.porcentaje span {
+  font-weight: bold;
+  color: #A020F0;
+}
+
+.patrones {
+  background-color: #2B2046;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.patrones h3 {
+  color: #fff;
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+}
+
+.patrones-lista p {
+  font-size: 1rem;
+  color: #ddd;
+  margin-bottom: 10px;
+}
+
+.patrones-lista strong {
+  color: #A020F0;
+}
+
+.modo-pomodoro {
+  background-color: #2B2046;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 300px;
+  margin-left: auto;
+}
+
+.modo-pomodoro h3 {
+  color: #fff;
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+}
+
+.pomodoro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tiempo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tiempo-texto {
+  font-size: 1.2rem;
+  color: #ddd;
+}
+
+.tiempo-contador {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #A020F0;
+  margin-top: 10px;
+}
+
+.reiniciar-btn {
+  background-color: #A020F0;
+  color: white;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.reiniciar-btn:hover {
+  background-color: #8619b4;
+}

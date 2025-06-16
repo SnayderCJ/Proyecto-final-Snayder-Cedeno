@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+  <section class="productividad">
+    <h2>Análisis de Productividad</h2>
+    <div class="productividad-grafico">
+      <div class="grafico">
+        <canvas id="graficoProductividad"></canvas>
+      </div>
+      <div class="informacion">
+        <div class="porcentaje">
+          <p>Productividad de Hoy: <span>78%</span></p>
+        </div>
+        <div class="sugerencias">
+          <p>Estás un 12% más productivo que ayer</p>
+          <p>8% menos que tu promedio semanal</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="patrones">
+    <h3>Patrones Identificados</h3>
+    <div class="patrones-lista">
+      <p>- Tu día más productivo es: <strong>Jueves (94%)</strong></p>
+      <p>- Mayor rendimiento: <strong>9:00 a.m. - 12:00 p.m.</strong></p>
+      <p>- Mejor tipo de tarea completada: <strong>Lectura / Análisis</strong></p>
+    </div>
+  </section>
+
+  <section class="modo-pomodoro">
+    <h3>Modo Pomodoro</h3>
+    <div class="pomodoro">
+      <div class="tiempo">
+        <span class="tiempo-texto">Concentración</span>
+        <span class="tiempo-contador">25:00</span>
+      </div>
+      <button class="reiniciar-btn">Reiniciar</button>
+    </div>
+  </section>
+</main>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctx = document.getElementById('graficoProductividad').getContext('2d');
+
+  const grafico = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      datasets: [{
+        label: 'Nivel de Productividad',
+        data: [45, 68, 80, 94, 87, 72, 50], // puedes reemplazar estos con variables desde Django
+        backgroundColor: [
+          '#6EE7B7', '#3B82F6', '#818CF8', '#A78BFA', '#F472B6', '#FBBF24', '#F87171'
+        ],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: '#ddd'
+          }
+        },
+        x: {
+          ticks: {
+            color: '#ddd'
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

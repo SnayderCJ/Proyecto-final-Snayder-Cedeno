@@ -59,28 +59,17 @@ class Event(models.Model):
         from django.core.exceptions import ValidationError
         if self.end_time < self.start_time:
             raise ValidationError('La hora de fin no puede ser anterior a la hora de inicio.')
+#------------------------------------------------
+from django.db import models
+from django.contrib.auth.models import User
 
-# Opcional: Si también necesitas un modelo para Cursos
-# class Course(models.Model):
-#     """
-#     Modelo para representar un curso o asignatura.
-#     Podrías vincular eventos (clases, tareas) a un curso específico.
-#     """
-#     user = models.ForeignKey(
-#         settings.AUTH_USER_MODEL,
-#         on_delete=models.CASCADE,
-#         related_name='courses',
-#         verbose_name='Usuario'
-#     )
-#     name = models.CharField(max_length=100, verbose_name='Nombre del Curso')
-#     code = models.CharField(max_length=20, blank=True, null=True, unique=True, verbose_name='Código del Curso')
-#     description = models.TextField(blank=True, null=True, verbose_name='Descripción del Curso')
-#     # Podrías añadir instructor, horario fijo del curso, etc.
+class BloqueEstudio(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    fecha = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+    duracion_min = models.IntegerField()
+    completado = models.BooleanField(default=False)
 
-#     class Meta:
-#         verbose_name = "Curso"
-#         verbose_name_plural = "Cursos"
-#         ordering = ['name']
-
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return f"{self.usuario.username} | {self.fecha} | {self.hora_inicio}-{self.hora_fin}"
