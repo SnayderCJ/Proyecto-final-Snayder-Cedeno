@@ -74,42 +74,39 @@ def calendar_view(request):
     # Configuración del calendario
     CALENDAR_START_HOUR = 0
     CALENDAR_END_HOUR = 23
-    PIXELS_PER_HOUR = 50  # Debe coincidir con .time-slot height en horarios.css
 
-    events_for_template = []
+    # Agrupar eventos por día y hora, incluyendo todas las horas que abarca cada evento
+    events_by_day = {i: {f"{h:02d}:00": [] for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)} for i in range(7)}
     for event in user_events:
-        # Convertir tiempos a la zona horaria local
         start_time_local = event.start_time.astimezone(local_tz)
         end_time_local = event.end_time.astimezone(local_tz)
-
-        # Calcular posición y altura
-        start_hour_float = start_time_local.hour + start_time_local.minute / 60.0
-        top_px = (start_hour_float - CALENDAR_START_HOUR) * PIXELS_PER_HOUR
-
-        duration_minutes = (end_time_local - start_time_local).total_seconds() / 60.0
-        height_px = max((duration_minutes / 60.0) * PIXELS_PER_HOUR, 30)  # Altura mínima de 30px
-
+        weekday = start_time_local.weekday()
         css_class_type = f"event-{event.event_type}"
-
-        events_for_template.append({
-            'id': event.pk,
-            'title': event.title,
-            'description': event.description,
-            'start_time': start_time_local,
-            'end_time': end_time_local,
-            'event_type': event.event_type,
-            'is_completed': event.is_completed,
-            'priority': event.priority,
-            'due_date': event.due_date,
-            'day_of_week': start_time_local.weekday(),
-            'style': f"top: {top_px}px; height: {height_px}px;",
-            'css_class': css_class_type,
-        })
-
-    # Agrupar eventos por día de la semana
-    events_by_day = {i: [] for i in range(7)}
-    for event_data in events_for_template:
-        events_by_day[event_data['day_of_week']].append(event_data)
+        
+        # Calcular todas las franjas horarias que cubre el evento
+        current_time = start_time_local.replace(minute=0, second=0, microsecond=0)
+        end_time_ceiled = end_time_local.replace(minute=0, second=0, microsecond=0)
+        if end_time_local > end_time_ceiled:
+            end_time_ceiled += timedelta(hours=1)
+        
+        is_first_slot = True
+        while current_time < end_time_ceiled and current_time.date() == start_time_local.date():
+            hour_slot = current_time.strftime("%H:00")
+            events_by_day[weekday][hour_slot].append({
+                'id': event.pk,
+                'title': event.title,
+                'description': event.description,
+                'start_time': start_time_local,
+                'end_time': end_time_local,
+                'event_type': event.event_type,
+                'is_completed': event.is_completed,
+                'priority': event.priority,
+                'due_date': event.due_date,
+                'css_class': css_class_type,
+                'is_continuation': not is_first_slot,
+            })
+            current_time += timedelta(hours=1)
+            is_first_slot = False
 
     context = {
         'today': today,
