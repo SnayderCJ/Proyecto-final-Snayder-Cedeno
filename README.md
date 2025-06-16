@@ -158,23 +158,32 @@ python manage.py runserver
 
 ## 🖼️ Vistas Previas de la Aplicación
 
-Aquí tienes un vistazo de cómo luce nuestro **Planificador de Rutinas Inteligente**:
+A continuación, puedes ver cómo luce el **Planificador de Rutinas Inteligente** en acción:
 
-**Interfaz de Inicio de Sesión y Registro**
-![Interfaz de Login](https://media.discordapp.net/attachments/1248680132865036310/1384005980857303100/image.png?ex=6850db83&is=684f8a03&hm=888ad2766f5ec5e24ad3ad3e0d7f8458a1e1168839a256dbb9a78ab2ffb301e4&=&format=webp&quality=lossless&width=394&height=556)
+| Pantalla                                   | Vista                                                                                                                                                                                                                                         | Descripción                                                                                                 |
+|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| **Inicio de Sesión y Registro**             | ![Interfaz de Login](https://media.discordapp.net/attachments/1248680132865036310/1384005980857303100/image.png?ex=6850db83&is=684f8a03&hm=888ad2766f5ec5e24ad3ad3e0d7f8458a1e1168839a256dbb9a78ab2ffb301e4&=&format=webp&quality=lossless&width=160&height=220) | Acceso seguro para estudiantes, con opción de registro y login rápido.                                      |
+| **Dashboard Principal**                     | ![Dashboard](https://media.discordapp.net/attachments/1248680132865036310/1384006249070461028/image.png?ex=6850dbc3&is=684f8a43&hm=e5cf4584b194c777d2aee505e42eb3c33616b4679a340139cf1e88be27af9828&=&format=webp&quality=lossless&width=260&height=120)      | Vista central donde el estudiante visualiza su rutina, progreso y recomendaciones inteligentes.              |
+| **Gestión de Tareas y Calendario Inteligente** | ![Gestión de Tareas](https://media.discordapp.net/attachments/1248680132865036310/1384006389667729571/image.png?ex=6850dbe4&is=684f8a64&hm=bd8994d8f5a8b8ffc2a6f91d11453eb96da03638d23637abf09660d9fcd2450a&=&format=webp&quality=lossless&width=200&height=120) | Herramienta para organizar tareas, visualizar el calendario y recibir sugerencias automáticas.               |
+
+---
+
+<details>
+<summary>Ver imágenes en tamaño completo</summary>
+
+**Interfaz de Inicio de Sesión y Registro**  
+![Interfaz de Login](https://media.discordapp.net/attachments/1248680132865036310/1384005980857303100/image.png?ex=6850db83&is=684f8a03&hm=888ad2766f5ec5e24ad3ad3e0d7f8458a1e1168839a256dbb9a78ab2ffb301e4&=&format=webp&quality=lossless&width=394&height=556)  
 _Ilustración 1: interfaz de usuario login_
 
-**Dashboard Principal del Estudiante**
-![Dashboard](https://media.discordapp.net/attachments/1248680132865036310/1384006249070461028/image.png?ex=6850dbc3&is=684f8a43&hm=e5cf4584b194c777d2aee505e42eb3c33616b4679a340139cf1e88be27af9828&=&format=webp&quality=lossless&width=1237&height=559)
+**Dashboard Principal del Estudiante**  
+![Dashboard](https://media.discordapp.net/attachments/1248680132865036310/1384006249070461028/image.png?ex=6850dbc3&is=684f8a43&hm=e5cf4584b194c777d2aee505e42eb3c33616b4679a340139cf1e88be27af9828&=&format=webp&quality=lossless&width=1237&height=559)  
 _Ilustración 3: interfaz de usuario Dashboard_
 
-**Gestión de Tareas y Calendario Inteligente**
-![Gestión de Tareas](https://media.discordapp.net/attachments/1248680132865036310/1384006389667729571/image.png?ex=6850dbe4&is=684f8a64&hm=bd8994d8f5a8b8ffc2a6f91d11453eb96da03638d23637abf09660d9fcd2450a&=&format=webp&quality=lossless&width=959&height=562)
+**Gestión de Tareas y Calendario Inteligente**  
+![Gestión de Tareas](https://media.discordapp.net/attachments/1248680132865036310/1384006389667729571/image.png?ex=6850dbe4&is=684f8a64&hm=bd8994d8f5a8b8ffc2a6f91d11453eb96da03638d23637abf09660d9fcd2450a&=&format=webp&quality=lossless&width=959&height=562)  
 _Ilustración 4: interfaz de usuario Gestión de tareas y Calendario_
 
-**Análisis de Productividad**
-![Análisis de Productividad](https://i.imgur.com/uN8P8qR.png)
-_Ilustración 6: interfaz de usuario Análisis de Productividad_
+</details>
 
 ## 🧑‍💻 Autores
 
