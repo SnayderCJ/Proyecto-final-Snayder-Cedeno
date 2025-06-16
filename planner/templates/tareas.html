@@ -79,40 +79,13 @@
             // Guardar estado actual antes de cambiar
             const isCurrentlyCompleted = checkbox.classList.contains('checked');
             
-            // Actualizar estado visual inmediatamente al hacer clic
-            if (isCurrentlyCompleted) {
-                checkbox.classList.remove('checked');
-                taskItem.classList.remove('completed');
-                if (title) {
-                    title.style.textDecoration = 'none';
-                    title.style.color = '#ffffff';
-                }
-                if (date) {
-                    date.style.textDecoration = 'none';
-                    date.style.color = '#ef4444';
-                }
-            } else {
-                checkbox.classList.add('checked');
-                taskItem.classList.add('completed');
-                if (title) {
-                    title.style.textDecoration = 'line-through';
-                    title.style.color = '#9ca3af';
-                }
-                if (date) {
-                    date.style.textDecoration = 'line-through';
-                    date.style.color = '#6b7280';
-                }
-            }
-            
-            // Enviar petición AJAX con la ruta correcta
-            fetch(`/planner/event/${eventId}/toggle-completion/`, {
+            // Enviar petición AJAX
+            fetch(`/planner/event/${eventId}/toggle/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
                     'Content-Type': 'application/json',
                 },
-                // Enviar datos mínimos
-                body: JSON.stringify({}),
             })
             .then(response => {
                 if (!response.ok) {
@@ -122,7 +95,33 @@
             })
             .then(data => {
                 console.log('Datos de respuesta:', data); // Debug
-                if (!data.success) {
+                if (data.success) {
+                    // Actualizar estado visual basado en la respuesta del servidor
+                    if (data.is_completed) {
+                        checkbox.classList.add('checked');
+                        taskItem.classList.add('completed');
+                        if (title) {
+                            title.style.textDecoration = 'line-through';
+                            title.style.color = '#9ca3af';
+                        }
+                        if (date) {
+                            date.style.textDecoration = 'line-through';
+                            date.style.color = '#6b7280';
+                        }
+                    } else {
+                        checkbox.classList.remove('checked');
+                        taskItem.classList.remove('completed');
+                        if (title) {
+                            title.style.textDecoration = 'none';
+                            title.style.color = '#ffffff';
+                        }
+                        if (date) {
+                            date.style.textDecoration = 'none';
+                            date.style.color = '#ef4444';
+                        }
+                    }
+                } else {
+                    console.error('Error en la respuesta:', data.error);
                     // Revertir a estado original si falla
                     if (isCurrentlyCompleted) {
                         checkbox.classList.add('checked');
@@ -147,9 +146,7 @@
                             date.style.color = '#ef4444';
                         }
                     }
-                    console.error('Error en la respuesta:', data.error);
                 }
-                // Si success es true, el estado visual ya está correcto
             })
             .catch(error => {
                 console.error('Error en la petición:', error);
