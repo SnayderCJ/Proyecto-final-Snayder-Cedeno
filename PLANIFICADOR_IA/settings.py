@@ -146,11 +146,16 @@ ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 # Configuración de Cuentas Sociales
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Permite login directo sin página intermedia
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online', 'prompt': 'select_account'},
+        'AUTH_PARAMS': {
+            'access_type': 'online', 
+            'prompt': 'select_account'
+        },
         'OAUTH_PKCE_ENABLED': True,
+        'VERIFIED_EMAIL': True,
     }
 }
 

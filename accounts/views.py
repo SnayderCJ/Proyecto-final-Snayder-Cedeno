@@ -321,7 +321,7 @@ def password_reset_confirm(request):
 def social_login_cancelled(request):
     """Vista personalizada para cuando se cancela el login social"""
     messages.info(request, "Has cancelado el inicio de sesión con Google.")
-    return render(request, "login_cancelled.html")
+    return render(request, "socialaccount/login_cancelled.html")
 
 @login_required
 def signout(request):
