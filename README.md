@@ -1,6 +1,6 @@
 # 🤖 Planificador de Rutinas Inteligente con IA
 
-¡Bienvenido al futuro de la organización estudiantil! [cite_start]Este proyecto es un **Planificador de Rutinas Inteligente**, una plataforma web dinámica diseñada para revolucionar la gestión del tiempo de los estudiantes mediante el poder de la Inteligencia Artificial. 
+¡Bienvenido al futuro de la organización estudiantil! Este proyecto es un **Planificador de Rutinas Inteligente**, una plataforma web dinámica diseñada para revolucionar la gestión del tiempo de los estudiantes mediante el poder de la Inteligencia Artificial.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Django](https://img.shields.io/badge/Django-4.2+-092E20.svg)](https://www.djangoproject.com/)
@@ -11,31 +11,31 @@
 
 ## 📜 Descripción del Proyecto
 
-[cite_start]Este sistema, desarrollado con el robusto framework **Django** [cite: 10][cite_start], tiene como objetivo principal optimizar el uso del tiempo de los estudiantes, equilibrando sus actividades académicas con descansos adecuados[cite: 7]. [cite_start]La plataforma utiliza algoritmos de IA para ofrecer recomendaciones personalizadas y ajustes automáticos basados en los hábitos y el rendimiento del usuario [cite: 8][cite_start], buscando ser una herramienta proactiva y centrada en el bienestar estudiantil.
+Este sistema, desarrollado con el robusto framework **Django**, tiene como objetivo principal optimizar el uso del tiempo de los estudiantes, equilibrando sus actividades académicas con descansos adecuados. La plataforma utiliza algoritmos de IA para ofrecer recomendaciones personalizadas y ajustes automáticos basados en los hábitos y el rendimiento del usuario, buscando ser una herramienta proactiva y centrada en el bienestar estudiantil.
 
-[cite_start]El público objetivo son estudiantes de nivel medio y superior que deseen mejorar su organización [cite: 19][cite_start], evitar la procrastinación  [cite_start]y potenciar su rendimiento académico con una solución automática y adaptativa.
+El público objetivo son estudiantes de nivel medio y superior que deseen mejorar su organización, evitar la procrastinación y potenciar su rendimiento académico con una solución automática y adaptativa.
 
 ## ✨ Características Principales
 
-[cite_start]El proyecto está organizado en los siguientes módulos para ofrecer una experiencia completa e intuitiva:
+El proyecto está organizado en los siguientes módulos para ofrecer una experiencia completa e intuitiva:
 
-* [cite_start]**🔐 Módulo de Autenticación y Gestión de Usuarios:** Registro seguro, inicio de sesión tradicional e inicio de sesión rápido con Google. 
-* [cite_start]**🗓️ Módulo de Gestión de Horarios:** Permite crear y visualizar horarios, planificar tareas y programar descansos de forma manual o automática. 
-* [cite_start]**🧠 Módulo de Optimización Inteligente:** El núcleo de IA del sistema, que prioriza tareas, genera bloques de tiempo enfocados y reorganiza el horario automáticamente. 
-* [cite_start]**🔔 Módulo de Recordatorios Inteligentes:** Envía notificaciones y recordatorios que se adaptan a la rutina y comportamiento del usuario. 
-* [cite_start]**📊 Módulo de Seguimiento y Aprendizaje:** Analiza el rendimiento, registra la actividad y aprende de los hábitos del estudiante para ofrecer una personalización continua. 
-* [cite_start]**❤️ Módulo de Bienestar y Formación:** Incluye alertas de descanso y recomendaciones de técnicas de estudio basadas en el desempeño del usuario. 
+* **🔐 Módulo de Autenticación y Gestión de Usuarios:** Registro seguro, inicio de sesión tradicional e inicio de sesión rápido con Google.
+* **🗓️ Módulo de Gestión de Horarios:** Permite crear y visualizar horarios, planificar tareas y programar descansos de forma manual o automática.
+* **🧠 Módulo de Optimización Inteligente:** El núcleo de IA del sistema, que prioriza tareas, genera bloques de tiempo enfocados y reorganiza el horario automáticamente.
+* **🔔 Módulo de Recordatorios Inteligentes:** Envía notificaciones y recordatorios que se adaptan a la rutina y comportamiento del usuario.
+* **📊 Módulo de Seguimiento y Aprendizaje:** Analiza el rendimiento, registra la actividad y aprende de los hábitos del estudiante para ofrecer una personalización continua.
+* **❤️ Módulo de Bienestar y Formación:** Incluye alertas de descanso y recomendaciones de técnicas de estudio basadas en el desempeño del usuario.
 
 ## 🛠️ Tecnologías Utilizadas
 
 Este proyecto se construyó utilizando un stack de tecnologías moderno y escalable:
 
-* [cite_start]**Backend:** Django (Python) 
+* **Backend:** Django (Python)
 * **Frontend:** Tailwind CSS
 * **Base de Datos:** PostgreSQL (Recomendado para producción), SQLite (para desarrollo)
-* [cite_start]**Despliegue:** Amazon Web Services (AWS) 
-* [cite_start]**Inteligencia Artificial:** Modelo de IA personalizado para optimización de rutinas. 
-* [cite_start]**Autenticación Externa:** Google OAuth 2.0 
+* **Despliegue:** Amazon Web Services (AWS)
+* **Inteligencia Artificial:** Modelo de IA personalizado para optimización de rutinas.
+* **Autenticación Externa:** Google OAuth 2.0
 
 ## 🚀 Guía de Instalación y Ejecución Local
 
@@ -61,8 +61,8 @@ npm --version
 Primero, clona el repositorio desde GitHub a tu máquina local.
 
 ```bash
-git clone [https://github.com/SnayderCJ/AI-Powered_Student_Routine_Planner.git](https://github.com/SnayderCJ/AI-Powered_Student_Routine_Planner.git)
-cd AI-Powered_Student_Routine_Planner
+git clone [https://github.com/tu-usuario/tu-repositorio.git](https://github.com/tu-usuario/tu-repositorio.git)
+cd tu-repositorio
 ```
 
 ### 3. Configuración del Backend (Django)
@@ -162,29 +162,29 @@ Aquí tienes un vistazo de cómo luce nuestro **Planificador de Rutinas Intelige
 
 **Interfaz de Inicio de Sesión y Registro**
 ![Interfaz de Login](https://i.imgur.com/G5gR8t8.png)
-[cite_start]_Ilustración 1: interfaz de usuario login _
+_Ilustración 1: interfaz de usuario login_
 
 **Dashboard Principal del Estudiante**
 ![Dashboard](https://i.imgur.com/2s3j4gH.png)
-[cite_start]_Ilustración 3: interfaz de usuario Dashboard _
+_Ilustración 3: interfaz de usuario Dashboard_
 
 **Gestión de Tareas y Calendario Inteligente**
 ![Gestión de Tareas](https://i.imgur.com/bY3b6jT.png)
-[cite_start]_Ilustración 4: interfaz de usuario Gestión de tareas y Calendario _
+_Ilustración 4: interfaz de usuario Gestión de tareas y Calendario_
 
 **Análisis de Productividad**
 ![Análisis de Productividad](https://i.imgur.com/uN8P8qR.png)
-[cite_start]_Ilustración 6: interfaz de usuario Análisis de Productividad _
+_Ilustración 6: interfaz de usuario Análisis de Productividad_
 
 ## 🧑‍💻 Autores
 
 Este proyecto fue desarrollado con dedicación por los siguientes estudiantes de la carrera de Software en la UNEMI:
 
-* [cite_start]**Mayerly Anabela Piloso Muñoz** 
-* [cite_start]**Oswaldo Danilo Angulo Tamayo** 
-* [cite_start]**Jostyn Snayder Cedeño Jimenez** (Gerente del Proyecto) 
+* **Mayerly Anabela Piloso Muñoz**
+* **Oswaldo Danilo Angulo Tamayo**
+* **Jostyn Snayder Cedeño Jimenez** (Gerente del Proyecto)
 
-Bajo la supervisión del docente Ing. [cite_start]Rodrigo Josue Guevara Reyes. 
+Bajo la supervisión del docente Ing. Rodrigo Josue Guevara Reyes.
 
 ## 📄 Licencia
 
