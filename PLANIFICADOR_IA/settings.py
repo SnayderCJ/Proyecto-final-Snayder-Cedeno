@@ -165,35 +165,28 @@ AUTHENTICATION_BACKENDS = [
 
 # ===== CONFIGURACIÓN ACTUALIZADA DE ALLAUTH =====
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 # Adaptadores personalizados
 ACCOUNT_ADAPTER = 'accounts.adapters.CustomAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.CustomSocialAccountAdapter'
 
-# Configuración de cuentas
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# Configuración de Cuentas (Modo Moderno)
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_VERIFICATION = 'none'  # Cambiado de SOCIALACCOUNT_EMAIL_VERIFICATION
-ACCOUNT_UNIQUE_EMAIL = True  # AGREGADO - Email debe ser único
+ACCOUNT_EMAIL_VERIFICATION = 'none' # Opcional: 'mandatory' para forzar verificación
+ACCOUNT_USERNAME_REQUIRED = False   # No requerimos un username aparte
+ACCOUNT_AUTHENTICATION_METHOD = 'email' # El método de login es el email
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True # Loguear al usuario tras confirmar email
 
-# Configuración de cuentas sociales
+# Configuración de Cuentas Sociales
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Permitir registro automático desde el proveedor social
 SOCIALACCOUNT_EMAIL_REQUIRED = True
-SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_AUTO_SIGNUP = True  # Registro automático
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_STORE_TOKENS = False
-
-# CONFIGURACIÓN PARA LOGIN DIRECTO CON GOOGLE
-SOCIALACCOUNT_LOGIN_ON_GET = True  # Regresamos a True para login directo
-
-# Deshabilitar mensajes automáticos de allauth
-ACCOUNT_MESSAGES_ENABLED = False  # Deshabilitar TODOS los mensajes de account
-SOCIALACCOUNT_MESSAGES_ENABLED = False  # Deshabilitar TODOS los mensajes de socialaccount
-ACCOUNT_SESSION_REMEMBER = None
-SOCIALACCOUNT_EMAIL_AUTHENTICATION = False
-SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = False
-
-# Configuración específica de Google OAuth
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -202,26 +195,32 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
-            'prompt': 'select_account',  # ESTA LÍNEA FUERZA LA SELECCIÓN DE CUENTA
+            'prompt': 'select_account',
         },
         'OAUTH_PKCE_ENABLED': True,
-        'VERIFIED_EMAIL': True,
-        'FETCH_USERINFO': True,  # AGREGADO - Permite extraer información del perfil
     }
 }
 
-# CONFIGURACIÓN DE EMAIL
+# Deshabilitar mensajes automáticos de allauth (tu middleware ya los maneja)
+ACCOUNT_MESSAGES_ENABLED = False
+SOCIALACCOUNT_MESSAGES_ENABLED = False
 
+# Configuración de EMAIL
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-# Configuración del sitio
-SITE_NAME = os.getenv('SITE_NAME', 'Planificador IA')
+# --- AÑADE ESTAS LÍNEAS TEMPORALMENTE PARA DEPURAR ---
+print("----------------------------------------------------")
+print(f"EMAIL USER LEÍDO DESDE .env: '{EMAIL_HOST_USER}'")
+print(f"EMAIL PASSWORD LEÍDO DESDE .env: '{EMAIL_HOST_PASSWORD}'")
+print("----------------------------------------------------")
+# --- LUEGO DE PROBAR, PUEDES BORRAR ESTAS LÍNEAS ---
+
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
 # ===== CONFIGURACIÓN DE RECORDATORIOS =====
 

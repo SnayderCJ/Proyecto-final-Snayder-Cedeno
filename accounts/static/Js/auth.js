@@ -2,43 +2,31 @@ document.addEventListener("DOMContentLoaded", function () {
     // Password strength meter
     const passwordInput = document.querySelector('input[name="password1"]');
     if (passwordInput) {
-        const strengthMeter = document.createElement('div');
-        strengthMeter.className = 'h-1 mt-1 rounded-full bg-border overflow-hidden transition-all duration-300';
-        const strengthBar = document.createElement('div');
-        strengthBar.className = 'h-full transition-all duration-300';
-        strengthMeter.appendChild(strengthBar);
-        
-        // Insert after password input
-        passwordInput.parentNode.insertBefore(strengthMeter, passwordInput.nextSibling);
-        
-        // Strength text indicator
-        const strengthText = document.createElement('div');
-        strengthText.className = 'text-xs mt-1 transition-all duration-300';
-        passwordInput.parentNode.insertBefore(strengthText, strengthMeter.nextSibling);
-
         passwordInput.addEventListener('input', function(e) {
             const password = e.target.value;
             const strength = calculatePasswordStrength(password);
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
             
             // Update strength bar
             strengthBar.style.width = strength.score + '%';
             
             // Update colors based on strength
             if (strength.score < 25) {
-                strengthBar.className = 'h-full bg-destructive transition-all duration-300';
-                strengthText.className = 'text-xs mt-1 text-destructive transition-all duration-300';
+                strengthBar.className = 'h-full bg-destructive transition-all duration-300 rounded-full';
+                strengthText.className = 'text-xs font-medium text-destructive';
                 strengthText.textContent = 'Muy débil';
             } else if (strength.score < 50) {
-                strengthBar.className = 'h-full bg-warning transition-all duration-300';
-                strengthText.className = 'text-xs mt-1 text-warning transition-all duration-300';
+                strengthBar.className = 'h-full bg-warning transition-all duration-300 rounded-full';
+                strengthText.className = 'text-xs font-medium text-warning';
                 strengthText.textContent = 'Débil';
             } else if (strength.score < 75) {
-                strengthBar.className = 'h-full bg-primary transition-all duration-300';
-                strengthText.className = 'text-xs mt-1 text-primary transition-all duration-300';
+                strengthBar.className = 'h-full bg-primary transition-all duration-300 rounded-full';
+                strengthText.className = 'text-xs font-medium text-primary';
                 strengthText.textContent = 'Media';
             } else {
-                strengthBar.className = 'h-full bg-success transition-all duration-300';
-                strengthText.className = 'text-xs mt-1 text-success transition-all duration-300';
+                strengthBar.className = 'h-full bg-success transition-all duration-300 rounded-full';
+                strengthText.className = 'text-xs font-medium text-success';
                 strengthText.textContent = 'Fuerte';
             }
         });

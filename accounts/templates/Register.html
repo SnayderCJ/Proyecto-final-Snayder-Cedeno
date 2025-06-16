@@ -36,6 +36,16 @@
   <div class="mb-4">
     <label for="{{ form.password1.id_for_label }}" class="block mb-2 text-sm font-medium">Contraseña</label>
     {{ form.password1 }}
+    <!-- Indicador de fortaleza de contraseña -->
+    <div class="mb-2">
+      <div class="flex justify-between items-center mb-1">
+        <span class="text-xs text-muted-foreground">Fortaleza de la contraseña:</span>
+        <span id="strengthText" class="text-xs font-medium">-</span>
+      </div>
+      <div class="h-1 bg-border rounded-full overflow-hidden">
+        <div id="strengthBar" class="h-full w-0 transition-all duration-300 rounded-full"></div>
+      </div>
+    </div>
     {% for error in form.password1.errors %}
       <div class="text-destructive text-sm mt-1">{{ error }}</div>
     {% endfor %}
