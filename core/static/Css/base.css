@@ -521,12 +521,13 @@ a {
    margin-bottom: 0.5rem;
  }
  
- .task-menu {
+.task-menu {
    background: none;
    border: none;
    color: var(--muted-foreground);
    cursor: pointer;
- }
+   display: none; /* Ocultar los 3 puntos */
+}
  
  .task-due-date {
    display: flex;
@@ -716,6 +717,26 @@ a {
  .free-event {
    background-color: rgba(107, 114, 128, 0.2);
    color: var(--muted-foreground);
+ }
+
+ /* Nuevos estilos para la Vista Semanal dinámica */
+ .completed-event {
+   background-color: rgba(107, 114, 128, 0.2);
+   color: var(--muted-foreground);
+   text-decoration: line-through;
+ }
+ 
+ .task-event {
+   background-color: rgba(168, 85, 247, 0.2);
+   color: rgba(168, 85, 247, 1);
+ }
+ 
+ .no-events {
+   background-color: var(--muted);
+   color: var(--muted-foreground);
+   text-align: center;
+   padding: 1rem;
+   border-radius: var(--radius);
  }
  
  /* Focus Mode */
@@ -922,4 +943,3 @@ a {
    font-size: 0.875rem;
    cursor: pointer;
  }
- 
