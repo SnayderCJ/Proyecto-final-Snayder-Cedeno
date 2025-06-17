@@ -1,31 +1,95 @@
-/* Contenedor principal de notificaciones */
 .toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 1rem;
+    right: 1rem;
     z-index: 9999;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    max-width: 350px;
+    gap: 0.5rem;
+    max-width: 24rem;
+    pointer-events: none;
 }
 
-/* Estilo base para las notificaciones */
 .custom-toast {
-    padding: 12px 24px;
-    border-radius: 8px;
-    background: #1a1a1a;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    background-color: #121212;
+    border: 1px solid #2d2d2d;
+    color: #f8fafc;
+    animation: slideIn 0.3s ease-out;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    animation: slideIn 0.3s ease-out;
-    margin-bottom: 10px;
-    border-left: 4px solid;
+    gap: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
+    min-width: 300px;
 }
 
-/* Animación de entrada */
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.close-toast {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background-color: #2d2d2d;
+    color: #94a3b8;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.close-toast:hover {
+    background-color: #1e1e1e;
+    color: #f8fafc;
+}
+
+/* Toast variants */
+.custom-toast.success {
+    border-color: #22c55e;
+    background-color: rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.1);
+}
+
+.custom-toast.error {
+    border-color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.2);
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.1);
+}
+
+.custom-toast.warning {
+    border-color: #f59e0b;
+    background-color: rgba(245, 158, 11, 0.2);
+    box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.1);
+}
+
+.custom-toast.info {
+    border-color: #a855f7;
+    background-color: rgba(168, 85, 247, 0.2);
+    box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.1);
+}
+
+.custom-toast.debug {
+    border-color: #6b7280;
+    background-color: rgba(107, 114, 128, 0.2);
+    box-shadow: 0 0 0 1px rgba(107, 114, 128, 0.1);
+}
+
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -37,7 +101,6 @@
     }
 }
 
-/* Animación de salida */
 @keyframes slideOut {
     from {
         transform: translateX(0);
@@ -49,55 +112,6 @@
     }
 }
 
-/* Contenido del mensaje */
-.toast-content {
-    flex: 1;
-    margin-right: 12px;
-}
-
-.toast-message {
-    margin: 0;
-    font-size: 14px;
-}
-
-/* Botón de cerrar */
-.close-toast {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    font-size: 20px;
-    padding: 0;
-    margin-left: 12px;
-    transition: color 0.2s;
-}
-
-.close-toast:hover {
-    color: white;
-}
-
-/* Variantes de color según el tipo de mensaje */
-.custom-toast.success {
-    border-left-color: #10B981;
-    background-color: rgba(16, 185, 129, 0.1);
-}
-
-.custom-toast.error {
-    border-left-color: #EF4444;
-    background-color: rgba(239, 68, 68, 0.1);
-}
-
-.custom-toast.warning {
-    border-left-color: #F59E0B;
-    background-color: rgba(245, 158, 11, 0.1);
-}
-
-.custom-toast.info {
-    border-left-color: #3B82F6;
-    background-color: rgba(59, 130, 246, 0.1);
-}
-
-/* Animación de auto-cierre */
-.toast-removing {
+.toast-exit {
     animation: slideOut 0.3s ease-in forwards;
 }

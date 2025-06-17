@@ -10,21 +10,23 @@
     <link rel="stylesheet" href="{% static 'css/message.css' %}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
+    <script src="{% static 'js/messages.js' %}"></script>
+    <script src="{% static 'js/datetime.js' %}"></script>
+    <script src="{% static 'js/navigation.js' %}"></script>
 </head>
 
 <body class="flex h-screen flex-col bg-background text-foreground font-sans">
-
+    
+    <div class="toast-container" aria-live="polite" aria-label="Notificaciones"></div>
     {% include 'partials/message.html' %}
 
-    <div>
+    <div class="flex-shrink-0">
         {% include 'partials/navigationBar.html' %}
     </div>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <div>
-            {% include 'partials/sidebar.html' %}
-        </div>
+        {% include 'partials/sidebar.html' %}
 
         <main class="flex-1 overflow-y-auto p-6 lg:p-8">
             {% block content %}
@@ -32,7 +34,55 @@
         </main>
     </div>
 
-    {% block extra_js %}{% endblock %}
+    <div id="sidebar-overlay" class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
 
+    {% block extra_js %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleMenu() {
+            console.log('Toggle menu clicked'); // Debug
+            if (sidebar && overlay) {
+                // Alterna la clase que mueve el sidebar
+                sidebar.classList.toggle('-translate-x-full');
+                // Alterna la visibilidad del overlay
+                overlay.classList.toggle('hidden');
+                console.log('Sidebar classes:', sidebar.className); // Debug
+            }
+        }
+
+        // Asegurarse de que los elementos existen antes de añadir listeners
+        if (menuToggle) {
+            console.log('Menu toggle found, adding listener'); // Debug
+            menuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+            });
+        } else {
+            console.log('Menu toggle not found'); // Debug
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleMenu);
+        }
+
+        // Cerrar sidebar al hacer clic en enlaces (móvil)
+        const sidebarLinks = sidebar?.querySelectorAll('a');
+        if (sidebarLinks) {
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768) { // Solo en móvil
+                        toggleMenu();
+                    }
+                });
+            });
+        }
+    });
+    </script>
+    {% endblock extra_js %}
 </body>
 </html>
