@@ -1,5 +1,3 @@
-# PLANIFICADOR_IA/planner/views.py
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -27,33 +25,40 @@ def calendar_view(request):
         try:
             base_date = datetime.strptime(date_param, '%Y-%m-%d').date()
         except ValueError:
-            base_date = datetime.now().date()
+            base_date = timezone.now().date()
     else:
-        base_date = datetime.now().date()
-    
+        base_date = timezone.now().date()
+
+    # Convertir base_date a datetime aware
+    local_tz = timezone.get_current_timezone()
+    base_date = timezone.make_aware(datetime.combine(base_date, datetime.min.time()), local_tz)
+
     # Aplicar la dirección de navegación
     if direction == 'prev':
         base_date = base_date - timedelta(weeks=1)
     elif direction == 'next':
         base_date = base_date + timedelta(weeks=1)
-    # 'current' mantiene la fecha actual
-    
-    today = datetime.now().date()
 
-    # Calcular el inicio y fin de la semana
+    today = timezone.now().date()
+
+    # Calcular el inicio y fin de la semana (lunes a domingo)
     start_of_week = base_date - timedelta(days=base_date.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
+    # Convertir a datetime aware para el filtro
+    start_of_week_dt = timezone.make_aware(datetime.combine(start_of_week, datetime.min.time()), local_tz)
+    end_of_week_dt = timezone.make_aware(datetime.combine(end_of_week, datetime.max.time()), local_tz)
+
     # Nombres de los días de la semana en español
     day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    
+
     # Generar los días de la semana para el encabezado del calendario
     week_days_data = []
     for i in range(7):
         current_day = start_of_week + timedelta(days=i)
-        is_today = (current_day == today)
+        is_today = (current_day.date() == today)
         week_days_data.append({
-            'date': current_day,
+            'date': current_day.date(),
             'day_num': current_day.day,
             'day_name_short': day_names_es[current_day.weekday()][:3],
             'is_today': is_today,
@@ -62,51 +67,51 @@ def calendar_view(request):
     # Filtrar eventos para la semana actual del usuario
     user_events = Event.objects.filter(
         user=request.user,
-        start_time__date__gte=start_of_week,
-        end_time__date__lte=end_of_week + timedelta(days=1)
+        start_time__gte=start_of_week_dt,
+        start_time__lte=end_of_week_dt
     ).order_by('start_time')
 
     # Configuración del calendario
     CALENDAR_START_HOUR = 0
     CALENDAR_END_HOUR = 23
-    PIXELS_PER_HOUR = 50
 
-    events_for_template = []
+    # Agrupar eventos por día y hora, incluyendo todas las horas que abarca cada evento
+    events_by_day = {i: {f"{h:02d}:00": [] for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)} for i in range(7)}
     for event in user_events:
-        start_hour_float = event.start_time.hour + event.start_time.minute / 60.0
-        top_px = (start_hour_float - CALENDAR_START_HOUR) * PIXELS_PER_HOUR
-
-        # Calcular la altura del evento
-        duration_minutes = (event.end_time - event.start_time).total_seconds() / 60.0
-        height_px = (duration_minutes / 60.0) * PIXELS_PER_HOUR
-
-        # Clase CSS para el tipo de evento
-        css_class_type = f"event-{event.event_type}" 
-
-        events_for_template.append({
-            'id': event.pk,
-            'title': event.title,
-            'description': event.description,
-            'start_time': event.start_time,
-            'end_time': event.end_time,
-            'event_type': event.event_type,
-            'is_completed': event.is_completed,
-            'priority': event.priority,
-            'due_date': event.due_date,
-            'day_of_week': event.start_time.weekday(),
-            'style': f"top: {top_px}px; height: {height_px}px;",
-            'css_class': css_class_type,
-        })
-    
-    # Agrupar eventos por día de la semana
-    events_by_day = {i: [] for i in range(7)} 
-    for event_data in events_for_template:
-        events_by_day[event_data['day_of_week']].append(event_data)
+        start_time_local = event.start_time.astimezone(local_tz)
+        end_time_local = event.end_time.astimezone(local_tz)
+        weekday = start_time_local.weekday()
+        css_class_type = f"event-{event.event_type}"
+        
+        # Calcular todas las franjas horarias que cubre el evento
+        current_time = start_time_local.replace(minute=0, second=0, microsecond=0)
+        end_time_ceiled = end_time_local.replace(minute=0, second=0, microsecond=0)
+        if end_time_local > end_time_ceiled:
+            end_time_ceiled += timedelta(hours=1)
+        
+        is_first_slot = True
+        while current_time < end_time_ceiled and current_time.date() == start_time_local.date():
+            hour_slot = current_time.strftime("%H:00")
+            events_by_day[weekday][hour_slot].append({
+                'id': event.pk,
+                'title': event.title,
+                'description': event.description,
+                'start_time': start_time_local,
+                'end_time': end_time_local,
+                'event_type': event.event_type,
+                'is_completed': event.is_completed,
+                'priority': event.priority,
+                'due_date': event.due_date,
+                'css_class': css_class_type,
+                'is_continuation': not is_first_slot,
+            })
+            current_time += timedelta(hours=1)
+            is_first_slot = False
 
     context = {
         'today': today,
-        'start_of_week': start_of_week,
-        'end_of_week': end_of_week,
+        'start_of_week': start_of_week.date(),
+        'end_of_week': end_of_week.date(),
         'week_days_data': week_days_data,
         'events_by_day': events_by_day,
         'time_slots': [f"{h:02d}:00" for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)],

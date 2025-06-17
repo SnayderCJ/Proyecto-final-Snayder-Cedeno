@@ -1,4 +1,4 @@
-/* ===== CALENDARIO VISUAL - ESTILO MEJORADO ===== */
+/* ===== CALENDARIO VISUAL - ESTILO MEJORADO PARA TABLA ===== */
 
 /* Contenedor principal del calendario */
 .calendar-container {
@@ -18,13 +18,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 20px; /* Más compacto */
+    padding: 15px 20px;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-bottom: 1px solid #3a3a4e;
 }
 
 .month-year {
-    font-size: 22px; /* Más compacto */
+    font-size: 22px;
     font-weight: 600;
     color: #ffffff;
 }
@@ -42,7 +42,7 @@
 
 .toggle-btn,
 .nav-btn {
-    padding: 6px 12px; /* Más compacto */
+    padding: 6px 12px;
     background-color: #2a2a3e;
     border: 1px solid #4a4a5e;
     border-radius: 6px;
@@ -50,7 +50,7 @@
     text-decoration: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 12px; /* Más compacto */
+    font-size: 12px;
     font-weight: 500;
 }
 
@@ -67,63 +67,25 @@
     border-color: #8b5cf6;
 }
 
-/* Barra de estadísticas */
-.stats-bar {
-    display: flex;
-    justify-content: space-around;
-    padding: 12px 25px;
-    background-color: #1e1e32;
-    border-bottom: 1px solid #3a3a4e;
-}
-
-.stat-item {
-    text-align: center;
-    flex: 1;
-}
-
-.stat-number {
-    font-size: 20px;
-    font-weight: 700;
-    display: block;
-}
-
-.stat-label {
-    font-size: 11px;
-    color: #8a8a9a;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.stat-item.total .stat-number {
-    color: #60a5fa;
-}
-.stat-item.completed .stat-number {
-    color: #34d399;
-}
-.stat-item.pending .stat-number {
-    color: #fbbf24;
-}
-.stat-item.overdue .stat-number {
-    color: #f87171;
-}
-
-/* Grid del calendario */
-.calendar-grid-wrapper {
+/* Envoltorio de la tabla */
+.calendar-table-wrapper {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
-    background-color: #0f172a; /* Fondo más oscuro para mejor contraste */
-}
-
-.calendar-grid {
-    display: grid;
-    grid-template-columns: 50px repeat(7, 1fr); /* Columna de tiempo más estrecha */
-    min-height: 1200px; /* 24 horas * 50px */
+    overflow-x: auto;
     background-color: #0f172a;
 }
 
-/* Columna de tiempo */
-.time-column {
+/* Tabla del calendario */
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #0f172a;
+    table-layout: fixed;
+}
+
+/* Cabecera de la columna de tiempo */
+.time-column-header {
+    width: 50px;
     background-color: #1a1a2e;
     border-right: 1px solid #3a3a4e;
     position: sticky;
@@ -131,108 +93,84 @@
     z-index: 20;
 }
 
+/* Franjas horarias */
 .time-slot {
-    height: 50px; /* Asegura la altura de 50px */
-    box-sizing: border-box; /* Incluye padding y border en la altura */
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    height: 50px;
+    box-sizing: border-box;
+    text-align: right;
     padding-right: 8px;
     color: #6b7280;
-    font-size: 9px; /* Consistencia con responsive */
+    font-size: 9px;
     font-weight: 500;
     border-bottom: 1px solid rgba(58, 58, 78, 0.3);
     background-color: #1a1a2e;
+    position: sticky;
+    left: 0;
+    z-index: 10;
 }
 
-/* Headers de días */
+/* Cabeceras de días */
 .day-header {
-    height: 50px; /* Asegura la altura de 50px */
-    box-sizing: border-box; /* Incluye padding y border en la altura */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    height: 50px;
+    box-sizing: border-box;
+    text-align: center;
     background-color: #1a1a2e;
     border-bottom: 1px solid #3a3a4e;
     border-right: 1px solid rgba(58, 58, 78, 0.3);
     color: #e5e7eb;
     font-weight: 600;
-    font-size: 13px; /* Mejor tamaño de fuente */
+    font-size: 13px;
     position: sticky;
     top: 0;
     z-index: 15;
 }
 
 .day-header.today {
-    background-color: #7c3aed; /* Púrpura más similar a la imagen */
+    background-color: #7c3aed;
     color: white;
 }
 
-.day-header:last-child {
-    border-right: none;
+.day-header div:first-child {
+    font-size: 16px;
+    font-weight: 700;
 }
 
-/* Columnas de días */
-.day-column {
-    background-color: #0f172a; /* Consistencia con el fondo de la cuadrícula */
+.day-header div:last-child {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+/* Celdas de días */
+.day-cell {
     position: relative;
+    height: 50px;
+    box-sizing: border-box;
+    background-color: #0f172a;
     border-right: 1px solid rgba(58, 58, 78, 0.3);
-    min-height: 100%;
+    border-bottom: 1px solid rgba(58, 58, 78, 0.3);
+    vertical-align: top;
 }
 
-.day-column:last-child {
-    border-right: none;
-}
-
-/* Líneas de hora */
-.day-column::before {
-    content: "";
-    position: absolute;
-    top: 0; /* Las líneas empiezan desde arriba de la columna (el header de día es una celda separada) */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: repeating-linear-gradient(
-        transparent,
-        transparent 49px, /* Línea antes de 50px */
-        rgba(58, 58, 78, 0.15) 49px, /* Comienza la línea */
-        rgba(58, 58, 78, 0.15) 50px /* Termina la línea */
-    );
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* Resaltar día actual */
-.day-column.today::after {
-    content: "";
-    position: absolute;
-    top: 0; /* El resaltado empieza desde arriba de la columna */
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        to bottom,
-        rgba(139, 92, 246, 0.05) 0%,
-        transparent 100%
-    );
-    pointer-events: none;
-    z-index: 2;
+.day-cell.today {
+    background: linear-gradient(to bottom, rgba(139, 92, 246, 0.05) 0%, transparent 100%);
 }
 
 /* Contenedor de eventos */
 .day-events-container {
     position: relative;
+    width: 100%;
     height: 100%;
-    min-height: 1200px; /* Consistente con 24 horas * 50px */
-    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 2px;
+    overflow: hidden;
 }
 
-/* ===== EVENTOS - ESTILO PRINCIPAL ===== */
+/* Eventos */
 .event {
-    position: absolute;
-    left: 2px;
-    right: 2px;
+    position: relative;
+    margin: 0;
     padding: 6px 8px;
     border-radius: 4px;
     font-size: 11px;
@@ -244,14 +182,14 @@
     color: white;
     border: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    min-height: 30px; /* Altura mínima para eventos cortos */
+    min-height: 20px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    box-sizing: border-box; /* Asegura que el padding se incluya en el cálculo de altura */
+    box-sizing: border-box;
 }
 
-.event:hover {
+.event:not(.event-continuation):hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 25;
@@ -260,8 +198,8 @@
 
 .event-title {
     font-weight: 600;
-    line-height: 1.1; /* Ajuste para espacio */
-    margin-bottom: 1px; /* Ajuste para espacio */
+    line-height: 1.1;
+    margin-bottom: 1px;
     font-size: 11px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -272,7 +210,7 @@
     font-size: 9px;
     opacity: 0.9;
     font-weight: 500;
-    margin-top: auto; /* Empuja el tiempo hacia abajo si hay espacio */
+    margin-top: auto;
 }
 
 .event-description {
@@ -280,39 +218,55 @@
     opacity: 0.8;
     margin-top: 2px;
     line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-/* ===== COLORES DE EVENTOS - TIPO IMAGEN OBJETIVO ===== */
+/* Estilo para eventos de continuación */
+.event-continuation {
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: default;
+    padding: 4px 8px;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+}
 
-/* Tareas/Estudio - Verde */
+.event-continuation-text {
+    font-size: 10px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Colores de eventos */
 .event-tarea {
-    background-color: #10b981; /* Verde más vibrante */
+    background-color: #10b981;
 }
 
-/* Clases/Académico - Azul */
 .event-clase {
-    background-color: #3b82f6; /* Azul perfecto */
+    background-color: #3b82f6;
 }
 
-/* Descanso - Amarillo/Naranja */
 .event-descanso {
     background-color: #f59e0b;
     color: #1f2937;
 }
 
-/* Personal - Púrpura */
 .event-personal {
     background-color: #8b5cf6;
 }
 
-/* Otro - Gris */
 .event-otro {
-    background-color: #64748b; /* Gris más claro */
+    background-color: #64748b;
 }
 
-/* ===== ESTADOS ESPECIALES ===== */
-
-/* Eventos completados */
+/* Estados especiales */
 .event.completed {
     opacity: 0.6;
     position: relative;
@@ -335,13 +289,11 @@
     justify-content: center;
 }
 
-/* Eventos vencidos */
 .event.overdue {
     border-left: 3px solid #ef4444;
     background-color: #dc2626 !important;
 }
 
-/* Prioridad alta */
 .event[data-priority="alta"]::before {
     content: "!";
     position: absolute;
@@ -352,7 +304,7 @@
     font-size: 10px;
 }
 
-/* ===== LEYENDA DE CATEGORÍAS ===== */
+/* Leyenda de categorías */
 .categories {
     display: flex;
     flex-wrap: wrap;
@@ -377,26 +329,26 @@
     border-radius: 2px;
 }
 
-.category-dot.event-task {
+.category-dot.event-tarea {
     background-color: #22c55e;
 }
-.category-dot.event-class {
+.category-dot.event-clase {
     background-color: #3b82f6;
 }
-.category-dot.event-break {
+.category-dot.event-descanso {
     background-color: #f59e0b;
 }
 .category-dot.event-personal {
     background-color: #8b5cf6;
 }
-.category-dot.event-other {
+.category-dot.event-otro {
     background-color: #6b7280;
 }
 
-/* ===== RESPONSIVE ===== */
+/* Responsive */
 @media (max-width: 1024px) {
-    .calendar-grid {
-        grid-template-columns: 50px repeat(7, 1fr);
+    .calendar-table {
+        min-width: 700px;
     }
 
     .time-slot {
@@ -417,8 +369,12 @@
         justify-content: center;
     }
 
-    .calendar-grid {
-        grid-template-columns: 35px repeat(7, 1fr); /* Columna de tiempo más estrecha en móvil */
+    .calendar-table {
+        min-width: 600px;
+    }
+
+    .time-column-header {
+        width: 35px;
     }
 
     .time-slot {
@@ -427,12 +383,12 @@
     }
 
     .day-header {
-        height: 40px; /* Un poco más pequeña en móvil */
+        height: 40px;
         font-size: 11px;
     }
 
     .event {
-        font-size: 9px; /* Un poco más pequeña en móvil */
+        font-size: 9px;
         padding: 3px 5px;
     }
 
@@ -444,48 +400,30 @@
         font-size: 8px;
     }
 
-    .form-container {
-        margin: 1rem;
-    }
-
-    .form-row {
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .form-group.half {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
-        justify-content: center;
+    .event-continuation-text {
+        font-size: 8px;
     }
 }
 
-/* ===== SCROLLBAR PERSONALIZADA ===== */
-.calendar-grid-wrapper::-webkit-scrollbar {
+/* Scrollbar personalizada */
+.calendar-table-wrapper::-webkit-scrollbar {
     width: 6px;
 }
 
-.calendar-grid-wrapper::-webkit-scrollbar-track {
+.calendar-table-wrapper::-webkit-scrollbar-track {
     background: #1a1a2e;
 }
 
-.calendar-grid-wrapper::-webkit-scrollbar-thumb {
+.calendar-table-wrapper::-webkit-scrollbar-thumb {
     background: #4a4a5e;
     border-radius: 3px;
 }
 
-.calendar-grid-wrapper::-webkit-scrollbar-thumb:hover {
+.calendar-table-wrapper::-webkit-scrollbar-thumb:hover {
     background: #6a6a7e;
 }
 
-
+/* Animación de eventos */
 @keyframes eventAppear {
     from {
         opacity: 0;
@@ -501,14 +439,14 @@
     animation: eventAppear 0.2s ease-out;
 }
 
+/* Tooltip */
 .custom-tooltip {
-    position: absolute;
-   
+    position: fixed;
     background-color: rgba(0, 0, 0, 0.9);
     color: white;
-    padding: 4px 8px; 
-    border-radius: 3px; 
-    font-size: 10px; 
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 10px;
     white-space: nowrap;
     z-index: 100;
     pointer-events: none;
@@ -527,29 +465,21 @@
     border-top-color: rgba(0, 0, 0, 0.9);
 }
 
-
-.event:hover .custom-tooltip {
+.event:not(.event-continuation):hover .custom-tooltip {
     opacity: 1;
     visibility: visible;
 }
 
-.event[style*="height: 30px"] .event-description,
-.event[style*="height: 40px"] .event-description,
-.event[style*="height: 50px"] .event-description {
-    display: none;
-}
-
-/* Resaltar la hora actual en el calendario */
+/* Resaltar hora actual */
 .time-slot.current-hour {
-    color: #8b5cf6; 
-    font-weight: 700; 
-    background-color: rgba(139, 92, 246, 0.1); 
-    border-radius: 4px; 
+    color: #8b5cf6;
+    font-weight: 700;
+    background-color: rgba(139, 92, 246, 0.1);
+    border-radius: 4px;
     border-left: 3px solid #7c3aed;
 }
 
-/* Formulario de los eventos */
-
+/* Formulario */
 .form-container {
     max-width: 800px;
     margin: 2rem auto;

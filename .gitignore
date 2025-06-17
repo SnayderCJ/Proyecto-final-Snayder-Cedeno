@@ -2,23 +2,6 @@
 #  Archivo .gitignore completo para Proyectos Django y Tailwind CSS
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-#  Credenciales y Secretos (¡Lo más importante!)
-#  Nunca subas archivos que contengan contraseñas, tokens o claves de API.
-# ------------------------------------------------------------------------------
-# Archivos de entorno que contienen secretos
-.env
-.env.*
-*.env
-*.env.*
-env.py
-
-# Archivos de credenciales de Google (u otros servicios)
-studiFly_desktop_client.json
-token.json
-credentials.json
-*.pem
-*.key
 
 # ------------------------------------------------------------------------------
 #  Entornos Virtuales de Python
@@ -101,21 +84,5 @@ htmlcov/
 dist/
 build/
 
-# ==============================================================================
-#  SECCIÓN OPCIONAL: Ignorar Archivos de Migración
-#  ADVERTENCIA: No se recomienda para proyectos en equipo.
-# ==============================================================================
-#
-#  Descomenta las siguientes líneas si trabajas SOLO y quieres evitar subir
-#  archivos de migración.
-#
-#  PROS: Evita conflictos de migraciones si reinicias tu base de datos a menudo.
-#  CONTRAS (muy importantes):
-#  - Imposibilita el trabajo en equipo, ya que la base de datos de cada
-#    desarrollador será inconsistente.
-#  - Dificulta el despliegue a producción, ya que no hay un historial de
-#    cambios de la base de datos.
-#
-# */migrations/*.py
-# !*/migrations/__init__.py
+
 

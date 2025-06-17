@@ -1,13 +1,11 @@
-{% extends "base.html" %} 
-{% load planner_tags %} 
+{% extends "base.html" %}
+{% load planner_tags %}
 {% load static %}
-
 {% block title %}StudyFly - Horarios{% endblock %}
-
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/optimizer.css' %}">
+<link rel="stylesheet" href="{% static 'css/optimizer.css' %}" />
+<link rel="stylesheet" href="{% static 'css/horarios.css' %}" />
 {% endblock %}
-
 {% block content %}
 <div class="calendar-container">
   <!-- Header del Calendario -->
@@ -16,103 +14,88 @@
       <span>{{ current_month_name|capfirst }}</span>
       <span>{{ current_week_range }}</span>
     </div>
-
     <div class="view-toggle">
       <div class="week-navigation">
-        <a
-          href="?direction=prev&date={{ start_of_week.isoformat }}"
-          class="nav-btn"
-        >
-          ← Semana Anterior
-        </a>
-        <a href="?direction=current" class="nav-btn"> Hoy </a>
-        <a
-          href="?direction=next&date={{ start_of_week.isoformat }}"
-          class="nav-btn"
-        >
-          Semana Siguiente →
-        </a>
+        <a href="?direction=prev&date={{ start_of_week.isoformat }}" class="nav-btn">← Semana Anterior</a>
+        <a href="?direction=current" class="nav-btn">Hoy</a>
+        <a href="?direction=next&date={{ start_of_week.isoformat }}" class="nav-btn">Semana Siguiente →</a>
       </div>
-      <button class="toggle-btn optimize-btn">
-        🤖 Optimizar Horario
-      </button>
-      <a href="{% url 'planner:event_create' %}" class="toggle-btn active">
-        Agregar Tarea
-      </a>
+      <button class="toggle-btn optimize-btn">🤖 Optimizar Horario</button>
+      <a href="{% url 'planner:event_create' %}" class="toggle-btn active">Agregar Tarea</a>
     </div>
   </div>
 
-  <!-- Grid del Calendario -->
-  <div class="calendar-grid-wrapper">
-    <div class="calendar-grid">
-      <!-- Columna de Tiempo -->
-      <div class="time-column">
-        <div class="day-header"></div>
-        {% for hour_slot in time_slots %}
-        <div class="time-slot">{{ hour_slot }}</div>
-        {% endfor %}
-      </div>
-
-      <!-- Columnas de Días -->
-      {% for day_data in week_days_data %}
-      <div class="day-column {% if day_data.is_today %}today{% endif %}">
-        <div class="day-header {% if day_data.is_today %}today{% endif %}">
-          <div style="font-size: 16px; font-weight: 700">
-            {{ day_data.day_num }}
-          </div>
-          <div style="font-size: 11px; opacity: 0.9">
-            {{ day_data.day_name_short|capfirst }}
-          </div>
-        </div>
-
-        <!-- Contenedor de Eventos para este Día -->
-        <div class="day-events-container">
-          {% for event in events_by_day|get_item:day_data.date.weekday %}
-          <a
-            href="{% url 'planner:event_detail' event.id %}"
-            class="event {{ event.css_class }}{% if event.is_completed %} completed{% endif %}{% if event.due_date and event.due_date < today and not event.is_completed %} overdue{% endif %}"
-            style="{{ event.style }}"
-            data-event-id="{{ event.id }}"
-            data-priority="{{ event.priority }}"
-            title="{{ event.title }} - {{ event.start_time|date:'H:i' }} a {{ event.end_time|date:'H:i' }}"
-          >
-            <div class="event-title">{{ event.title }}</div>
-            <div class="event-time">{{ event.start_time|date:"H:i" }}</div>
-
-            {% if event.description and event.description|length > 0 %}
-            <div class="event-description">
-              {{ event.description|truncatechars:30 }}
-            </div>
-            {% endif %}
-
-            <!-- Tooltip mejorado -->
-            <div class="custom-tooltip">
-              <strong>{{ event.title }}</strong><br />
-              {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i"
-              }}<br />
-              {% if event.description %}{{ event.description|truncatechars:50
-              }}{% endif %}
-            </div>
-          </a>
+  <!-- Tabla del Calendario -->
+  <div class="calendar-table-wrapper">
+    <table class="calendar-table">
+      <thead>
+        <tr>
+          <th class="time-column-header"></th>
+          {% for day_data in week_days_data %}
+          <th class="day-header {% if day_data.is_today %}today{% endif %}">
+            <div>{{ day_data.day_num }}</div>
+            <div>{{ day_data.day_name_short|capfirst }}</div>
+          </th>
           {% endfor %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
+        </tr>
+      </thead>
+      <tbody>
+        {% for hour_slot in time_slots %}
+        <tr>
+          <td class="time-slot">{{ hour_slot }}</td>
+          {% for day_data in week_days_data %}
+          <td class="day-cell {% if day_data.is_today %}today{% endif %}" data-day-index="{{ day_data.date.weekday }}">
+            <div class="day-events-container">
+              {% for event in events_by_day|get_item:day_data.date.weekday|get_item:hour_slot %}
+              {% if not event.is_continuation %}
+              <a
+                href="{% url 'planner:event_detail' event.id %}"
+                class="event {{ event.css_class }}{% if event.is_completed %} completed{% endif %}{% if event.due_date and event.due_date < today and not event.is_completed %} overdue{% endif %}"
+                data-event-id="{{ event.id }}"
+                data-priority="{{ event.priority }}"
+                title="{{ event.title }} - {{ event.start_time|date:'H:i' }} a {{ event.end_time|date:'H:i' }}"
+              >
+                <div class="event-title">{{ event.title }}</div>
+                <div class="event-time">{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
+                {% if event.description and event.description|length > 0 %}
+                <div class="event-description">{{ event.description|truncatechars:30 }}</div>
+                {% endif %}
+                <div class="custom-tooltip">
+                  <strong>{{ event.title }}</strong><br />
+                  {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}<br />
+                  {% if event.description %}{{ event.description|truncatechars:50 }}{% endif %}
+                </div>
+              </a>
+              {% else %}
+              <div
+                class="event {{ event.css_class }} event-continuation{% if event.is_completed %} completed{% endif %}{% if event.due_date and event.due_date < today and not event.is_completed %} overdue{% endif %}"
+                data-event-id="{{ event.id }}"
+              >
+                <div class="event-continuation-text">Continúa: {{ event.title }}</div>
+              </div>
+              {% endif %}
+              {% endfor %}
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   <!-- Leyenda de Categorías -->
   <div class="categories">
     <div class="category">
-      <div class="category-dot event-task"></div>
+      <div class="category-dot event-tarea"></div>
       <span>Tareas/Estudio</span>
     </div>
     <div class="category">
-      <div class="category-dot event-class"></div>
+      <div class="category-dot event-clase"></div>
       <span>Clases/Académico</span>
     </div>
     <div class="category">
-      <div class="category-dot event-break"></div>
+      <div class="category-dot event-descanso"></div>
       <span>Descansos</span>
     </div>
     <div class="category">
@@ -120,7 +103,7 @@
       <span>Personal</span>
     </div>
     <div class="category">
-      <div class="category-dot event-other"></div>
+      <div class="category-dot event-otro"></div>
       <span>Otro</span>
     </div>
   </div>
@@ -128,53 +111,16 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // Auto-scroll al día actual y hora actual
-    const todayColumn = document.querySelector(".day-column.today");
-    if (todayColumn) {
+    const todayCell = document.querySelector(".day-cell.today");
+    if (todayCell) {
       const currentHour = new Date().getHours();
-      const scrollPosition = Math.max(0, (currentHour - 2) * 60); // 60px por hora
-      document.querySelector(".calendar-grid-wrapper").scrollTop =
-        scrollPosition;
-    }
-
-    // Mejorar tooltips
-    document.querySelectorAll(".event").forEach(function (event) {
-      event.addEventListener("mouseenter", function () {
-        const tooltip = this.querySelector(".custom-tooltip");
-        if (tooltip) {
-          tooltip.style.opacity = "1";
-          tooltip.style.visibility = "visible";
-        }
-      });
-
-      event.addEventListener("mouseleave", function () {
-        const tooltip = this.querySelector(".custom-tooltip");
-        if (tooltip) {
-          tooltip.style.opacity = "0";
-          tooltip.style.visibility = "hidden";
-        }
-      });
-    });
-  });
-
-  // Atajos de teclado
-  document.addEventListener("keydown", function (e) {
-    if (e.ctrlKey || e.metaKey) {
-      switch (e.key) {
-        case "n":
-          e.preventDefault();
-          window.location.href = "{% url 'planner:event_create' %}";
-          break;
-        case "h":
-          e.preventDefault();
-          window.location.href = "{% url 'planner:horarios' %}";
-          break;
-      }
+      const scrollPosition = Math.max(0, (currentHour - 2) * 50);
+      document.querySelector(".calendar-table-wrapper").scrollTop = scrollPosition;
     }
   });
 </script>
 {% endblock %}
-
 {% block extra_js %}
 <script src="{% static 'js/optimizer.js' %}"></script>
-{% endblock %}
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}  
