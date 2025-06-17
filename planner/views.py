@@ -291,24 +291,30 @@ def productividad_view(request):
     return render(request, 'productividad.html', context)
 
 def calcular_mejor_rango(bloques):
-    rangos = defaultdict(int)
+    rangos_definidos = {
+        "6:00 a.m. - 9:00 a.m.": (6, 9),
+        "9:00 a.m. - 12:00 p.m.": (9, 12),
+        "12:00 p.m. - 3:00 p.m.": (12, 15),
+        "3:00 p.m. - 6:00 p.m.": (15, 18),
+        "6:00 p.m. - 9:00 p.m.": (18, 21),
+    }
+
+    rendimiento = defaultdict(int)
 
     for bloque in bloques:
+        print(f"▶️ Analizando bloque: {bloque.fecha} - {bloque.hora_inicio} - {bloque.duracion_min} min")
         if bloque.hora_inicio:
             hora = bloque.hora_inicio.hour
-            if 6 <= hora < 9:
-                rangos["6:00 a.m. - 9:00 a.m."] += bloque.duracion_min
-            elif 9 <= hora < 12:
-                rangos["9:00 a.m. - 12:00 p.m."] += bloque.duracion_min
-            elif 12 <= hora < 15:
-                rangos["12:00 p.m. - 3:00 p.m."] += bloque.duracion_min
-            elif 15 <= hora < 18:
-                rangos["3:00 p.m. - 6:00 p.m."] += bloque.duracion_min
-            elif 18 <= hora < 21:
-                rangos["6:00 p.m. - 9:00 p.m."] += bloque.duracion_min
+            for nombre_rango, (inicio, fin) in rangos_definidos.items():
+                if inicio <= hora < fin:
+                    rendimiento[nombre_rango] += bloque.duracion_min
+                    print(f"✅ Bloque añadido a: {nombre_rango}")
+                    break
+            else:
+                print(f"❌ Hora {hora} fuera de todos los rangos")
 
-    return max(rangos, key=rangos.get) if rangos else "Ninguno"
-
+    print("📊 Resultado final:", rendimiento)
+    return max(rendimiento, key=rendimiento.get) if rendimiento else "Ninguno"
 
 
 
@@ -334,6 +340,7 @@ def registrar_bloque_temporizador(request):
             return JsonResponse({'error': 'Duración inválida'}, status=400)
         hora_inicio = timezone.localtime()
         hora_fin = hora_inicio + timedelta(minutes=duracion)
+        print(" Hora guardada:", hora_inicio.time())
 
         BloqueEstudio.objects.create(
             usuario=request.user,
