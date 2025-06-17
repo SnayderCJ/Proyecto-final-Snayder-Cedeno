@@ -7,9 +7,10 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from .models import Event
 from .forms import EventForm
-from .ml_optimizer import TaskOptimizer
+from .ai_optimizer import SmartScheduleOptimizer
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from django.views.decorators.csrf import csrf_exempt
 import json
 import calendar
 
@@ -115,68 +116,7 @@ def calendar_view(request):
     }
     return render(request, 'horarios.html', context)
 
-@login_required
-def optimize_schedule(request):
-    """
-    Vista para optimizar el horario del usuario usando IA.
-    """
-    try:
-        if request.method == 'POST':
-            user_events = Event.objects.filter(user=request.user).order_by('start_time')
-            
-            print(f"DEBUG: Usuario {request.user.username}")
-            print(f"DEBUG: Total de eventos: {user_events.count()}")
-            
-            if not user_events.exists():
-                return JsonResponse({
-                    'suggestions': [],
-                    'message': 'No hay tareas creadas.'
-                })
-            
-            # Mostrar información de las tareas
-            for event in user_events:
-                print(f"DEBUG: Tarea: {event.title}, Completada: {event.is_completed}, Fecha: {event.start_time}")
-                
-            # Crear sugerencias considerando si la tarea está completada o no
-            suggestions_data = []
-            for i, event in enumerate(user_events):
-                if event.is_completed:
-                    # Para tareas completadas, sugerir mantener horario actual
-                    new_start = event.start_time
-                    new_end = event.end_time
-                    reason = "Tarea completada, se mantiene el horario actual"
-                    improvement_score = 0.0
-                else:
-                    # Para tareas no completadas, sugerir cambios alternados
-                    if i % 2 == 0:
-                        new_start = event.start_time + timedelta(hours=1)
-                        reason = "Mover 1 hora más tarde puede mejorar la concentración"
-                    else:
-                        new_start = event.start_time - timedelta(hours=1)
-                        reason = "Mover 1 hora más temprano puede ser más productivo"
-                    new_end = new_start + (event.end_time - event.start_time)
-                    improvement_score = 0.8 + (i * 0.1)
-                
-                suggestions_data.append({
-                    'event_id': event.id,
-                    'title': event.title,
-                    'current_time': event.start_time.isoformat(),
-                    'suggested_time': new_start.isoformat(),
-                    'suggested_end_time': new_end.isoformat(),
-                    'improvement_score': improvement_score,
-                    'reason': reason,
-                })
-
-            print(f"DEBUG: Sugerencias generadas: {len(suggestions_data)}")
-            return JsonResponse({'suggestions': suggestions_data})
-        else:
-            return JsonResponse({'error': 'Método no permitido'}, status=405)
-    except Exception as e:
-        print(f"DEBUG ERROR: {str(e)}")
-        return JsonResponse({
-            'error': f'Error al optimizar el horario: {str(e)}'
-        }, status=500)
-
+@csrf_exempt
 @login_required
 def event_update_ajax(request, pk):
     """
@@ -300,6 +240,7 @@ def event_detail(request, pk):
     event = get_object_or_404(Event, pk=pk, user=request.user)
     return render(request, 'pages/horarios/event_detail.html', {'event': event})
 
+@csrf_exempt
 @login_required
 def toggle_event_completion(request, pk):
     """
@@ -454,3 +395,65 @@ def tareas_view(request):
     }
     
     return render(request, 'tareas.html', context)
+
+# --- VISTA PARA OPTIMIZACIÓN CON IA ---
+@csrf_exempt
+@login_required
+def optimize_schedule(request):
+    """
+    Vista para optimizar el horario del usuario usando IA.
+    """
+    if request.method == 'POST':
+        try:
+            # Inicializar el optimizador de IA
+            optimizer = SmartScheduleOptimizer()
+            
+            if not optimizer.is_loaded:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'El modelo de IA no está disponible. Verifica que los archivos del modelo estén en la carpeta trained_models.'
+                })
+            
+            # Obtener eventos del usuario para la próxima semana
+            today = timezone.localdate()
+            start_date = today
+            end_date = today + timedelta(days=7)
+            
+            user_events = Event.objects.filter(
+                user=request.user,
+                start_time__date__gte=start_date,
+                start_time__date__lte=end_date,
+                is_completed=False  # Solo eventos pendientes
+            )
+            
+            if not user_events.exists():
+                return JsonResponse({
+                    'success': True,
+                    'suggestions': [],
+                    'message': 'No hay eventos pendientes para optimizar en los próximos 7 días.'
+                })
+            
+            # Obtener sugerencias de optimización
+            suggestions = optimizer.optimize_schedule(user_events, start_date, end_date)
+            
+            if not suggestions:
+                return JsonResponse({
+                    'success': True,
+                    'suggestions': [],
+                    'message': 'Tu horario ya está optimizado. No se encontraron mejoras significativas.'
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'suggestions': suggestions,
+                'message': f'Se encontraron {len(suggestions)} sugerencias de optimización.'
+            })
+            
+        except Exception as e:
+            print(f"Error en optimización: {str(e)}")  # Debug
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al optimizar el horario: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})

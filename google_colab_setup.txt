@@ -1,0 +1,17 @@
+# Ejecuta esta celda primero para instalar las dependencias exactas
+!pip install joblib==1.5.1 numpy==2.3.0 scikit-learn==1.7.0 scipy==1.15.3
+
+# Verifica las versiones instaladas
+import joblib
+import numpy as np
+from sklearn import __version__ as sklearn_version
+import scipy
+
+print("Versiones instaladas:")
+print(f"joblib: {joblib.__version__}")
+print(f"numpy: {np.__version__}")
+print(f"scikit-learn: {sklearn_version}")
+print(f"scipy: {scipy.__version__}")
+
+# Si las versiones coinciden, procede con el código del modelo
+# [Aquí va el código del modelo que te proporcioné anteriormente]

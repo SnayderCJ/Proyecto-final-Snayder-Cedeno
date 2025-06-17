@@ -1,8 +1,15 @@
-{% extends 'base.html' %} {% load planner_tags %} {% block content %}
+{% extends 'base.html' %} {% load planner_tags %} {% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/optimizer.css' %}">
+{% endblock %}
+
+{% block content %}
  <div class="tareas-container">
         <div class="tareas-header">
             <h1 class="tareas-title">Tareas de la Semana</h1>
             <div class="tareas-week-range">{{ current_week_range }}</div>
+            <button class="optimize-btn">🤖 Optimizar Horario</button>
         </div>
         
         <div class="tareas-stats-bar">
@@ -147,3 +154,7 @@
         });
     </script>
 {% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'js/optimizer.js' %}"></script>
+{% endblock %}

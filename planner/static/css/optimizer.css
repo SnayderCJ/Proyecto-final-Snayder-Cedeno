@@ -13,12 +13,12 @@
 }
 
 .suggestions-content {
-     background-color: #2a2a3e;
+    background-color: #2a2a3e;
     padding: 20px;
     border-radius: 8px;
-    width: 80%;
-    max-width: 600px;
-    max-height: 80vh;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
@@ -28,13 +28,26 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
+    border-bottom: 1px solid #4a4a5e;
+    padding: 0 0 15px 0;
+    position: sticky;
+    top: 0;
+    background: #2a2a3e;
+    z-index: 10;
 }
 
 .suggestions-header h3 {
     margin: 0;
     color: #8338ec;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.suggestions-header h3::before {
+    content: '🤖';
+    font-size: 1.5rem;
 }
 
 .close-btn {
@@ -42,20 +55,167 @@
     border: none;
     font-size: 24px;
     cursor: pointer;
-    color: #666;
+    color: #a0a0b0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: rgba(131, 56, 236, 0.1);
+    color: #8338ec;
+    transform: rotate(90deg);
 }
 
 .suggestion-item {
-    border: 1px solid #eee;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 4px;
-    background: #160707; /*cambio del fondo para q se vea perron*/
+    border: 1px solid #4a4a5e;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: #1e1e32;
+    color: #e2e8f0;
+    transition: all 0.2s ease;
 }
 
-.suggestion-item h4 {
-    margin: 0 0 10px 0;
-    color: #333;
+.suggestion-item:hover {
+    border-color: #8338ec;
+    background: #252540;
+}
+
+.suggestion-item label {
+    cursor: pointer;
+    display: block;
+    color: #e2e8f0;
+}
+
+.suggestion-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.suggestion-item strong {
+    color: #8338ec;
+    font-size: 16px;
+}
+
+.suggestion-item small {
+    color: #a0a0b0;
+    display: block;
+    margin-top: 8px;
+}
+
+/* Nuevos estilos para la confianza de la IA */
+.ai-confidence {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(131, 56, 236, 0.1);
+    padding: 4px 12px;
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.ai-confidence-high {
+    color: #10b981;
+}
+
+.ai-confidence-medium {
+    color: #f59e0b;
+}
+
+.ai-confidence-low {
+    color: #ef4444;
+}
+
+/* Nuevos estilos para el gráfico de horas */
+.hours-chart {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(30, 30, 50, 0.5);
+    border-radius: 8px;
+}
+
+.hours-chart-title {
+    color: #8338ec;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.hour-bar {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    font-size: 12px;
+}
+
+.hour-label {
+    width: 60px;
+    color: #a0a0b0;
+}
+
+.hour-score-bar {
+    flex-grow: 1;
+    height: 8px;
+    background: #4a4a5e;
+    border-radius: 4px;
+    margin: 0 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hour-score-fill {
+    position: absolute;
+    height: 100%;
+    background: #8338ec;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.hour-score {
+    width: 50px;
+    color: #a0a0b0;
+    text-align: right;
+}
+
+.best-hour {
+    background: rgba(131, 56, 236, 0.1);
+    border-radius: 4px;
+}
+
+.best-hour .hour-label {
+    color: #8338ec;
+    font-weight: 500;
+}
+
+.best-hour .hour-score {
+    color: #8338ec;
+    font-weight: 500;
+}
+
+/* Estilos para los detalles de la sugerencia */
+.suggestion-details {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(30, 30, 50, 0.5);
+    border-radius: 8px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    color: #a0a0b0;
+    font-size: 13px;
+}
+
+.detail-item i {
+    color: #8338ec;
+    font-size: 16px;
 }
 
 .apply-suggestion-btn {
@@ -83,53 +243,93 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #4a4a5e;
     padding-top: 15px;
+    position: sticky;
+    bottom: 0;
+    background: #2a2a3e;
 }
 
-.apply-all-btn {
+.apply-btn {
     background: #8338ec;
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 10px 20px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
-.apply-all-btn:hover {
+.apply-btn:hover:not(:disabled) {
     background: #6a2ec9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(131, 56, 236, 0.4);
+}
+
+.apply-btn:disabled {
+    background: #b794f4;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .cancel-btn {
     background: #6c757d;
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 10px 20px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
 .cancel-btn:hover {
     background: #5a6268;
+    transform: translateY(-1px);
 }
 
 /* Estilos para el botón de optimización */
 .optimize-btn {
     background: #8338ec !important;
     color: white !important;
-    transition: background 0.3s !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-.optimize-btn:hover {
+.optimize-btn:hover:not(:disabled) {
     background: #6a2ec9 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(131, 56, 236, 0.4) !important;
 }
 
 .optimize-btn:disabled {
     background: #b794f4 !important;
     cursor: not-allowed !important;
+    opacity: 0.7 !important;
 }
 
+.optimize-btn.loading {
+    background: #6a2ec9 !important;
+    cursor: wait !important;
+}
 
+.optimize-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
