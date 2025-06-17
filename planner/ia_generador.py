@@ -2,6 +2,16 @@ from datetime import datetime, timedelta, time
 from django.utils.timezone import make_aware
 from .models import Event
 
+
+def redondear_a_multiplo(tiempo, minutos=5):
+    """Redondea hacia abajo al múltiplo de minutos más cercano."""
+    return tiempo - timedelta(
+        minutes=tiempo.minute % minutos,
+        seconds=tiempo.second,
+        microseconds=tiempo.microsecond
+    )
+
+
 def generar_bloques_enfocados_semana(user, duracion_enfoque=25, duracion_descanso=5, hora_inicio=time(6, 0), hora_fin=time(22, 0)):
     bloques = []
     hoy = datetime.now().date()
@@ -38,7 +48,7 @@ def generar_bloques_enfocados_semana(user, duracion_enfoque=25, duracion_descans
                 })
                 actual = fin
             elif tipo in ["tarea", "tarea/estudio", "estudio", "clase", "clase/academico"]:
-                tiempo_actual = inicio
+                tiempo_actual = redondear_a_multiplo(inicio, minutos=5)
                 while tiempo_actual + timedelta(minutes=duracion_enfoque) <= fin:
                     bloques.append({
                         "title": "Bloque de Estudio",

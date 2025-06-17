@@ -64,12 +64,18 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class BloqueEstudio(models.Model):
+    TIPO_CHOICES = [
+        ('estudio', 'Estudio'),
+        ('descanso', 'Descanso'),
+    ]
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
-    fecha = models.DateField()
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='estudio')
+    fecha = models.DateField(auto_now_add=True)
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
     duracion_min = models.IntegerField()
     completado = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.usuario.username} | {self.fecha} | {self.hora_inicio}-{self.hora_fin}"
+        return f"{self.usuario.username} | {self.tipo} | {self.fecha} | {self.hora_inicio}-{self.hora_fin}"

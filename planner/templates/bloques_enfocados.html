@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+{% csrf_token %}
+
 
 <link rel="stylesheet" href="{% static 'css/bloques_enfocados.css' %}">
 
@@ -34,7 +36,8 @@
               {% for i in "0123456"|make_list %}
                 <td>
                   {% for bloque in bloques %}
-                    {% if bloque.start_time|time:"H:i" == hora and bloque.weekday|stringformat:"i" == i %}
+                    {% if bloque.hora_slot == hora and bloque.weekday|stringformat:"i" == i %}
+
                       {% if bloque.event_type == 'bloque_estudio' or bloque.event_type == 'descanso_recomendado' or bloque.event_type == 'descanso_real' or bloque.event_type == 'otro' %}
                         <div class="bloque
                             {% if bloque.event_type == 'bloque_estudio' %}bloque-real{% endif %}
@@ -53,6 +56,7 @@
               {% endfor %}
             </tr>
           {% endfor %}
+
         </tbody>
 
       </table>
@@ -80,7 +84,11 @@
         <input type="number" name="duracion_enfoque" id="inputEnfoque" value="25">
 
         <label>Objetivo del bloque:</label>
-        <input type="text" name="objetivo" id="inputObjetivo" placeholder="Ej: Estudiar álgebra">
+        <select name="objetivo" id="inputObjetivo">
+          <option value="estudio">Estudio</option>
+          <option value="descanso">Descanso</option>
+        </select>
+
 
         <button type="button" onclick="aplicarConfiguracion()">Aplicar</button>
       </form>
@@ -91,7 +99,7 @@
     <div class="resumen-hoy">
         <h3>Bloques Completados hoy:</h3>
         <ul id="resumen-productividad">
-          <li class="logro">✅ 0 bloques completados hoy</li>
+          <li class="logro">✅ 0 bloques de estudio completados hoy</li>
           <li class="logro">⏱️ Tiempo Acumulado: 0m</li>
         </ul>
     </div>
@@ -102,8 +110,6 @@
   let tiempo = 25 * 60;
   let enMarcha = false;
   let intervalo;
-  let bloquesCompletados = 0;
-  let minutosAcumulados = 0;
 
   function actualizarTemporizador() {
     const min = Math.floor(tiempo / 60).toString().padStart(2, '0');
@@ -118,12 +124,30 @@
     tiempo = minutos * 60;
     actualizarTemporizador();
 
-    document.getElementById("objetivo-actual").textContent = objetivo ? `🎯 ${objetivo}` : "";
+    document.getElementById("objetivo-actual").textContent = objetivo === "estudio"
+      ? "🎯 Estudio"
+      : "🛌 Descanso";
+
+  }
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 
   function iniciarPomodoro() {
     if (!enMarcha) {
       enMarcha = true;
+
       intervalo = setInterval(() => {
         if (tiempo > 0) {
           tiempo--;
@@ -132,27 +156,51 @@
           clearInterval(intervalo);
           enMarcha = false;
 
-          alert("¡Bloque completado!");
+          mostrarToast();
 
-          // 1. Obtener duración actual
+          // Obtener valores de duración y tipo
           const enfoqueMin = parseInt(document.getElementById("inputEnfoque").value) || 25;
+          const tipoBloque = document.getElementById("inputObjetivo").value || "estudio";
+          //para saber si esta bien
+          console.log("Enviando bloque:", {
+            tipo: tipoBloque,
+            duracion: enfoqueMin
+          });
+          // Enviar bloque al backend
+          fetch("/planner/registrar-bloque-temporizador/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+              tipo: tipoBloque,
+              duracion: enfoqueMin
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log("Bloque registrado:", data);
+          })
+          .catch(error => {
+            console.error("Error al registrar bloque:", error);
+          });
 
-          // 2. Sumar a contadores
-          if (enfoqueMin >= 25) {
+          // Reglas de productividad
+          if (tipoBloque === "estudio" && enfoqueMin >= 25) {
             bloquesCompletados++;
-          } else {
-            alert("Este bloque fue muy corto para contarse como completo (menos de 25 min).");
           }
-          
-          // ⏱️ Siempre sumar al tiempo acumulado
-          minutosAcumulados += enfoqueMin;
 
-          // 3. Actualizar resumen
+// Ya no mostramos alerta para bloques cortos de estudio ni para descansos
+
+
+          minutosAcumulados += enfoqueMin;
           actualizarResumenProductividad();
         }
       }, 1000);
     }
   }
+
 
   function pausarPomodoro() {
     clearInterval(intervalo);
@@ -168,21 +216,65 @@
   }
 
   function actualizarResumenProductividad() {
-    const resumen = document.getElementById("resumen-productividad");
-    const tiempoTexto = minutosAcumulados >= 60
-      ? `${Math.floor(minutosAcumulados / 60)}h ${minutosAcumulados % 60}m`
-      : `${minutosAcumulados}m`;
+    fetch("/planner/api/productividad/")
+      .then(response => response.json())
+      .then(data => {
+        const resumen = document.getElementById("resumen-productividad");
+        const tiempoTexto = data.minutos_totales >= 60
+          ? `${Math.floor(data.minutos_totales / 60)}h ${data.minutos_totales % 60}m`
+          : `${data.minutos_totales}m`;
 
-    resumen.innerHTML = `
-      <li class="logro">✅ ${bloquesCompletados} bloques completados hoy</li>
-      <li class="logro">⏱️ Tiempo Acumulado: ${tiempoTexto}</li>
-    `;
+        resumen.innerHTML = `
+          <li class="logro">✅ ${data.bloques_estudio} bloques de estudio completados hoy</li>
+          <li class="logro">⏱️ Tiempo Acumulado: ${tiempoTexto}</li>
+        `;
+      })
+      .catch(error => {
+        console.error("Error al cargar productividad:", error);
+      });
+  }
+
+
+
+    function mostrarToast() {
+    const toast = document.getElementById("toast");
+    toast.classList.add("toast-visible");
+    setTimeout(() => {
+      toast.classList.remove("toast-visible");
+    }, 3000);
   }
 
   // Inicial
   actualizarTemporizador();
   actualizarResumenProductividad();
 </script>
+
+<div id="toast" class="toast-oculto">✅ ¡Bloque guardado exitosamente!</div>
+
+<style>
+  .toast-oculto {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4BB543;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.3s ease;
+    z-index: 9999;
+  }
+
+  .toast-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: auto;
+  }
+</style>
+
 
 {% endblock %}
 

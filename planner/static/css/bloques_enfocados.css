@@ -243,16 +243,21 @@
   cursor: pointer;
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (min-width: 901px) {
   .bloques-layout {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
   }
 
-  .bloques-tabla,
-  .temporizador,
-  .configuracion-rapida {
-    max-width: 100%;
+  .bloques-tabla {
+    flex: 3;
+  }
+
+  .bloque-temporizador {
+    flex: 1;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
   }
 }
 
@@ -321,5 +326,27 @@
   flex: 1;
   max-width: 340px;
 }
+
+.bloques-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.bloques-tabla {
+  flex: 3;
+  min-width: 0;
+}
+
+.bloque-temporizador {
+  flex: 1;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 
 

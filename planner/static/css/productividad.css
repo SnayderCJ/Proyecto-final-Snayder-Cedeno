@@ -1,5 +1,7 @@
+
 body {
   font-family: 'Poppins', sans-serif;
+  background-color: #0e0e10;
 }
 
 .main-content {
@@ -9,7 +11,6 @@ body {
 }
 
 .productividad {
-  background-color: #2B2046;
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 30px;
@@ -19,107 +20,89 @@ body {
   color: #fff;
   font-size: 1.8rem;
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .productividad-grafico {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
   gap: 20px;
 }
 
-.grafico {
-  flex: 1;
-  min-width: 300px;
+.grafico canvas {
+  max-width: 700px;
+  max-height: 300px;
 }
 
-.informacion {
-  flex: 1;
+.panel-inferior {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin-top: 30px;
 }
 
-.porcentaje p,
-.sugerencias p {
-  font-size: 1rem;
+.donut-card, .patrones {
+  background-color: #1e1e24;
+  border-radius: 16px;
+  padding: 25px;
+  flex: 1;
+  min-width: 280px;
   color: #ddd;
-  margin-bottom: 10px;
 }
 
-.porcentaje span {
+.donut-card h3,
+.patrones h3 {
+  color: #fff;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+}
+
+.donut-container {
+  position: relative;
+  width: 170px;
+  height: 170px;
+  margin: 0 auto;
+}
+
+.donut-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.donut-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.donut-text span {
+  font-size: 1.8rem;
   font-weight: bold;
   color: #A020F0;
 }
 
-.patrones {
-  background-color: #2B2046;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 30px;
+.donut-text p {
+  font-size: 0.95rem;
+  color: #aaa;
+  margin: 0;
 }
 
-.patrones h3 {
-  color: #fff;
-  font-size: 1.6rem;
-  margin-bottom: 20px;
+.sugerencias p {
+  font-size: 0.95rem;
+  margin-top: 10px;
+  color: #bbb;
 }
 
 .patrones-lista p {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #ddd;
   margin-bottom: 10px;
 }
 
 .patrones-lista strong {
   color: #A020F0;
-}
-
-.modo-pomodoro {
-  background-color: #2B2046;
-  padding: 30px;
-  border-radius: 12px;
-  max-width: 300px;
-  margin-left: auto;
-}
-
-.modo-pomodoro h3 {
-  color: #fff;
-  font-size: 1.6rem;
-  margin-bottom: 20px;
-}
-
-.pomodoro {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tiempo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.tiempo-texto {
-  font-size: 1.2rem;
-  color: #ddd;
-}
-
-.tiempo-contador {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #A020F0;
-  margin-top: 10px;
-}
-
-.reiniciar-btn {
-  background-color: #A020F0;
-  color: white;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.reiniciar-btn:hover {
-  background-color: #8619b4;
 }
