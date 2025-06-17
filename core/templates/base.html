@@ -1,93 +1,38 @@
 {% load static %}
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" class="dark">
 <head>
-  {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> StudyFly </title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'css/perfil.css' %}">
-  <link rel="stylesheet" href="{% static 'css/message.css' %}"/>
-  <link rel="stylesheet" href="{% static 'css/horarios.css' %}"/>
-  <link rel="stylesheet" href="{% static 'css/tareas.css' %}"/>
-  <link rel="stylesheet" href="{% static 'css/components/sidebar.css' %}"/>
-  {% block extra_css %}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFly | {% block title %}Dashboard{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/Logo2.png' %}">
+    <link rel="stylesheet" href="{% static 'css/output.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/message.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
-<body class="dark-theme">
 
-  {% include 'partials/message.html' %}
+<body class="flex h-screen flex-col bg-background text-foreground font-sans">
 
-  {% include 'partials/navigationBar.html' %}
+    {% include 'partials/message.html' %}
 
-  {% include 'partials/sidebar.html '%}
+    <div>
+        {% include 'partials/navigationBar.html' %}
+    </div>
 
-  <!-- Contenido principal -->
-  <main class="main-content">
-    {% block content %}
+    <div class="flex flex-1 overflow-hidden">
+        
+        <div>
+            {% include 'partials/sidebar.html' %}
+        </div>
 
-    {% endblock content %}
-  </main>
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+            {% block content %}
+            {% endblock content %}
+        </main>
+    </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
-  <script src="{% static 'js/auth.js' %}"></script>
-  <script src="{% static 'js/calendar.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 
-  {% block extra_js %}{% endblock %}
-
-  {% csrf_token %}
-
-  <script>
-    // Configuración global
-    window.StudyFly = {
-      csrfToken: document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
-      currentUser: '{{ user.username|escapejs }}',
-      isAuthenticated: {{ user.is_authenticated|yesno:"true,false" }},
-      urls: {
-        horarios: "{% url 'planner:horarios' %}",
-        eventCreate: "{% url 'planner:event_create' %}"
-      }
-    };
-    
-    // Inicialización global
-    document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar tooltips de Bootstrap si están disponibles
-      if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-      }
-      
-      // Agregar clase loaded al body para animaciones
-      document.body.classList.add('page-loaded');
-      
-      // Configurar manejo global de errores AJAX
-      window.addEventListener('unhandledrejection', function(event) {
-        console.error('Error no manejado:', event.reason);
-        if (window.calendarUtils) {
-          window.calendarUtils.showNotification('Ocurrió un error inesperado', 'error');
-        }
-      });
-    });
-    
-    // Función global para confirmar acciones
-    window.confirmAction = function(message, callback) {
-      if (confirm(message)) {
-        callback();
-      }
-    };
-    
-    // Función global para mostrar loading
-    window.showGlobalLoading = function(show = true) {
-      if (window.calendarUtils) {
-        if (show) {
-          window.calendarUtils.showLoading();
-        } else {
-          window.calendarUtils.hideLoading();
-        }
-      }
-    };
-  </script>
 </body>
-</html> 
+</html>

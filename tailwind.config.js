@@ -1,12 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './accounts/templates/**/*.html',
+    './core/templates/**/*.html', 
+    './accounts/templates/**/*.html', 
+    './planner/templates/**/*.html',   
+    './reminders/templates/**/*.html',  
     './accounts/forms.py',
-    './core/templates/**/*.html',
-    './planner/templates/**/*.html',
-    './reminders/templates/**/*.html'
   ],
+
+  // Tu tema de colores está perfecto.
   theme: {
     extend: {
       colors: {
@@ -32,6 +34,10 @@ module.exports = {
         'border': '#2d2d2d',
         'input': '#2d2d2d',
         'ring': '#a855f7',
+        'sidebar-bg': '#211a2e',
+        'sidebar-border': '#2c2438',
+        'sidebar-muted': '#a692c9',
+        'sidebar-active': '#66d870',
       },
       borderRadius: {
         'lg': '0.75rem',

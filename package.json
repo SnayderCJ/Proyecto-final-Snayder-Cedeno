@@ -1,27 +1,5 @@
 {
-  "name": "ai-powered_student_routine_planner",
-  "version": "1.0.0",
-  "description": "actualizacion de implementacion de IAaaaaa",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch:css": "npx tailwindcss -i ./src/input.css -o ./static/css/output.css --watch",
-    "run:django": "python manage.py runserver",
-    "dev": "concurrently -n \"DJANGO,TAILWIND\" -c \"blue,cyan\" \"npm:run:django\" \"npm:watch:css\""
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SnayderCJ/AI-Powered_Student_Routine_Planner.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/SnayderCJ/AI-Powered_Student_Routine_Planner/issues"
-  },
-  "homepage": "https://github.com/SnayderCJ/AI-Powered_Student_Routine_Planner#readme",
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "tailwindcss": "^3.4.0"
+    "tailwindcss": "^3.4.17"
   }
 }

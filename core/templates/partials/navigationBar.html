@@ -1,36 +1,37 @@
 {% load static %}
 
-<!-- Header -->
-<header class="app-nav">
-    <section class="welcome-header">
-      <div class="welcome-content">
-        <div class="welcome-user">
-          <div class="avatar">
-            <img src="{% if user_avatar %}{{ user_avatar }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
-                 alt="Avatar de {{ user_display_name|default:'Usuario' }}"
-                 onerror="this.src='https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&background=8b5cf6&color=fff&size=150';">
-          </div>
-          <div>
-            <h1 class="welcome-title">
-              {{ greeting }}, {% if request.user.is_authenticated %}{{ user_display_name }}{% else %}Estudiante{% endif %}
-            </h1>
-            <p class="welcome-date">{{ current_date }}</p>
-          </div>
+<header class="sticky top-0 z-10 w-full border-b border-border bg-background/80 backdrop-blur-sm">
+    <section class="flex h-24 items-center justify-between bg-gradient-to-r from-[#a855f7]/10 via-[#a855f7]/5 to-transparent px-4 md:px-6">
+        
+        <div class="flex items-center gap-4">
+            <div class="relative h-16 w-16 flex-shrink-0">
+                <div class="absolute inset-0 rounded-full border-2 border-white/20"></div>
+                <img class="h-full w-full rounded-full object-cover" 
+                     src="{% if user_avatar %}{{ user_avatar }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                        alt="Avatar de {{ user_display_name|default:'Usuario' }}"
+                        onerror="this.src='https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&background=a855f7&color=fff&size=150';">
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-foreground">
+                    {{ greeting }}, {% if request.user.is_authenticated %}{{ user_display_name }}{% else %}Estudiante{% endif %}
+                </h1>
+                <p class="text-sm text-muted-foreground">{{ current_date }}</p>
+            </div>
         </div>
-        <div class="welcome-actions">
-          <button class="icon-button notification-button">
-            <i class="fa-solid fa-moon"></i>
-          </button>
-          <button class="icon-button notification-button">
-            <i class="fas fa-bell"></i>
-            {% comment %} Agregar el contador de notificaciones {% endcomment %}
-            <span class="notification-badge">3</span> 
-          </button>
-          <div class="productivity-indicator">
-            <p>Productividad hoy</p>
-            <p class="productivity-value">78%</p>
-          </div>
+
+        <div class="flex items-center gap-2">
+            <button class="flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-accent hover:text-foreground">
+                <i class="fa-solid fa-moon text-lg"></i>
+            </button>
+            <button class="relative flex h-10 w-10 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-accent hover:text-foreground">
+                <i class="fas fa-bell text-lg"></i>
+                <span class="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">3</span>
+            </button>
+            <div class="flex items-center gap-3 rounded-full bg-accent px-4 py-2">
+                <p class="text-sm font-medium text-muted-foreground">Productividad hoy</p>
+                <p class="text-xl font-bold text-foreground">78%</p>
+            </div>
         </div>
-      </div>
+
     </section>
 </header>

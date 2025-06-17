@@ -1,58 +1,49 @@
 {% load static %}
 
-<!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="menu-items">
-        <div class="sidebar-header">
-            <img src="{% static 'img/Logo2.png' %}" alt="Logo StudyFly">
-        </div>
+<nav class="flex h-screen w-60 flex-shrink-0 flex-col overflow-y-auto bg-sidebar-bg">
+    
+    <div class="flex h-24 items-center justify-center border-b border-sidebar-border bg-sidebar-bg px-6">
+        <img src="{% static 'img/Logo2.png' %}" alt="Logo StudyFly" class="h-14">
+    </div>
 
-        <div class="menu-item active">
-            <a href="{% url 'core:home' %}">
-            <i class="fa-solid fa-grip"></i>
+    <div class="flex-grow p-4">
+        <a href="{% url 'core:home' %}" class="flex items-center gap-4 rounded-md px-4 py-3 font-semibold text-sidebar-active">
+            <i class="fa-solid fa-grip text-lg"></i>
             <span>Dashboard</span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <a href="{% url 'planner:horarios' %}">
-                <i class="fa-solid fa-calendar"></i>
-                <span>Horarios</span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <a href="{% url 'planner:tareas' %}">
-            <i class="fa-solid fa-list-check"></i>
+        </a>
+        <a href="{% url 'planner:horarios' %}" class="flex items-center gap-4 rounded-md px-4 py-3 text-sidebar-muted transition-colors hover:text-white">
+            <i class="fa-solid fa-calendar text-lg"></i>
+            <span>Horarios</span>
+        </a>
+        <a href="{% url 'planner:tareas' %}" class="flex items-center gap-4 rounded-md px-4 py-3 text-sidebar-muted transition-colors hover:text-white">
+            <i class="fa-solid fa-list-check text-lg"></i>
             <span>Tareas</span>
-            </a>
-        </div>
-        <div class="menu-item">
-            <i class="fa-solid fa-chart-simple"></i>
+        </a>
+        <div class="flex items-center gap-4 rounded-md px-4 py-3 text-sidebar-muted">
+            <i class="fa-solid fa-chart-simple text-lg"></i>
             <span>Productividad</span>
         </div>
-        <div class="menu-item">
-            <i class="fa-solid fa-clock"></i>
+        <div class="flex items-center gap-4 rounded-md px-4 py-3 text-sidebar-muted">
+            <i class="fa-solid fa-clock text-lg"></i>
             <span>Tiempo de Enfoque</span>
         </div>
+    </div>
 
-        <br><br><br><br><br><br><br><br><br>
-        <div class="menu-item">
-            <a href="{% url 'core:perfil' %}">
-                <i class="fa-solid fa-user"></i>
-                <span>Perfil </span>
+    <div class="sticky bottom-0 z-10 border-t border-sidebar-border bg-sidebar-bg p-4">
+        <div class="flex items-center justify-between">
+            <a href="{% url 'core:perfil' %}" class="flex items-center gap-3">
+                <img class="h-10 w-10 rounded-full object-cover"
+                     src="{% if user_avatar %}{{ user_avatar }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}" 
+                         alt="Avatar de {{ user_display_name|default:'Usuario' }}"
+                         onerror="this.src='https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&background=a855f7&color=fff&size=150';">
+                <div>
+                    <p class="text-sm font-semibold text-foreground">{{ user_display_name|default:'Usuario' }}</p>
+                    <p class="text-xs text-sidebar-muted">Configuración</p>
+                </div>
             </a>
-        </div>
-        <div class="menu-item">
-            <a href="{% url 'core:settings' %}">
-                <i class="fa-solid fa-gear"></i>
-                <span>Configuración</span>
-            </a>
-        </div>
-
-        <div class="menu-item"> 
-            <a href="{% url 'accounts:logout' %}">
+            <a href="{% url 'accounts:logout' %}" class="rounded-md p-2 text-sidebar-muted transition-colors hover:bg-accent hover:text-white" title="Cerrar Sesión">
                 <i class="fa-solid fa-right-from-bracket"></i>
-                <span> Cerrar Sesión</span>
-            </a>    
+            </a>
         </div>
     </div>
-  </nav>
+</nav>
