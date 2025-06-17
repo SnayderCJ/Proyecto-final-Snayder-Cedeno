@@ -19,4 +19,7 @@ urlpatterns = [
     path('password/setup/', views.request_password_setup, name='request_password_setup'),
     path('password/verify/', views.verify_password_code, name='verify_password_code'),
     path('password/set/', views.set_password, name='set_password'),
+    
+    # Vista semanal y análisis
+    path('weekly-view/', views.weekly_view, name='weekly_view'),
 ]

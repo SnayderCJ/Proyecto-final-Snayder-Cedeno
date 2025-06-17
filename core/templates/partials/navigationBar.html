@@ -17,7 +17,7 @@
                 <h1 class="font-bold text-foreground">
                     <span class="greeting-text">{{ greeting }}</span>, {% if request.user.is_authenticated %}{{ user_display_name }}{% else %}Estudiante{% endif %}
                 </h1>
-                <p class="text-sm text-muted-foreground date-text">{{ current_date }}</p>
+                <p class="text-sm text-muted-foreground date-text transition-opacity duration-200">{{ current_date }}</p>
             </div>
         </div>
     </div>
