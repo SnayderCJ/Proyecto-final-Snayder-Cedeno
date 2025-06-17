@@ -34,10 +34,8 @@ requests-oauthlib==2.0.0
 rsa==4.9.1
 scikit-learn==1.7.0
 scipy==1.15.3
-setuptools==80.9.0
 sqlparse==0.5.3
 threadpoolctl==3.6.0
 tzdata==2025.2
 uritemplate==4.2.0
 urllib3==2.4.0
-wheel==0.45.1

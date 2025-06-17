@@ -548,3 +548,54 @@ def get_current_datetime(request):
             'success': False,
             'error': str(e)
         })
+
+@login_required
+def weekly_view(request):
+    """Vista para mostrar la vista semanal completa"""
+    from planner.models import Event
+    from datetime import timedelta
+    
+    # Obtener datos de la semana actual
+    today = timezone.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    
+    # Generar días de la semana
+    week_days = []
+    day_names = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    
+    for i in range(7):
+        current_day = start_of_week + timedelta(days=i)
+        week_days.append({
+            'name': day_names[i],
+            'date': current_day.day,
+            'is_today': current_day == today
+        })
+    
+    # Obtener eventos de la semana
+    end_of_week = start_of_week + timedelta(days=6)
+    events = Event.objects.filter(
+        user=request.user,
+        start_time__date__gte=start_of_week,
+        start_time__date__lte=end_of_week
+    ).order_by('start_time')
+    
+    # Formatear eventos para el template
+    formatted_events = []
+    for event in events:
+        formatted_events.append({
+            'title': event.title,
+            'time': event.start_time.strftime('%H:%M'),
+            'category': event.category if hasattr(event, 'category') else 'General',
+            'type': 'task'
+        })
+    
+    context = {
+        'greeting': get_greeting(request.user),
+        'current_date': get_formatted_date(request.user),
+        'user_display_name': format_user_name(request.user),
+        'user_avatar': get_user_avatar(request.user),
+        'week_days': week_days,
+        'events': formatted_events,
+    }
+    
+    return render(request, 'pages/weekly_view.html', context)

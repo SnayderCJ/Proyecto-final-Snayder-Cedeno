@@ -1,93 +1,86 @@
 {% load static %}
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es" class="dark">
 <head>
-  {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> StudyFly </title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'css/perfil.css' %}">
-  <link rel="stylesheet" href="{% static 'css/message.css' %}"/>
-  <link rel="stylesheet" href="{% static 'css/horarios.css' %}"/>
-  <link rel="stylesheet" href="{% static 'css/tareas.css' %}"/>
-  <link rel="stylesheet" href="{% static 'css/components/sidebar.css' %}"/>
-  {% block extra_css %}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFly | {% block title %}Dashboard{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/Logo2.png' %}">
+    <link rel="stylesheet" href="{% static 'css/output.css' %}"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+    <script src="{% static 'js/messages.js' %}"></script>
+    <script src="{% static 'js/datetime.js' %}"></script>
+    <script src="{% static 'js/navigation.js' %}"></script>
 </head>
-<body class="dark-theme">
 
-  {% include 'partials/message.html' %}
-
-  {% include 'partials/navigationBar.html' %}
-
-  {% include 'partials/sidebar.html '%}
-
-  <!-- Contenido principal -->
-  <main class="main-content">
-    {% block content %}
-
-    {% endblock content %}
-  </main>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
-  <script src="{% static 'js/auth.js' %}"></script>
-  <script src="{% static 'js/calendar.js' %}"></script>
-
-  {% block extra_js %}{% endblock %}
-
-  {% csrf_token %}
-
-  <script>
-    // Configuración global
-    window.StudyFly = {
-      csrfToken: document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
-      currentUser: '{{ user.username|escapejs }}',
-      isAuthenticated: {{ user.is_authenticated|yesno:"true,false" }},
-      urls: {
-        horarios: "{% url 'planner:horarios' %}",
-        eventCreate: "{% url 'planner:event_create' %}"
-      }
-    };
+<body class="flex h-screen flex-col bg-background text-foreground font-sans">
     
-    // Inicialización global
+    {% include 'partials/messages.html' %}
+
+    <div class="flex-shrink-0">
+        {% include 'partials/navigationBar.html' %}
+    </div>
+
+    <div class="flex flex-1 overflow-hidden">
+        
+        {% include 'partials/sidebar.html' %}
+
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+            {% block content %}
+            {% endblock content %}
+        </main>
+    </div>
+
+    <div id="sidebar-overlay" class="fixed inset-0 z-30 hidden bg-black/60 md:hidden"></div>
+
+    {% block extra_js %}
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar tooltips de Bootstrap si están disponibles
-      if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-      }
-      
-      // Agregar clase loaded al body para animaciones
-      document.body.classList.add('page-loaded');
-      
-      // Configurar manejo global de errores AJAX
-      window.addEventListener('unhandledrejection', function(event) {
-        console.error('Error no manejado:', event.reason);
-        if (window.calendarUtils) {
-          window.calendarUtils.showNotification('Ocurrió un error inesperado', 'error');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        function toggleMenu() {
+            console.log('Toggle menu clicked'); // Debug
+            if (sidebar && overlay) {
+                // Alterna la clase que mueve el sidebar
+                sidebar.classList.toggle('-translate-x-full');
+                // Alterna la visibilidad del overlay
+                overlay.classList.toggle('hidden');
+                console.log('Sidebar classes:', sidebar.className); // Debug
+            }
         }
-      });
-    });
-    
-    // Función global para confirmar acciones
-    window.confirmAction = function(message, callback) {
-      if (confirm(message)) {
-        callback();
-      }
-    };
-    
-    // Función global para mostrar loading
-    window.showGlobalLoading = function(show = true) {
-      if (window.calendarUtils) {
-        if (show) {
-          window.calendarUtils.showLoading();
+
+        // Asegurarse de que los elementos existen antes de añadir listeners
+        if (menuToggle) {
+            console.log('Menu toggle found, adding listener'); // Debug
+            menuToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleMenu();
+            });
         } else {
-          window.calendarUtils.hideLoading();
+            console.log('Menu toggle not found'); // Debug
         }
-      }
-    };
-  </script>
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleMenu);
+        }
+
+        // Cerrar sidebar al hacer clic en enlaces (móvil)
+        const sidebarLinks = sidebar?.querySelectorAll('a');
+        if (sidebarLinks) {
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768) { // Solo en móvil
+                        toggleMenu();
+                    }
+                });
+            });
+        }
+    });
+    </script>
+    {% endblock extra_js %}
 </body>
-</html> 
+</html>

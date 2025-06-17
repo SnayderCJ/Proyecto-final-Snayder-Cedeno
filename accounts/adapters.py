@@ -16,6 +16,19 @@ logger = logging.getLogger(__name__)
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     """Adaptador personalizado para manejar login social"""
     
+    def get_login_redirect_url(self, request):
+        """Personalizar redirección después del login"""
+        return "/"
+    
+    def get_signup_redirect_url(self, request):
+        """Personalizar redirección después del registro"""
+        return "/"
+    
+    def authentication_error(self, request, provider_id, error=None, exception=None, extra_context=None):
+        """Manejar errores de autenticación social"""
+        # Redirigir a nuestra vista personalizada de cancelación
+        return redirect('accounts:social_login_cancelled')
+    
     def normalize_text(self, text):
         """Normaliza el texto para manejar correctamente caracteres especiales"""
         if not text:
@@ -182,13 +195,13 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
 class CustomAccountAdapter(DefaultAccountAdapter):
     """Adaptador personalizado para cuentas regulares"""
     
-    def add_message(self, request, level, message_tag, message, **kwargs):
+    def add_message(self, request, level, message_template, message_context=None, extra_tags='', fail_silently=False, *args, **kwargs):
         """
         Personalizar mensajes de allauth
         """
         try:
             # Filtrar mensajes que no queremos mostrar
-            message_str = str(message).lower()
+            message_str = str(message_template).lower()
             
             # Evitar mensajes duplicados o innecesarios
             if any(phrase in message_str for phrase in [
@@ -200,8 +213,9 @@ class CustomAccountAdapter(DefaultAccountAdapter):
                 return
             
             # Para otros mensajes, usar el comportamiento por defecto
-            super().add_message(request, level, message_tag, message, **kwargs)
+            super().add_message(request, level, message_template, message_context, extra_tags, fail_silently, *args, **kwargs)
             
         except Exception as e:
             logger.error(f"Error en add_message: {e}")
-            pass
+            if not fail_silently:
+                raise

@@ -24,6 +24,14 @@ class Event(models.Model):
         ("baja", "Baja"),
     ]
 
+    CATEGORY_CHOICES = [
+        ('Matemáticas', 'Matemáticas'),
+        ('Química', 'Química'),
+        ('Historia', 'Historia'),
+        ('Programación', 'Programación'),
+        ('General', 'General'),
+    ]
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -43,6 +51,12 @@ class Event(models.Model):
         choices=PRIORITY_CHOICES,
         default="media",
         verbose_name="Prioridad",
+    )
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        default='General',
+        verbose_name="Categoría"
     )
     start_time = models.DateTimeField(verbose_name="Hora de Inicio")
     end_time = models.DateTimeField(verbose_name="Hora de Fin")
