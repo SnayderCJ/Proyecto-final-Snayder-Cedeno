@@ -7,7 +7,6 @@
     <title>StudyFly | {% block title %}Dashboard{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'img/Logo2.png' %}">
     <link rel="stylesheet" href="{% static 'css/output.css' %}"/>
-    <link rel="stylesheet" href="{% static 'css/message.css' %}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block extra_css %}{% endblock %}
     <script src="{% static 'js/messages.js' %}"></script>
@@ -17,8 +16,7 @@
 
 <body class="flex h-screen flex-col bg-background text-foreground font-sans">
     
-    <div class="toast-container" aria-live="polite" aria-label="Notificaciones"></div>
-    {% include 'partials/message.html' %}
+    {% include 'partials/messages.html' %}
 
     <div class="flex-shrink-0">
         {% include 'partials/navigationBar.html' %}
