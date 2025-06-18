@@ -4,25 +4,29 @@
 {% block title %}{{ form_type }} Evento - StudyFly{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <div class="form-header">
-        <h1>{{ form_type }} Evento</h1>
-        <p>{% if form_type == 'Crear' %}Agrega un nuevo evento a tu horario{% else %}Modifica los detalles del evento{% endif %}</p>
-    </div>
+<div class="min-h-[calc(100vh-120px)] flex items-center justify-center p-4 md:p-8">
+    <div class="w-full max-w-3xl bg-card rounded-xl border border-border shadow-lg">
+        <!-- Header -->
+        <div class="p-6 border-b border-border">
+            <h1 class="text-2xl font-semibold">{{ form_type }} Evento</h1>
+            <p class="text-sm text-muted-foreground mt-1">
+                {% if form_type == 'Crear' %}Agrega un nuevo evento a tu horario{% else %}Modifica los detalles del evento{% endif %}
+            </p>
+        </div>
 
-    <div class="form-content">
-        <form method="post" class="event-form">
+        <!-- Form -->
+        <form method="post" class="p-6 space-y-6">
             {% csrf_token %}
 
-            <!-- Título del evento -->
-            <div class="form-group">
-                <label for="{{ form.title.id_for_label }}" class="form-label">
-                    <i class="fas fa-tag"></i> {{ form.title.label }}
-                    {% if form.title.field.required %}<span class="required">*</span>{% endif %}
+            <!-- Título -->
+            <div class="space-y-2">
+                <label for="{{ form.title.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                    <i class="fas fa-tag text-primary"></i> {{ form.title.label }}
+                    {% if form.title.field.required %}<span class="text-red-500">*</span>{% endif %}
                 </label>
                 {{ form.title }}
                 {% if form.title.errors %}
-                    <div class="form-error">
+                    <div class="text-sm text-red-500">
                         {% for error in form.title.errors %}
                             {{ error }}
                         {% endfor %}
@@ -31,13 +35,13 @@
             </div>
 
             <!-- Descripción -->
-            <div class="form-group">
-                <label for="{{ form.description.id_for_label }}" class="form-label">
-                    <i class="fas fa-align-left"></i> {{ form.description.label }}
+            <div class="space-y-2">
+                <label for="{{ form.description.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                    <i class="fas fa-align-left text-primary"></i> {{ form.description.label }}
                 </label>
                 {{ form.description }}
                 {% if form.description.errors %}
-                    <div class="form-error">
+                    <div class="text-sm text-red-500">
                         {% for error in form.description.errors %}
                             {{ error }}
                         {% endfor %}
@@ -45,16 +49,16 @@
                 {% endif %}
             </div>
 
-            <!-- Tipo y Prioridad en fila -->
-            <div class="form-row">
-                <div class="form-group half">
-                    <label for="{{ form.event_type.id_for_label }}" class="form-label">
-                        <i class="fas fa-bookmark"></i> {{ form.event_type.label }}
-                        {% if form.event_type.field.required %}<span class="required">*</span>{% endif %}
+            <!-- Tipo y Prioridad -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="{{ form.event_type.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                        <i class="fas fa-bookmark text-primary"></i> {{ form.event_type.label }}
+                        {% if form.event_type.field.required %}<span class="text-red-500">*</span>{% endif %}
                     </label>
                     {{ form.event_type }}
                     {% if form.event_type.errors %}
-                        <div class="form-error">
+                        <div class="text-sm text-red-500">
                             {% for error in form.event_type.errors %}
                                 {{ error }}
                             {% endfor %}
@@ -62,14 +66,14 @@
                     {% endif %}
                 </div>
 
-                <div class="form-group half">
-                    <label for="{{ form.priority.id_for_label }}" class="form-label">
-                        <i class="fas fa-exclamation-circle"></i> {{ form.priority.label }}
-                        {% if form.priority.field.required %}<span class="required">*</span>{% endif %}
+                <div class="space-y-2">
+                    <label for="{{ form.priority.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                        <i class="fas fa-exclamation-circle text-primary"></i> {{ form.priority.label }}
+                        {% if form.priority.field.required %}<span class="text-red-500">*</span>{% endif %}
                     </label>
                     {{ form.priority }}
                     {% if form.priority.errors %}
-                        <div class="form-error">
+                        <div class="text-sm text-red-500">
                             {% for error in form.priority.errors %}
                                 {{ error }}
                             {% endfor %}
@@ -78,16 +82,16 @@
                 </div>
             </div>
 
-            <!-- Fechas y horas en fila -->
-            <div class="form-row">
-                <div class="form-group half">
-                    <label for="{{ form.start_time.id_for_label }}" class="form-label">
-                        <i class="fas fa-play"></i> {{ form.start_time.label }}
-                        {% if form.start_time.field.required %}<span class="required">*</span>{% endif %}
+            <!-- Fechas y horas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="{{ form.start_time.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                        <i class="fas fa-play text-primary"></i> {{ form.start_time.label }}
+                        {% if form.start_time.field.required %}<span class="text-red-500">*</span>{% endif %}
                     </label>
                     {{ form.start_time }}
                     {% if form.start_time.errors %}
-                        <div class="form-error">
+                        <div class="text-sm text-red-500">
                             {% for error in form.start_time.errors %}
                                 {{ error }}
                             {% endfor %}
@@ -95,14 +99,14 @@
                     {% endif %}
                 </div>
 
-                <div class="form-group half">
-                    <label for="{{ form.end_time.id_for_label }}" class="form-label">
-                        <i class="fas fa-stop"></i> {{ form.end_time.label }}
-                        {% if form.end_time.field.required %}<span class="required">*</span>{% endif %}
+                <div class="space-y-2">
+                    <label for="{{ form.end_time.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                        <i class="fas fa-stop text-primary"></i> {{ form.end_time.label }}
+                        {% if form.end_time.field.required %}<span class="text-red-500">*</span>{% endif %}
                     </label>
                     {{ form.end_time }}
                     {% if form.end_time.errors %}
-                        <div class="form-error">
+                        <div class="text-sm text-red-500">
                             {% for error in form.end_time.errors %}
                                 {{ error }}
                             {% endfor %}
@@ -112,31 +116,34 @@
             </div>
 
             <!-- Fecha de vencimiento -->
-            <div class="form-group">
-                <label for="{{ form.due_date.id_for_label }}" class="form-label">
-                    <i class="fas fa-calendar-check"></i> {{ form.due_date.label }}
+            <div class="space-y-2">
+                <label for="{{ form.due_date.id_for_label }}" class="flex items-center gap-2 text-sm font-medium">
+                    <i class="fas fa-calendar-check text-primary"></i> {{ form.due_date.label }}
                 </label>
-                {{ form.due_date }}
+                <div class="relative">
+                    {{ form.due_date }}
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i class="fas fa-calendar-alt text-muted-foreground"></i>
+                    </div>
+                </div>
                 {% if form.due_date.errors %}
-                    <div class="form-error">
+                    <div class="text-sm text-red-500">
                         {% for error in form.due_date.errors %}
                             {{ error }}
                         {% endfor %}
                     </div>
                 {% endif %}
-                <small class="form-help">Opcional. Útil para tareas con fecha límite.</small>
+                <p class="text-xs text-muted-foreground">Opcional. Útil para tareas con fecha límite específica.</p>
             </div>
 
             <!-- Estado completado -->
-            <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                    {{ form.is_completed }}
-                    <span class="checkbox-text">
-                        <i class="fas fa-check"></i> {{ form.is_completed.label }}
-                    </span>
+            <div class="flex items-center gap-2">
+                {{ form.is_completed }}
+                <label for="{{ form.is_completed.id_for_label }}" class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                    <i class="fas fa-check text-primary"></i> {{ form.is_completed.label }}
                 </label>
                 {% if form.is_completed.errors %}
-                    <div class="form-error">
+                    <div class="text-sm text-red-500">
                         {% for error in form.is_completed.errors %}
                             {{ error }}
                         {% endfor %}
@@ -146,23 +153,81 @@
 
             <!-- Errores generales -->
             {% if form.non_field_errors %}
-                <div class="form-error-general">
+                <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                     {% for error in form.non_field_errors %}
-                        <p>{{ error }}</p>
+                        <p class="text-sm text-red-500">{{ error }}</p>
                     {% endfor %}
                 </div>
             {% endif %}
 
             <!-- Botones -->
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">
+            <div class="flex flex-wrap justify-center gap-4 pt-4 border-t border-border">
+                <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors">
                     <i class="fas fa-save"></i> {{ form_type }} Evento
                 </button>
-                <a href="{% url 'planner:horarios' %}" class="btn btn-secondary">
+                <a href="{% url 'planner:horarios' %}" 
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+// Aplicar estilos Tailwind a los inputs generados por Django
+document.addEventListener('DOMContentLoaded', function() {
+    // Estilos para inputs de texto, datetime-local, date y textarea
+    const textInputs = document.querySelectorAll('input[type="text"], input[type="datetime-local"], input[type="date"], textarea');
+    textInputs.forEach(input => {
+        input.classList.add('w-full', 'rounded-lg', 'border', 'border-border', 'bg-background', 'p-3', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary/20', 'focus:border-primary', 'transition-colors');
+        
+        // Estilo específico para inputs de fecha
+        if (input.type === 'date') {
+            input.style.colorScheme = 'dark';
+            input.classList.add('cursor-pointer');
+        }
+        
+        // Estilo específico para inputs de datetime-local
+        if (input.type === 'datetime-local') {
+            input.style.colorScheme = 'dark';
+            input.classList.add('cursor-pointer');
+        }
+    });
+
+    // Estilos para selects
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        select.classList.add('w-full', 'rounded-lg', 'border', 'border-border', 'bg-background', 'p-3', 'text-sm', 'focus:outline-none', 'focus:ring-2', 'focus:ring-primary/20', 'focus:border-primary', 'transition-colors', 'cursor-pointer');
+    });
+
+    // Estilos para checkbox
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.classList.add('h-5', 'w-5', 'rounded', 'border-2', 'border-border', 'text-primary', 'focus:ring-primary/20', 'focus:ring-2', 'transition-colors', 'cursor-pointer');
+    });
+    
+    // Mejorar la visualización de campos de fecha y hora
+    const dateTimeInputs = document.querySelectorAll('input[type="datetime-local"], input[type="date"]');
+    dateTimeInputs.forEach(input => {
+        // Agregar placeholder si no tiene value
+        if (!input.value) {
+            if (input.type === 'datetime-local') {
+                input.setAttribute('placeholder', 'dd/mm/aaaa --:-- -----');
+            } else if (input.type === 'date') {
+                input.setAttribute('placeholder', 'dd/mm/aaaa');
+            }
+        }
+        
+        // Evento para mejorar UX
+        input.addEventListener('focus', function() {
+            this.style.borderColor = 'var(--primary)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.borderColor = '';
+        });
+    });
+});
+</script>
 {% endblock %}
