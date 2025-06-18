@@ -194,9 +194,10 @@ def password_reset_request(request):
                 user=user,
                 token_type='reset_password'
             )
-            
-            # Enviar email
+
+            # Enviar el email explícitamente
             if send_password_reset_email(user, token):
+                # Si el correo se envía con éxito...
                 messages.success(request, format_html(
                     "¡Código enviado! Revisa tu correo <strong>{}</strong> y ingresa el código de 6 dígitos.",
                     email
@@ -205,7 +206,9 @@ def password_reset_request(request):
                 request.session['reset_email'] = email
                 return redirect('accounts:password_reset_verify')
             else:
-                messages.error(request, "Hubo un error enviando el código. Por favor intenta de nuevo.")
+                # Si la función de envío de correo falla por alguna razón...
+                messages.error(request, "Hubo un error interno al intentar enviar el correo. Por favor, contacta a soporte.")
+                # Nos quedamos en la misma página para mostrar el error
     
     context = {
         'form': form,
@@ -318,7 +321,7 @@ def password_reset_confirm(request):
 def social_login_cancelled(request):
     """Vista personalizada para cuando se cancela el login social"""
     messages.info(request, "Has cancelado el inicio de sesión con Google.")
-    return render(request, "login_cancelled.html")
+    return render(request, "socialaccount/login_cancelled.html")
 
 @login_required
 def signout(request):

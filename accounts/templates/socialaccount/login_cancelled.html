@@ -4,117 +4,40 @@
 {% block heading %}Inicio de Sesión Cancelado{% endblock %}
 
 {% block content %}
-<div class="cancelled-info">
-  <div class="info-icon">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" opacity="0.6"/>
-      <path d="M12 8v4" stroke="currentColor" stroke-width="2"/>
-      <path d="m12 16 .01 0" stroke="currentColor" stroke-width="2"/>
+<div class="text-center mb-8">
+  <div class="mb-5 text-gray-400">
+    <svg class="mx-auto w-12 h-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke-opacity="0.6"/>
+      <path d="M12 8v4" />
+      <path d="m12 16 .01 0" />
     </svg>
   </div>
   
-  <p class="info-message">
-    Has decidido cancelar el inicio de sesión con Google.
-    <br>
+  <p class="text-gray-400 text-base leading-relaxed">
+    Has decidido cancelar el inicio de sesión con Google.<br>
     ¿Te gustaría intentar de nuevo o usar otro método?
   </p>
 </div>
 
-<div class="form-actions">
-  <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+<div class="flex flex-col gap-4">
+  <a href="{% url 'accounts:login' %}" class="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-center hover:bg-primary-hover transition">
     Volver al Inicio de Sesión
   </a>
   
-  <div class="or-divider">O</div>
+  <div class="relative text-center text-gray-500 text-sm my-5">
+    <span class="bg-background px-4 relative z-10">O</span>
+    <div class="absolute inset-0 top-1/2 border-t border-gray-700"></div>
+  </div>
   
-  <a href="{% url 'accounts:register' %}" class="btn btn-outline">
+  <a href="{% url 'accounts:register' %}" class="w-full py-3 rounded-lg border border-border text-foreground font-semibold text-center hover:bg-accent transition">
     Crear Cuenta Nueva
   </a>
 </div>
 
-<div class="toggle-form">
+<div class="mt-8 pt-5 border-t border-gray-700 text-center text-gray-400 text-sm">
   <span>Si tienes problemas técnicos, puedes </span>
-  <a href="{% url 'accounts:login' %}" class="toggle-link">usar el formulario tradicional</a>
+  <a href="{% url 'accounts:login' %}" class="text-primary font-medium hover:underline">
+    usar el formulario tradicional
+  </a>
 </div>
-
-<style>
-.cancelled-info {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.info-icon {
-  margin-bottom: 20px;
-  color: #9ca3af;
-}
-
-.info-message {
-  color: #9ca3af;
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.form-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.form-actions .btn {
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.form-actions .btn + .or-divider {
-  margin: 20px 0;
-}
-
-.or-divider {
-  text-align: center;
-  position: relative;
-  margin: 20px 0;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.or-divider::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #374151;
-  z-index: 1;
-}
-
-.or-divider::after {
-  content: 'O';
-  background: #1f2937;
-  padding: 0 15px;
-  position: relative;
-  z-index: 2;
-}
-
-.toggle-form {
-  text-align: center;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #374151;
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-.toggle-link {
-  color: #8b5cf6;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.toggle-link:hover {
-  color: #a78bfa;
-  text-decoration: underline;
-}
-</style>
 {% endblock %}

@@ -1,41 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/settings.css' %}">
-{% endblock %}
-
 {% block content %}
+<div class="max-w-4xl mx-auto">
+   <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+      <div class="flex items-center justify-between mb-6">
+         <div class="text-lg font-semibold text-foreground">Configuración</div> 
+         <div class="text-purple-500">•</div>
+      </div>
 
-<div class="card">
-   <div class="card-header">
-      <div class="card-title">Configuración</div> 
-      <div class="status-indicator">•</div>
+      <form method="post" onsubmit="handleFormSubmit()">
+         {% csrf_token %}
+
+         <div class="mb-6">
+            <div class="block text-sm font-medium text-muted-foreground mb-2">{{ form.language.label }}</div>
+            {{ form.language }}
+         </div>
+
+         <div class="mb-6">
+            <div class="block text-sm font-medium text-muted-foreground mb-2">{{ form.timezone.label }}</div>
+            {{ form.timezone }}
+            <small class="text-muted-foreground text-xs mt-1 block">Los cambios se aplicarán automáticamente en toda la aplicación</small>
+         </div>
+
+         <div class="flex justify-end gap-4 mt-6">
+            <a href="{% url 'core:home' %}" class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80">Cancelar</a>
+            <button type="submit" class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90">Guardar Cambios</button>
+         </div>
+      </form>
    </div>
-
-   <form method="post" onsubmit="handleFormSubmit()">
-      {% csrf_token %}
-
-      <div class="input-group">
-         <div class="input-label">{{ form.language.label }}</div>
-         {{ form.language }}
-      </div>
-
-      <div class="input-group">
-         <div class="input-label">{{ form.timezone.label }}</div>
-         {{ form.timezone }}
-         <small class="help-text">Los cambios se aplicarán automáticamente en toda la aplicación</small>
-      </div>
-
-      <div class="button-group">
-         <a href="{% url 'core:home' %}" class="btn btn-cancel">Cancelar</a>
-         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-      </div>
-   </form>
 </div>
 
-{% endblock content %}
+<script>
+function handleFormSubmit() {
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    // Mostrar indicador de carga
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+    
+    // Restaurar después de un tiempo (el formulario se enviará normalmente)
+    setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }, 3000);
+    
+    return true; // Permitir que el formulario se envíe
+}
 
-{% block extra_js %}
-<script src="{% static 'js/settings.js' %}"></script>
-{% endblock %}
+// Mostrar mensaje de confirmación cuando se cambie la configuración
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const selects = form.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        // Aplicar estilos de Tailwind a los selects
+        select.className = "w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent";
+        
+        select.addEventListener('change', function() {
+            // Agregar clase visual para indicar cambio
+            this.classList.add('border-yellow-500', 'bg-yellow-50/10');
+            
+            // Mostrar mensaje sutil
+            let changeIndicator = this.parentNode.querySelector('.change-indicator');
+            if (!changeIndicator) {
+                changeIndicator = document.createElement('small');
+                changeIndicator.className = 'text-yellow-600 text-xs mt-1 block';
+                changeIndicator.textContent = 'Cambio pendiente - Haz clic en "Guardar Cambios"';
+                this.parentNode.appendChild(changeIndicator);
+            }
+        });
+    });
+});
+</script>
+{% endblock content %}

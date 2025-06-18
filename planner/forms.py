@@ -34,18 +34,21 @@ class EventForm(forms.ModelForm):
             'start_time': forms.DateTimeInput(attrs={
                 'type': 'datetime-local', 
                 'class': 'form-control',
-                'required': True
-            }),
+                'required': True,
+                'style': 'min-width: 250px;'
+            }, format='%Y-%m-%dT%H:%M'),
             'end_time': forms.DateTimeInput(attrs={
                 'type': 'datetime-local', 
                 'class': 'form-control',
-                'required': True
-            }),
+                'required': True,
+                'style': 'min-width: 250px;'
+            }, format='%Y-%m-%dT%H:%M'),
             'due_date': forms.DateInput(attrs={
                 'type': 'date', 
                 'class': 'form-control',
-                'placeholder': 'Fecha límite (opcional)'
-            }),
+                'placeholder': 'Fecha límite (opcional)',
+                'style': 'min-width: 250px;'
+            }, format='%Y-%m-%d'),
             'is_completed': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
@@ -86,6 +89,22 @@ class EventForm(forms.ModelForm):
         self.fields['title'].help_text = "Nombre claro y descriptivo del evento"
         self.fields['description'].help_text = "Detalles adicionales, materiales necesarios, etc."
         self.fields['due_date'].help_text = "Solo para tareas con fecha límite específica"
+        
+        # Configurar valores iniciales para campos de fecha/hora al editar
+        if self.instance and self.instance.pk:
+            # Convertir start_time al formato datetime-local
+            if self.instance.start_time:
+                local_start = timezone.localtime(self.instance.start_time)
+                self.fields['start_time'].widget.attrs['value'] = local_start.strftime('%Y-%m-%dT%H:%M')
+                
+            # Convertir end_time al formato datetime-local
+            if self.instance.end_time:
+                local_end = timezone.localtime(self.instance.end_time)
+                self.fields['end_time'].widget.attrs['value'] = local_end.strftime('%Y-%m-%dT%H:%M')
+                
+            # Convertir due_date al formato date
+            if self.instance.due_date:
+                self.fields['due_date'].widget.attrs['value'] = self.instance.due_date.strftime('%Y-%m-%d')
 
     def clean_title(self):
         title = self.cleaned_data.get('title')
@@ -215,7 +234,7 @@ class EventForm(forms.ModelForm):
             
             # Validaciones específicas por tipo
             if event_type == 'clase':
-                if due_date != start_time.date():
+                if start_time and due_date != start_time.date():
                     raise ValidationError("Para clases, la fecha de vencimiento debería ser el mismo día.")
             
             if event_type == 'descanso':

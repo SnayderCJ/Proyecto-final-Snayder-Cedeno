@@ -1,126 +1,191 @@
 {% extends "base.html" %}
 {% load planner_tags %}
 {% load static %}
+
 {% block title %}StudyFly - Horarios{% endblock %}
+
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/optimizer.css' %}" />
-<link rel="stylesheet" href="{% static 'css/horarios.css' %}" />
+<link rel="stylesheet" href="{% static 'css/optimizer.css' %}">
 {% endblock %}
+
 {% block content %}
-<div class="calendar-container">
+<div class="flex flex-col w-full gap-6">
   <!-- Header del Calendario -->
-  <div class="calendar-header">
-    <div class="month-year">
-      <span>{{ current_month_name|capfirst }}</span>
-      <span>{{ current_week_range }}</span>
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 bg-card rounded-xl border border-border">
+    <div class="space-y-1">
+      <h2 class="text-2xl font-semibold">{{ current_month_name|capfirst }}</h2>
+      <p class="text-sm text-muted-foreground">{{ current_week_range }}</p>
     </div>
-    <div class="view-toggle">
-      <div class="week-navigation">
-        <a href="?direction=prev&date={{ start_of_week.isoformat }}" class="nav-btn">← Semana Anterior</a>
-        <a href="?direction=current" class="nav-btn">Hoy</a>
-        <a href="?direction=next&date={{ start_of_week.isoformat }}" class="nav-btn">Semana Siguiente →</a>
+    
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div class="flex items-center gap-2">
+        <a href="?direction=prev&date={{ start_of_week.isoformat }}" 
+           class="inline-flex items-center justify-center rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors hover:bg-accent">
+          <i class="fas fa-chevron-left mr-2"></i>
+          Anterior
+        </a>
+        <a href="?direction=current" 
+           class="inline-flex items-center justify-center rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors hover:bg-accent">
+          Hoy
+        </a>
+        <a href="?direction=next&date={{ start_of_week.isoformat }}" 
+           class="inline-flex items-center justify-center rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors hover:bg-accent">
+          Siguiente
+          <i class="fas fa-chevron-right ml-2"></i>
+        </a>
       </div>
-      <button class="toggle-btn optimize-btn">🤖 Optimizar Horario</button>
-      <a href="{% url 'planner:event_create' %}" class="toggle-btn active">Agregar Tarea</a>
+      
+      <div class="flex items-center gap-2">
+        <button id="optimize-btn" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:bg-purple-300 disabled:cursor-not-allowed disabled:opacity-70 relative overflow-hidden" type="button">
+          <span class="flex items-center gap-2">
+            🤖 Optimizar Horario
+          </span>
+          <span class="absolute inset-0 flex items-center justify-center hidden loading-spinner">
+            <svg class="w-4 h-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0l4 4-4 4z"></path>
+            </svg>
+          </span>
+        </button>
+        <a href="{% url 'planner:event_create' %}" 
+           class="inline-flex items-center justify-center rounded-lg border border-primary bg-primary px-4 py-2 text-sm text-white transition-colors hover:bg-primary/90">
+          <i class="fas fa-plus mr-2"></i>
+          Nuevo Evento
+        </a>
+      </div>
     </div>
   </div>
 
   <!-- Tabla del Calendario -->
-  <div class="calendar-table-wrapper">
-    <table class="calendar-table">
-      <thead>
-        <tr>
-          <th class="time-column-header"></th>
-          {% for day_data in week_days_data %}
-          <th class="day-header {% if day_data.is_today %}today{% endif %}">
-            <div>{{ day_data.day_num }}</div>
-            <div>{{ day_data.day_name_short|capfirst }}</div>
-          </th>
-          {% endfor %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for hour_slot in time_slots %}
-        <tr>
-          <td class="time-slot">{{ hour_slot }}</td>
-          {% for day_data in week_days_data %}
-          <td class="day-cell {% if day_data.is_today %}today{% endif %}" data-day-index="{{ day_data.date.weekday }}">
-            <div class="day-events-container">
-              {% for event in events_by_day|get_item:day_data.date.weekday|get_item:hour_slot %}
-              {% if not event.is_continuation %}
-              <a
-                href="{% url 'planner:event_detail' event.id %}"
-                class="event {{ event.css_class }}{% if event.is_completed %} completed{% endif %}{% if event.due_date and event.due_date < today and not event.is_completed %} overdue{% endif %}"
-                data-event-id="{{ event.id }}"
-                data-priority="{{ event.priority }}"
-                title="{{ event.title }} - {{ event.start_time|date:'H:i' }} a {{ event.end_time|date:'H:i' }}"
-              >
-                <div class="event-title">{{ event.title }}</div>
-                <div class="event-time">{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
-                {% if event.description and event.description|length > 0 %}
-                <div class="event-description">{{ event.description|truncatechars:30 }}</div>
-                {% endif %}
-                <div class="custom-tooltip">
-                  <strong>{{ event.title }}</strong><br />
-                  {{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}<br />
-                  {% if event.description %}{{ event.description|truncatechars:50 }}{% endif %}
+  <div class="overflow-auto rounded-xl border border-border bg-card">
+    <div class="max-h-[calc(100vh-16rem)] overflow-y-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="border-b border-border">
+            <th class="sticky top-0 bg-card p-4 text-left font-medium"></th>
+            {% for day_data in week_days_data %}
+            <th class="sticky top-0 bg-card p-4 text-center font-medium {% if day_data.is_today %}text-primary{% endif %}">
+              <div class="text-lg">{{ day_data.day_num }}</div>
+              <div class="text-sm text-muted-foreground">{{ day_data.day_name_short|capfirst }}</div>
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for hour_slot in time_slots %}
+          <tr class="border-b border-border last:border-0">
+            <td class="p-4 align-top text-sm text-muted-foreground">{{ hour_slot }}</td>
+            {% for day_data in week_days_data %}
+            <td class="relative p-4 align-top {% if day_data.is_today %}bg-primary/5{% endif %}" data-day-index="{{ forloop.counter0 }}">
+              <div class="space-y-2">
+                {% for event in events_by_day|get_item:forloop.counter0|get_item:hour_slot %}
+                {% if not event.is_continuation %}
+                <a href="{% url 'planner:event_detail' event.id %}"
+                   class="group block rounded-lg p-2 hover:bg-accent relative {% if event.css_class == 'event-tarea' %}bg-purple-500/20 text-purple-400
+                         {% elif event.css_class == 'event-clase' %}bg-blue-500/20 text-blue-400
+                         {% elif event.css_class == 'event-descanso' %}bg-green-500/20 text-green-400
+                         {% elif event.css_class == 'event-personal' %}bg-orange-500/20 text-orange-400
+                         {% else %}bg-gray-500/20 text-gray-400{% endif %}
+                         {% if event.is_completed %}opacity-60{% endif %}
+                         {% if event.due_date and event.due_date < today and not event.is_completed %}border-2 border-red-500{% endif %}"
+                   data-event-id="{{ event.id }}"
+                   data-priority="{{ event.priority }}">
+                  <div class="font-medium">{{ event.title }}</div>
+                  <div class="text-xs">{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
+                  {% if event.description and event.description|length > 0 %}
+                  <div class="mt-1 text-xs text-muted-foreground">{{ event.description|truncatechars:30 }}</div>
+                  {% endif %}
+                  
+                  <!-- Tooltip -->
+                  <div class="absolute left-full top-0 z-50 ml-2 hidden w-64 rounded-lg border border-border bg-card p-4 shadow-lg group-hover:block">
+                    <div class="font-semibold">{{ event.title }}</div>
+                    <div class="mt-1 text-sm">{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
+                    {% if event.description %}
+                    <div class="mt-2 text-sm text-muted-foreground">{{ event.description|truncatechars:50 }}</div>
+                    {% endif %}
+                  </div>
+                </a>
+                {% else %}
+                <div class="rounded-lg p-2 opacity-75 {% if event.css_class == 'event-tarea' %}bg-purple-500/20 text-purple-400
+                     {% elif event.css_class == 'event-clase' %}bg-blue-500/20 text-blue-400
+                     {% elif event.css_class == 'event-descanso' %}bg-green-500/20 text-green-400
+                     {% elif event.css_class == 'event-personal' %}bg-orange-500/20 text-orange-400
+                     {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                  <div class="text-xs">Continúa: {{ event.title }}</div>
                 </div>
-              </a>
-              {% else %}
-              <div
-                class="event {{ event.css_class }} event-continuation{% if event.is_completed %} completed{% endif %}{% if event.due_date and event.due_date < today and not event.is_completed %} overdue{% endif %}"
-                data-event-id="{{ event.id }}"
-              >
-                <div class="event-continuation-text">Continúa: {{ event.title }}</div>
+                {% endif %}
+                {% endfor %}
               </div>
-              {% endif %}
-              {% endfor %}
-            </div>
-          </td>
+            </td>
+            {% endfor %}
+          </tr>
           {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Leyenda de Categorías -->
-  <div class="categories">
-    <div class="category">
-      <div class="category-dot event-tarea"></div>
-      <span>Tareas/Estudio</span>
+  <div class="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-4">
+    <div class="flex items-center gap-2">
+      <div class="h-3 w-3 rounded-full bg-purple-500"></div>
+      <span class="text-sm">Tareas/Estudio</span>
     </div>
-    <div class="category">
-      <div class="category-dot event-clase"></div>
-      <span>Clases/Académico</span>
+    <div class="flex items-center gap-2">
+      <div class="h-3 w-3 rounded-full bg-blue-500"></div>
+      <span class="text-sm">Clases/Académico</span>
     </div>
-    <div class="category">
-      <div class="category-dot event-descanso"></div>
-      <span>Descansos</span>
+    <div class="flex items-center gap-2">
+      <div class="h-3 w-3 rounded-full bg-green-500"></div>
+      <span class="text-sm">Descansos</span>
     </div>
-    <div class="category">
-      <div class="category-dot event-personal"></div>
-      <span>Personal</span>
+    <div class="flex items-center gap-2">
+      <div class="h-3 w-3 rounded-full bg-orange-500"></div>
+      <span class="text-sm">Personal</span>
     </div>
-    <div class="category">
-      <div class="category-dot event-otro"></div>
-      <span>Otro</span>
+    <div class="flex items-center gap-2">
+      <div class="h-3 w-3 rounded-full bg-gray-500"></div>
+      <span class="text-sm">Otro</span>
     </div>
   </div>
+
+  <!-- Placeholder para el modal (opcional) -->
+  <!-- El modal se cargará dinámicamente por optimizer.js -->
+  <div id="modal-container"></div>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const todayCell = document.querySelector(".day-cell.today");
+    const todayCell = document.querySelector("[data-day-index].bg-primary\\/5");
     if (todayCell) {
       const currentHour = new Date().getHours();
-      const scrollPosition = Math.max(0, (currentHour - 2) * 50);
-      document.querySelector(".calendar-table-wrapper").scrollTop = scrollPosition;
+      const scrollPosition = Math.max(0, (currentHour - 2) * 100);
+      document.querySelector(".max-h-\\[calc\\(100vh-16rem\\)\\]").scrollTop = scrollPosition;
     }
-  });
+
+    // Mejorar tooltips
+    document.querySelectorAll(".event").forEach(function (event) {
+      event.addEventListener("mouseenter", function () {
+        const tooltip = this.querySelector(".custom-tooltip");
+        if (tooltip) {
+          tooltip.style.opacity = "1";
+          tooltip.style.visibility = "visible";
+        }
+      });
+
+      event.addEventListener("mouseleave", function () {
+        const tooltip = this.querySelector(".custom-tooltip");
+        if (tooltip) {
+          tooltip.style.opacity = "0";
+          tooltip.style.visibility = "hidden";
+        }
+      });
+    });
+  }); 
 </script>
 {% endblock %}
+
 {% block extra_js %}
 <script src="{% static 'js/optimizer.js' %}"></script>
 <script src="{% static 'js/calendar.js' %}"></script>
-{% endblock %}  
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vista Semanal{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-6 lg:gap-8">
+    <section>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold tracking-tight">Vista Semanal</h2>
+                <p class="text-sm text-muted-foreground">Resumen de tus actividades esta semana</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 gap-6">
+        <!-- Calendario Semanal -->
+        <section class="rounded-xl border border-border bg-card">
+            <div class="p-6">
+                <div class="grid grid-cols-7 gap-4">
+                    {% for day in week_days %}
+                    <div class="flex flex-col items-center">
+                        <span class="text-sm font-medium text-muted-foreground">{{ day.name }}</span>
+                        <span class="mt-1 text-lg font-semibold {% if day.is_today %}text-[#29CC39]{% endif %}">{{ day.date }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-6 space-y-4">
+                    {% for event in events %}
+                    <div class="flex items-center gap-4 rounded-lg border border-border bg-background p-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full {% if event.type == 'task' %}bg-purple-500/20 text-purple-400{% else %}bg-blue-500/20 text-blue-400{% endif %}">
+                            <i class="fas {% if event.type == 'task' %}fa-tasks{% else %}fa-calendar-alt{% endif %} text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-medium truncate">{{ event.title }}</h4>
+                            <p class="mt-1 text-xs text-muted-foreground flex items-center gap-1.5">
+                                <i class="fa-solid fa-clock"></i>
+                                <span>{{ event.time }}</span>
+                            </p>
+                        </div>
+                        <span class="rounded-full px-2.5 py-0.5 text-xs {% if event.category == 'Matemáticas' %}bg-blue-500/20 text-blue-400{% elif event.category == 'Química' %}bg-red-500/20 text-red-400{% elif event.category == 'Historia' %}bg-yellow-500/20 text-yellow-400{% elif event.category == 'Programación' %}bg-green-500/20 text-green-400{% endif %}">
+                            {{ event.category }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Análisis de Productividad -->
+        <section class="rounded-xl border border-border bg-card">
+            <div class="p-6">
+                <h3 class="font-semibold">Análisis de Productividad</h3>
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Tiempo de Enfoque -->
+                    <div class="rounded-lg border border-border bg-background p-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-medium text-muted-foreground">Tiempo de Enfoque</h4>
+                            <span class="text-[#29CC39]">+12%</span>
+                        </div>
+                        <p class="mt-2 text-2xl font-bold">4h 32m</p>
+                        <div class="mt-4 h-2 rounded-full bg-secondary">
+                            <div class="h-full w-3/4 rounded-full bg-[#29CC39]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tareas Completadas -->
+                    <div class="rounded-lg border border-border bg-background p-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-medium text-muted-foreground">Tareas Completadas</h4>
+                            <span class="text-[#29CC39]">+8%</span>
+                        </div>
+                        <p class="mt-2 text-2xl font-bold">15/20</p>
+                        <div class="mt-4 h-2 rounded-full bg-secondary">
+                            <div class="h-full w-3/4 rounded-full bg-[#29CC39]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Productividad General -->
+                    <div class="rounded-lg border border-border bg-background p-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-medium text-muted-foreground">Productividad</h4>
+                            <span class="text-[#29CC39]">+15%</span>
+                        </div>
+                        <p class="mt-2 text-2xl font-bold">78%</p>
+                        <div class="mt-4 h-2 rounded-full bg-secondary">
+                            <div class="h-full w-4/5 rounded-full bg-[#29CC39]"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consejo del Día -->
+        <section class="rounded-xl border-2 border-[#29CC39]/50 bg-card p-6">
+            <div class="flex items-start gap-4">
+                <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#29CC39]/20 text-[#29CC39]">
+                    <i class="fas fa-lightbulb text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-[#29CC39]">Consejo del día</h3>
+                    <p class="mt-2 text-muted-foreground" id="daily-tip">
+                        La técnica Pomodoro puede aumentar tu productividad hasta un 75%. Tus patrones de estudio muestran que eres más productivo en sesiones de 25 minutos.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tips = [
+        "La técnica Pomodoro puede aumentar tu productividad hasta un 75%. Tus patrones de estudio muestran que eres más productivo en sesiones de 25 minutos.",
+        "Estudiar en múltiples sesiones cortas es más efectivo que una sola sesión larga. Intenta dividir tu tiempo de estudio en bloques de 25-30 minutos.",
+        "Tomar notas a mano puede mejorar la retención de información en un 29% comparado con tomar notas en dispositivos electrónicos.",
+        "Explicar conceptos a otros puede mejorar tu comprensión en un 90%. Considera formar un grupo de estudio.",
+        "Dormir bien antes de un examen es más efectivo que estudiar toda la noche. El cerebro necesita descanso para consolidar la información.",
+        "Alternar entre diferentes materias durante el estudio puede mejorar el aprendizaje en un 20% comparado con estudiar un solo tema por largo tiempo.",
+        "Hacer ejercicio regular puede mejorar tu capacidad de concentración y memoria en hasta un 20%.",
+        "Establecer metas específicas y alcanzables puede aumentar tu motivación y productividad en un 25%.",
+        "Mantener un espacio de trabajo ordenado puede reducir la distracción y aumentar la concentración en un 15%.",
+        "Tomar descansos regulares puede prevenir la fatiga mental y mantener altos niveles de productividad durante todo el día."
+    ];
+
+    function updateTip() {
+        const tipElement = document.getElementById('daily-tip');
+        const randomTip = tips[Math.floor(Math.random() * tips.length)];
+        tipElement.textContent = randomTip;
+    }
+
+    // Actualizar el consejo cada 24 horas
+    const lastUpdate = localStorage.getItem('lastTipUpdate');
+    const now = new Date().getTime();
+
+    if (!lastUpdate || (now - lastUpdate) > 24 * 60 * 60 * 1000) {
+        updateTip();
+        localStorage.setItem('lastTipUpdate', now);
+    }
+});
+</script>
+{% endblock %}

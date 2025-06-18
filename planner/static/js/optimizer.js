@@ -1,206 +1,238 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const optimizeBtn = document.querySelector('.optimize-btn');
-    
-    if (optimizeBtn) {
-        optimizeBtn.addEventListener('click', function() {
-            // Cambiar texto del botón mientras procesa
-            const originalText = this.textContent;
-            this.textContent = 'Optimizando...';
-            this.disabled = true;
-            
-            // Hacer petición AJAX al endpoint de optimización
-            fetch('/planner/optimize-schedule/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.suggestions && data.suggestions.length > 0) {
-                    showSuggestions(data.suggestions);
-                } else {
-                    alert('No se encontraron sugerencias de optimización. Necesitas más tareas para entrenar la IA (mínimo 5 tareas).');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Hubo un error al optimizar el horario. Asegúrate de tener tareas creadas.');
-            })
-            .finally(() => {
-                // Restaurar botón
-                this.textContent = originalText;
-                this.disabled = false;
-            });
+document.addEventListener('DOMContentLoaded', function () {
+  const optimizeBtn = document.querySelector('#optimize-btn');
+  console.log('Estado inicial del botón:', optimizeBtn ? 'Encontrado' : 'No encontrado');
+
+  if (optimizeBtn) {
+    optimizeBtn.addEventListener('click', async function () {
+      try {
+        console.log('Botón de optimización clickeado');
+        // Ensure the loading spinner is correctly applied to the button itself
+        const buttonTextSpan = this.querySelector('span:not(.loading-spinner)');
+        if (buttonTextSpan) {
+            buttonTextSpan.textContent = 'Optimizando...';
+        }
+        this.disabled = true;
+        this.classList.add('loading'); // Use 'loading' class as defined in CSS for spinner
+
+        console.log('Iniciando petición de optimización...');
+        const response = await fetch('/planner/optimize/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify({}),
         });
-    }
+
+        console.log('Respuesta recibida:', response.status);
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Datos recibidos:', data);
+
+        if (data.success) {
+          if (data.suggestions && data.suggestions.length > 0) {
+            await showSuggestions(data.suggestions);
+          } else {
+            alert(data.message || 'No se encontraron optimizaciones posibles.');
+          }
+        } else {
+          throw new Error(data.message || 'Error desconocido');
+        }
+      } catch (error) {
+        console.error('Error en optimización:', error);
+        alert('Hubo un error al optimizar el horario. Por favor, intenta de nuevo más tarde.');
+      } finally {
+        if (this) {
+            const buttonTextSpan = this.querySelector('span:not(.loading-spinner)');
+            if (buttonTextSpan) {
+                buttonTextSpan.textContent = '🤖 Optimizar Horario';
+            }
+            this.disabled = false;
+            this.classList.remove('loading'); 
+        }
+      }
+    });
+
+    console.log('Evento click registrado en el botón de optimización');
+  }
 });
 
-function showSuggestions(suggestions) {
-    // Crear modal para mostrar sugerencias con checkboxes y botón aplicar
-    const modal = document.createElement('div');
-    modal.className = 'suggestions-modal';
-    modal.innerHTML = `
-        <div class="suggestions-content">
-            <div class="suggestions-header">
-                <h3>✅ Cambios sugeridos:</h3>
-                <button class="close-btn">&times;</button>
-            </div>
-            <div class="suggestions-body">
-                <form id="suggestions-form">
-                    ${suggestions.map((suggestion, index) => `
-                        <div class="suggestion-item">
-                            <input type="checkbox" id="suggestion-${index}" name="suggestion" value="${suggestion.event_id}" checked>
-                            <label for="suggestion-${index}">${suggestion.reason}</label>
-                        </div>
-                    `).join('')}
-                </form>
-            </div>
-            <div class="suggestions-footer">
-                <button id="apply-selected-btn" class="apply-btn">Aplicar</button>
-                <button class="cancel-btn">Cancelar</button>
-            </div>
-        </div>
-    `;
+async function showSuggestions(suggestions) {
+  console.log('Mostrando sugerencias:', suggestions);
 
-    document.body.appendChild(modal);
-
-    // Event listeners para cerrar modal
-    modal.querySelector('.close-btn').addEventListener('click', () => {
-        document.body.removeChild(modal);
+  try {
+    const response = await fetch('/planner/suggestions_template/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ suggestions: suggestions }),
     });
 
-    modal.querySelector('.cancel-btn').addEventListener('click', () => {
-        document.body.removeChild(modal);
+    if (!response.ok) {
+      throw new Error('No se pudo cargar la plantilla del modal: ' + response.status);
+    }
+
+    const modalHtml = await response.text();
+    
+    // Buscar el contenedor del modal o usar el body como fallback
+    const modalContainer = document.getElementById('modal-container') || document.body;
+    
+    // Limpiar cualquier modal existente
+    const existingModal = document.getElementById('suggestions-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    // Crear el modal
+    modalContainer.innerHTML = modalHtml;
+    
+    console.log('Modal de sugerencias creado');
+
+    // Buscar el modal recién creado
+    const modal = document.getElementById('suggestions-modal');
+    if (!modal) {
+      throw new Error('No se pudo encontrar el modal después de crearlo');
+    }
+
+    // Mostrar el modal
+    modal.style.display = 'flex';
+
+    const closeModal = () => {
+      if (modal && modal.parentNode) {
+        modal.style.display = 'none';
+        modal.remove();
+        console.log('Modal cerrado');
+      }
+    };
+
+    // Agregar event listeners
+    const closeBtn = modal.querySelector('.close-btn');
+    const cancelBtn = modal.querySelector('.cancel-btn');
+    const applyBtn = modal.querySelector('#apply-selected-btn');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', closeModal);
+    }
+
+    // Cerrar modal al hacer clic en el fondo
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
     });
 
-    // Event listener para aplicar cambios seleccionados
-    modal.querySelector('#apply-selected-btn').addEventListener('click', (e) => {
+    if (applyBtn) {
+      applyBtn.addEventListener('click', async function (e) {
         e.preventDefault();
         const checkedBoxes = modal.querySelectorAll('input[name="suggestion"]:checked');
+
         if (checkedBoxes.length === 0) {
-            alert('Por favor selecciona al menos un cambio para aplicar.');
-            return;
+          alert('Por favor selecciona al menos un cambio para aplicar.');
+          return;
         }
-        // Aplicar cambios uno por uno
-        checkedBoxes.forEach(box => {
+
+        try {
+          console.log('Aplicando cambios seleccionados...');
+          this.textContent = 'Aplicando...';
+          this.disabled = true;
+
+          for (const box of checkedBoxes) {
             const eventId = box.value;
             const suggestion = suggestions.find(s => s.event_id == eventId);
-            if (suggestion) {
-                applySuggestionWithTimes(eventId, suggestion.suggested_time, suggestion.suggested_end_time);
+
+            if (suggestion) { 
+              console.log(`Aplicando cambio para evento ${eventId}`);
+              await applySuggestionWithTimes(eventId, suggestion.suggested_time, suggestion.suggested_end_time);
             }
-        });
-        alert('Cambios aplicados. La página se recargará para mostrar los cambios.');
-        document.body.removeChild(modal);
-        location.reload();
-    });
+          }
+
+          alert('Cambios aplicados exitosamente. La página se recargará para mostrar los cambios.');
+          closeModal();
+          location.reload();
+        } catch (error) {
+          console.error('Error al aplicar cambios:', error);
+          alert('Hubo un error al aplicar los cambios. Por favor, intenta de nuevo.');
+          this.textContent = 'Aplicar Cambios';
+          this.disabled = false;
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error al mostrar sugerencias:', error);
+    alert('Error al cargar el modal de sugerencias: ' + error.message);
+  }
 }
 
-// Nueva función para aplicar sugerencia con tiempos específicos
-function applySuggestionWithTimes(eventId, newTime, newEndTime) {
-    fetch(`/planner/event/${eventId}/update-ajax/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            start_time: newTime,
-            end_time: newEndTime
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (!data.success) {
-            console.error('Error en la respuesta:', data);
-            alert('Error al actualizar la tarea: ' + (data.error || 'Error desconocido'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al actualizar la tarea. Por favor, intenta de nuevo.');
-    });
+function getConfidenceLevel(confidence) {
+  if (confidence >= 0.8) return ['text-green-500', '🎯 Alta confianza'];
+  if (confidence >= 0.6) return ['text-yellow-500', '📊 Confianza media'];
+  return ['text-red-500', '💭 Baja confianza'];
 }
 
+async function applySuggestionWithTimes(eventId, newTime, newEndTime) {
+  console.log(`Actualizando evento ${eventId}:`, { newTime, newEndTime });
 
-function applySuggestion(eventId) {
-    const btn = document.querySelector(`[data-event-id="${eventId}"]`);
-    const newTime = btn.getAttribute('data-new-time');
-    const newEndTime = btn.getAttribute('data-new-end-time');
+  const response = await fetch(`/planner/event/${eventId}/update-ajax/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken'),
+    },
+    body: JSON.stringify({
+      start_time: newTime,
+      end_time: newEndTime,
+    }),
+  });
 
-    console.log('Actualizando evento:', {
-        eventId,
-        newTime,
-        newEndTime
-    });
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
 
-    fetch(`/planner/event/${eventId}/update-ajax/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            start_time: newTime,
-            end_time: newEndTime
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            btn.textContent = 'Aplicado ✓';
-            btn.disabled = true;
-            
-            // Recargar la página después de un breve delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        } else {
-            console.error('Error en la respuesta:', data);
-            alert('Error al actualizar la tarea: ' + (data.error || 'Error desconocido'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error al actualizar la tarea. Por favor, intenta de nuevo.');
-        btn.disabled = false;
-    });
+  const data = await response.json();
+  console.log('Respuesta de actualización:', data);
+
+  if (!data.success) {
+    throw new Error(data.error || 'Error desconocido');
+  }
+
+  return data;
 }
 
-function formatDateTime(dateTimeString) {
-    const date = new Date(dateTimeString);
-    return date.toLocaleString('es-ES', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+function formatTime(isoString) {
+  try {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
+  } catch (error) {
+    console.error('Error al formatear tiempo:', error);
+    return isoString;
+  }
 }
 
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
     }
-    return cookieValue;
+  }
+  return cookieValue;
 }
