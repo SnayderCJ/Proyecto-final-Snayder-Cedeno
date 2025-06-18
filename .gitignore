@@ -85,4 +85,11 @@ dist/
 build/
 
 
-
+# ------------------------------------------------------------------------------
+#  Logs, Cobertura de Pruebas y Archivos de Construcción
+# ------------------------------------------------------------------------------
+Credenciales de configuración
+*.env
+studiFly_desktop_client.json
+*studiFly_desktop_client.json
+*token.json
