@@ -76,9 +76,9 @@ body {
 /* ===== CONTENEDOR DONUT ===== */
 .donut-container {
   position: relative;
-  width: 230px;
-  height: 230px;
-  margin: 0 auto;
+  width: 180px; /* Aumentamos tamaño */
+  height: 180px;
+  margin: 0 auto; /* Centra horizontalmente si lo necesitas */
 }
 
 
@@ -101,11 +101,35 @@ body {
   color: #A259FF;
 }
 
-.donut-text p {
-  font-size: 1rem;
-  color: #aaa;
-  margin: 0;
+.donut-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.2;
 }
+#donutPorcentaje {
+  text-align: center;
+  font-weight: bold;
+}
+
+#donutPorcentaje .valor {
+  font-size: 2.2rem;
+  font-weight: bold;
+}
+
+#donutPorcentaje .etiqueta {
+  font-size: 1rem;
+  color: #ccc;
+  margin-top: 2px;
+}
+#donutChart {
+  width: 180px !important;
+  height: 180px !important;
+}
+
 
 /* ===== INDICADORES ===== */
 .indicadores {

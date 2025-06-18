@@ -386,24 +386,35 @@ def obtener_estadisticas_productividad(request):
 
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from datetime import date
-from .models import BloqueEstudio  # Asegúrate de importar bien tu modelo
+from datetime import date, timedelta
+from planner.models import BloqueEstudio
 
 @login_required
 def productividad_api(request):
+    usuario = request.user
     hoy = date.today()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # lunes
 
     bloques = BloqueEstudio.objects.filter(
-        usuario=request.user,
-        fecha=hoy,
-        tipo='estudio',
+        usuario=usuario,
+        fecha__range=(inicio_semana, hoy),
         completado=True
     )
 
-    bloques_completados = bloques.count()
-    minutos_totales = sum([b.duracion_min for b in bloques])
+    productividad_dias = [0] * 7  # Lunes a Domingo
+
+    for bloque in bloques:
+        index = bloque.fecha.weekday()
+        productividad_dias[index] += bloque.duracion_min
+
+    hoy_index = hoy.weekday()
+    minutos_hoy = productividad_dias[hoy_index]
+    promedio = sum(productividad_dias[:hoy_index]) / hoy_index if hoy_index > 0 else 1
+
+    productividad = int((minutos_hoy / promedio) * 100) if promedio > 0 else 0
 
     return JsonResponse({
-        "bloques_estudio": bloques_completados,
-        "minutos_totales": minutos_totales,
+        "productividad": productividad,
+        "bloques_estudio": BloqueEstudio.objects.filter(usuario=usuario, fecha=hoy, completado=True).count(),
+        "minutos_totales": minutos_hoy
     })

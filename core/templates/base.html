@@ -31,6 +31,36 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
   <script src="{% static 'js/auth.js' %}"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/planner/api/productividad/")
+        .then(response => response.json())
+        .then(data => {
+          let porcentaje = parseFloat(data.productividad);
+
+          // Validación extra
+          if (isNaN(porcentaje) || porcentaje < 0) {
+            porcentaje = 0;
+          }
+
+          porcentaje = Math.min(porcentaje, 100);
+
+          const header = document.getElementById("header-productividad");
+          if (header) {
+            header.textContent = porcentaje + "%";
+          }
+        })
+        .catch(error => {
+          console.error("Error al cargar productividad:", error);
+          const header = document.getElementById("header-productividad");
+          if (header) {
+            header.textContent = "0%";
+          }
+        });
+    });
+  </script>
+
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", function () {

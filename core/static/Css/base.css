@@ -300,16 +300,21 @@ a {
  }
  
  .productivity-indicator {
-   background-color: var(--muted);
-   padding: 0.5rem;
-   border-radius: var(--radius);
-   text-align: center;
- }
- 
- .productivity-value {
-   font-size: 1.5rem;
-   font-weight: bold;
- }
+  background-color: #1f1f1f;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 10px;
+  text-align: center;
+  line-height: 1.1;
+  font-size: 0.85rem;
+}
+
+.productivity-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #22c55e; /* verde éxito */
+}
+
  
  /* Quick Actions */
  .quick-actions {
