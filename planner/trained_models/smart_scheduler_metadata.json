@@ -1,0 +1,21 @@
+{
+  "version": "2.0",
+  "trained_date": "2025-06-17T17:46:15.936767",
+  "event_types": [
+    "tarea",
+    "clase",
+    "examen",
+    "proyecto",
+    "estudio",
+    "descanso",
+    "personal",
+    "otro"
+  ],
+  "priorities": [
+    "alta",
+    "media",
+    "baja"
+  ],
+  "is_trained": true,
+  "feedback_count": 0
+}
