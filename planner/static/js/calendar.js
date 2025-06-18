@@ -273,10 +273,11 @@ function showContextMenu(event, clickEvent) {
         padding: 8px 0;
     `;
     const eventId = event.getAttribute('data-event-id');
+    const isCompleted = event.classList.contains('completed');
     const options = [
         { icon: 'fas fa-eye', text: 'Ver detalles', action: () => window.location.href = `/planner/event/${eventId}/` },
         { icon: 'fas fa-edit', text: 'Editar', action: () => window.location.href = `/planner/event/${eventId}/edit/` },
-        { icon: 'fas fa-check', text: 'Marcar completado', action: () => toggleEventCompletion(eventId) },
+        { icon: 'fas fa-check', text: isCompleted ? 'Marcar pendiente' : 'Marcar completado', action: () => toggleEventCompletion(eventId) },
         { icon: 'fas fa-trash', text: 'Eliminar', action: () => window.location.href = `/planner/event/${eventId}/delete/`, class: 'danger' }
     ];
     options.forEach(option => {

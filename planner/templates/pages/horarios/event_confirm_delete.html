@@ -4,49 +4,59 @@
 {% block title %}Eliminar "{{ event.title }}" - StudyFly{% endblock %}
 
 {% block content %}
-<div class="delete-container">
-    <div class="delete-card">
+<div class="min-h-[calc(100vh-120px)] flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-card rounded-xl border-2 border-red-500/20 shadow-xl overflow-hidden">
         <!-- Icono de advertencia -->
-        <div class="warning-icon">
-            <i class="fas fa-exclamation-triangle"></i>
+        <div class="bg-gradient-to-r from-red-500 to-red-600 p-8 text-center text-white">
+            <div class="animate-pulse">
+                <i class="fas fa-exclamation-triangle text-5xl"></i>
+            </div>
         </div>
         
         <!-- Contenido -->
-        <div class="delete-content">
-            <h1>¿Eliminar evento?</h1>
-            <p class="delete-message">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-center mb-4">¿Eliminar evento?</h1>
+            <p class="text-center text-muted-foreground mb-6">
                 Estás a punto de eliminar el evento:
             </p>
             
             <!-- Vista previa del evento -->
-            <div class="event-preview">
-                <div class="preview-header">
-                    <div class="event-type-indicator event-type-{{ event.event_type }}"></div>
-                    <div class="preview-info">
-                        <h3>{{ event.title }}</h3>
-                        <p>{{ event.start_time|date:"l, d F Y" }} - {{ event.start_time|date:"H:i" }} a {{ event.end_time|date:"H:i" }}</p>
+            <div class="bg-background rounded-lg border border-border p-4 mb-6">
+                <div class="flex items-start gap-3">
+                    <div class="w-1 h-16 rounded-full {% if event.event_type == 'tarea' %}bg-purple-500
+                         {% elif event.event_type == 'clase' %}bg-blue-500
+                         {% elif event.event_type == 'descanso' %}bg-green-500
+                         {% elif event.event_type == 'personal' %}bg-orange-500
+                         {% else %}bg-gray-500{% endif %}"></div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold mb-1">{{ event.title }}</h3>
+                        <p class="text-sm text-muted-foreground">
+                            {{ event.start_time|date:"l, d F Y" }} - {{ event.start_time|date:"H:i" }} a {{ event.end_time|date:"H:i" }}
+                        </p>
                         {% if event.description %}
-                            <p class="preview-description">{{ event.description|truncatechars:100 }}</p>
+                            <p class="text-sm text-muted-foreground mt-2 italic">{{ event.description|truncatechars:100 }}</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
             
-            <p class="warning-text">
+            <div class="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                 <i class="fas fa-info-circle"></i>
-                Esta acción no se puede deshacer. El evento será eliminado permanentemente.
-            </p>
+                <span>Esta acción no se puede deshacer. El evento será eliminado permanentemente.</span>
+            </div>
         </div>
         
         <!-- Acciones -->
-        <div class="delete-actions">
-            <form method="post" class="delete-form">
+        <div class="p-6 bg-muted/30 border-t border-border">
+            <form method="post" class="flex flex-col sm:flex-row gap-3 justify-center">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger">
+                <button type="submit" 
+                        class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors font-medium">
                     <i class="fas fa-trash"></i>
                     Sí, Eliminar Evento
                 </button>
-                <a href="{% url 'planner:event_detail' event.pk %}" class="btn btn-secondary">
+                <a href="{% url 'planner:event_detail' event.pk %}" 
+                   class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors font-medium">
                     <i class="fas fa-arrow-left"></i>
                     No, Volver
                 </a>
@@ -54,216 +64,6 @@
         </div>
     </div>
 </div>
-
-<style>
-.delete-container {
-    min-height: calc(100vh - 120px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-}
-
-.delete-card {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 100%;
-    overflow: hidden;
-    border: 1px solid #ef4444;
-}
-
-.warning-icon {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    padding: 2rem;
-    text-align: center;
-    color: white;
-}
-
-.warning-icon i {
-    font-size: 4rem;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-}
-
-.delete-content {
-    padding: 2rem;
-}
-
-.delete-content h1 {
-    color: #e2e8f0;
-    margin: 0 0 1rem 0;
-    font-size: 1.75rem;
-    font-weight: 700;
-    text-align: center;
-}
-
-.delete-message {
-    color: #cbd5e1;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-size: 1.1rem;
-}
-
-.event-preview {
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin: 1.5rem 0;
-}
-
-.preview-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.event-type-indicator {
-    width: 4px;
-    height: 60px;
-    border-radius: 2px;
-    min-width: 4px;
-}
-
-.event-type-tarea { background-color: #10b981; }
-.event-type-clase { background-color: #3b82f6; }
-.event-type-descanso { background-color: #f59e0b; }
-.event-type-personal { background-color: #8b5cf6; }
-.event-type-otro { background-color: #64748b; }
-
-.preview-info h3 {
-    color: #e2e8f0;
-    margin: 0 0 0.5rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.preview-info p {
-    color: #94a3b8;
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-.preview-description {
-    margin-top: 0.5rem !important;
-    font-style: italic;
-    opacity: 0.8;
-}
-
-.warning-text {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    border-radius: 8px;
-    padding: 1rem;
-    color: #fca5a5;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1.5rem;
-}
-
-.warning-text i {
-    color: #ef4444;
-}
-
-.delete-actions {
-    padding: 1.5rem 2rem 2rem;
-    background: rgba(15, 23, 42, 0.5);
-    border-top: 1px solid #334155;
-}
-
-.delete-form {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 500;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    min-width: 160px;
-    justify-content: center;
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-}
-
-.btn-danger:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.btn-secondary {
-    background-color: #374151;
-    color: #d1d5db;
-}
-
-.btn-secondary:hover {
-    background-color: #4b5563;
-    color: white;
-    transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-    .delete-container {
-        padding: 1rem;
-    }
-    
-    .warning-icon {
-        padding: 1.5rem;
-    }
-    
-    .warning-icon i {
-        font-size: 3rem;
-    }
-    
-    .delete-content {
-        padding: 1.5rem;
-    }
-    
-    .delete-content h1 {
-        font-size: 1.5rem;
-    }
-    
-    .delete-form {
-        flex-direction: column;
-    }
-    
-    .btn {
-        width: 100%;
-    }
-    
-    .preview-header {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .event-type-indicator {
-        width: 100%;
-        height: 4px;
-    }
-}
-</style>
 
 <script>
 // Agregar confirmación adicional con teclado
@@ -275,7 +75,7 @@ document.addEventListener('keydown', function(e) {
 
 // Focus en el botón de cancelar por seguridad
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelector('.btn-secondary').focus();
+    document.querySelector('a[href*="event_detail"]').focus();
 });
 </script>
 {% endblock %}

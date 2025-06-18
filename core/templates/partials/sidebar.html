@@ -42,6 +42,8 @@
                      onerror="this.src='https://ui-avatars.com/api/?name={{ user_display_name|default:'Usuario' }}&background=a855f7&color=fff&size=150';">
                 <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-foreground">{{ user_display_name|default:'Usuario' }}</p>
+            </a>
+            <a href="{% url 'core:settings' %}"
                     <p class="truncate text-xs text-muted-foreground">Configuración</p>
                 </div>
             </a>

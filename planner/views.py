@@ -10,28 +10,37 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 import json
 import calendar
+import pytz
+from core.models import UserSettings
 
 @login_required
 def calendar_view(request):
     """
     Vista del calendario que muestra los eventos del usuario en una vista semanal.
     """
+    # Obtener la zona horaria del usuario
+    try:
+        user_settings = UserSettings.objects.get(user=request.user)
+        user_tz = pytz.timezone(user_settings.timezone)
+    except (UserSettings.DoesNotExist, pytz.exceptions.UnknownTimeZoneError):
+        user_tz = pytz.timezone('America/Guayaquil')
+
     # Obtener la fecha de referencia desde los parámetros GET
     date_param = request.GET.get('date')
     direction = request.GET.get('direction', 'current')
     
-    # Determinar la fecha base
+    # Determinar la fecha base en la zona horaria del usuario
     if date_param:
         try:
-            base_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+            base_date = datetime.strptime(date_param, '%Y-%m-%d')
+            base_date = user_tz.localize(base_date)
         except ValueError:
-            base_date = timezone.now().date()
+            base_date = timezone.now().astimezone(user_tz)
     else:
-        base_date = timezone.now().date()
+        base_date = timezone.now().astimezone(user_tz)
 
-    # Convertir base_date a datetime aware
-    local_tz = timezone.get_current_timezone()
-    base_date = timezone.make_aware(datetime.combine(base_date, datetime.min.time()), local_tz)
+    # Asegurarnos de que base_date sea una fecha
+    base_date = base_date.date()
 
     # Aplicar la dirección de navegación
     if direction == 'prev':
@@ -45,9 +54,9 @@ def calendar_view(request):
     start_of_week = base_date - timedelta(days=base_date.weekday())
     end_of_week = start_of_week + timedelta(days=6)
 
-    # Convertir a datetime aware para el filtro
-    start_of_week_dt = timezone.make_aware(datetime.combine(start_of_week, datetime.min.time()), local_tz)
-    end_of_week_dt = timezone.make_aware(datetime.combine(end_of_week, datetime.max.time()), local_tz)
+    # Convertir a datetime aware en la zona horaria del usuario
+    start_of_week_dt = user_tz.localize(datetime.combine(start_of_week, datetime.min.time()))
+    end_of_week_dt = user_tz.localize(datetime.combine(end_of_week, datetime.max.time()))
 
     # Nombres de los días de la semana en español
     day_names_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
@@ -56,9 +65,9 @@ def calendar_view(request):
     week_days_data = []
     for i in range(7):
         current_day = start_of_week + timedelta(days=i)
-        is_today = (current_day.date() == today)
+        is_today = (current_day == today)
         week_days_data.append({
-            'date': current_day.date(),
+            'date': current_day,
             'day_num': current_day.day,
             'day_name_short': day_names_es[current_day.weekday()][:3],
             'is_today': is_today,
@@ -71,6 +80,14 @@ def calendar_view(request):
         start_time__lte=end_of_week_dt
     ).order_by('start_time')
 
+    # Convertir los eventos a la zona horaria del usuario
+    for event in user_events:
+        event.start_time = event.start_time.astimezone(user_tz)
+        event.end_time = event.end_time.astimezone(user_tz)
+        if event.due_date:
+            # La fecha de vencimiento ya es un objeto date, no necesita conversión de zona horaria
+            pass
+
     # Configuración del calendario
     CALENDAR_START_HOUR = 0
     CALENDAR_END_HOUR = 23
@@ -78,8 +95,9 @@ def calendar_view(request):
     # Agrupar eventos por día y hora, incluyendo todas las horas que abarca cada evento
     events_by_day = {i: {f"{h:02d}:00": [] for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)} for i in range(7)}
     for event in user_events:
-        start_time_local = event.start_time.astimezone(local_tz)
-        end_time_local = event.end_time.astimezone(local_tz)
+        # Los eventos ya están convertidos a la zona horaria del usuario
+        start_time_local = event.start_time
+        end_time_local = event.end_time
         weekday = start_time_local.weekday()
         css_class_type = f"event-{event.event_type}"
         
@@ -108,15 +126,35 @@ def calendar_view(request):
             current_time += timedelta(hours=1)
             is_first_slot = False
 
+    # Nombres de los meses en español
+    months_es = {
+        'January': 'enero',
+        'February': 'febrero',
+        'March': 'marzo',
+        'April': 'abril',
+        'May': 'mayo',
+        'June': 'junio',
+        'July': 'julio',
+        'August': 'agosto',
+        'September': 'septiembre',
+        'October': 'octubre',
+        'November': 'noviembre',
+        'December': 'diciembre'
+    }
+    
+    # Obtener el nombre del mes en español
+    month_name_en = start_of_week.strftime("%B")
+    month_name_es = months_es.get(month_name_en, month_name_en)
+    
     context = {
         'today': today,
-        'start_of_week': start_of_week.date(),
-        'end_of_week': end_of_week.date(),
+        'start_of_week': start_of_week,
+        'end_of_week': end_of_week,
         'week_days_data': week_days_data,
         'events_by_day': events_by_day,
         'time_slots': [f"{h:02d}:00" for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)],
-        'current_month_name': start_of_week.strftime("%B"),
-        'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} {start_of_week.strftime('%B')} {start_of_week.year}",
+        'current_month_name': month_name_es,
+        'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} de {month_name_es} de {start_of_week.year}",
     }
     return render(request, 'horarios.html', context)
 
