@@ -1,8 +1,9 @@
+from time import localtime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from django.utils import timezone
 from planner.ai_optimizer import SmartScheduleOptimizer
 from django.views.decorators.http import require_POST
@@ -14,6 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 import pytz
 from core.models import UserSettings
+from .models import BloqueEstudio
+from .ia_generador import generar_bloques_enfocados_semana
 
 @login_required
 def calendar_view(request):
@@ -561,3 +564,210 @@ def suggestions_template(request):
         import traceback
         traceback.print_exc()
         return HttpResponse(f"Error: {str(e)}", status=500)
+    
+
+@login_required
+def focused_time_view(request):
+    # Siempre usar valores fijos para la tabla
+    bloques = generar_bloques_enfocados_semana(request.user, duracion_enfoque=25, duracion_descanso=5)
+
+    # Paso 1: Agrupar eventos por día
+    eventos_por_dia = defaultdict(list)
+    eventos = Event.objects.filter(user=request.user).order_by("start_time")
+
+    for evento in eventos:
+        fecha = evento.start_time.date()
+        eventos_por_dia[fecha].append({
+            "title": evento.title,
+            "start_time": evento.start_time,
+            "end_time": evento.end_time,
+            "event_type": evento.event_type.lower()
+        })
+
+    # Paso 3: Formato para HTML
+    for bloque in bloques:
+        # Usar timezone.localtime si los bloques tienen zona horaria, de lo contrario usar directamente
+        bloque["start_time"] = bloque["start_time"].replace(tzinfo=None) if hasattr(bloque["start_time"], 'replace') else bloque["start_time"]
+        bloque["end_time"] = bloque["end_time"].replace(tzinfo=None) if hasattr(bloque["end_time"], 'replace') else bloque["end_time"]
+        bloque["hora_slot"] = bloque["start_time"].strftime("%H:%M")
+        bloque["weekday"] = bloque["start_time"].weekday()
+
+    # Rango de horas de la tabla
+    horas = []
+    actual = datetime.combine(timezone.now().date(), time(6, 0)).replace(tzinfo=None)
+    final = datetime.combine(timezone.now().date(), time(22, 0)).replace(tzinfo=None)
+    while actual <= final:
+        horas.append(actual.strftime("%H:%M"))
+        actual += timedelta(minutes=5)
+
+    context = {
+        "bloques": bloques,
+        "horas": horas,
+    }
+    return render(request, "bloques_enfocados.html", context)
+
+#---------------Vista de productividad---------------
+
+from django.shortcuts import render
+from planner.models import BloqueEstudio
+from django.db.models import Sum
+from datetime import date, timedelta
+from collections import defaultdict
+
+@login_required
+def productividad_view(request):
+    usuario = request.user
+    hoy = date.today()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes
+
+    bloques = BloqueEstudio.objects.filter(
+        usuario=usuario,
+        fecha__range=(inicio_semana, hoy),
+        completado=True
+    )
+
+    dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+    productividad_dias = [0] * 7
+
+    for bloque in bloques:
+        index = bloque.fecha.weekday()
+        productividad_dias[index] += bloque.duracion_min
+
+    hoy_index = hoy.weekday()
+    minutos_hoy = productividad_dias[hoy_index]
+    promedio = sum(productividad_dias[:hoy_index]) / hoy_index if hoy_index > 0 else 1
+    dif_ayer = minutos_hoy - productividad_dias[hoy_index - 1] if hoy_index > 0 else 0
+    dif_promedio = minutos_hoy - promedio
+
+    productividad_hoy_percent = int((minutos_hoy / promedio) * 100) if promedio > 0 else 0
+
+    context = {
+        'productividad_dias': productividad_dias,
+        'productividad_hoy': productividad_hoy_percent,
+        'productividad_restante': 100 - productividad_hoy_percent,
+
+        'dif_ayer_valor': abs(int(dif_ayer / productividad_dias[hoy_index - 1] * 100)) if hoy_index > 0 and productividad_dias[hoy_index - 1] > 0 else 0,
+        'dif_ayer_positivo': dif_ayer >= 0,
+
+        'dif_promedio_valor': abs(int(dif_promedio / promedio * 100)) if promedio > 0 else 0,
+        'dif_promedio_positivo': dif_promedio >= 0,
+
+        'dia_productivo': dias[productividad_dias.index(max(productividad_dias))] if max(productividad_dias) > 0 else "Ninguno",
+        'mejor_rango': calcular_mejor_rango(bloques),
+    }
+    return render(request, 'productividad.html', context)
+
+def calcular_mejor_rango(bloques):
+    rangos_definidos = {
+        "6:00 a.m. - 9:00 a.m.": (6, 9),
+        "9:00 a.m. - 12:00 p.m.": (9, 12),
+        "12:00 p.m. - 3:00 p.m.": (12, 15),
+        "3:00 p.m. - 6:00 p.m.": (15, 18),
+        "6:00 p.m. - 9:00 p.m.": (18, 21),
+    }
+
+    rendimiento = defaultdict(int)
+
+    for bloque in bloques:
+        print(f"▶️ Analizando bloque: {bloque.fecha} - {bloque.hora_inicio} - {bloque.duracion_min} min")
+        if bloque.hora_inicio:
+            hora = bloque.hora_inicio.hour
+            for nombre_rango, (inicio, fin) in rangos_definidos.items():
+                if inicio <= hora < fin:
+                    rendimiento[nombre_rango] += bloque.duracion_min
+                    print(f"✅ Bloque añadido a: {nombre_rango}")
+                    break
+            else:
+                print(f"❌ Hora {hora} fuera de todos los rangos")
+
+    print("📊 Resultado final:", rendimiento)
+    return max(rendimiento, key=rendimiento.get) if rendimiento else "Ninguno"
+
+
+
+#---------------vista de bloques guardados
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import BloqueEstudio
+import json
+from django.utils import timezone
+
+
+
+@csrf_exempt
+def registrar_bloque_temporizador(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        tipo = data.get('tipo', '').lower()
+        if tipo not in ['estudio', 'descanso']:
+            return JsonResponse({'error': 'Tipo inválido'}, status=400)
+        try:
+            duracion = int(data.get('duracion', 0))
+        except (TypeError, ValueError):
+            return JsonResponse({'error': 'Duración inválida'}, status=400)
+        hora_inicio = timezone.localtime()
+        hora_fin = hora_inicio + timedelta(minutes=duracion)
+        print(" Hora guardada:", hora_inicio.time())
+
+        BloqueEstudio.objects.create(
+            usuario=request.user,
+            tipo=tipo,
+            fecha=hora_inicio.date(),
+            hora_inicio=hora_inicio.time(),
+            hora_fin=hora_fin.time(),
+            duracion_min=duracion,
+            completado=True
+        )
+        print("🔎 Usuario autenticado:", request.user)
+        print("🔎 ¿Está autenticado?:", request.user.is_authenticated)
+
+        return JsonResponse({'mensaje': 'Bloque guardado exitosamente'})
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+#----vista para obtener estadisticas 
+from .models import BloqueEstudio
+
+def obtener_estadisticas_productividad(request):
+    usuario = request.user
+    hoy = timezone.now().date()
+
+    bloques_hoy = BloqueEstudio.objects.filter(usuario=usuario, fecha=hoy)
+
+    bloques_estudio = bloques_hoy.filter(tipo='estudio')
+    total_estudio = bloques_estudio.count()
+
+    tiempo_total = bloques_hoy.aggregate(Sum('duracion_min'))['duracion_min__sum'] or 0
+
+    print("Usuario:", usuario)
+    print("Fecha:", hoy)
+    print("Total bloques hoy:", bloques_hoy.count())
+    print("Todos los bloques hoy:", list(bloques_hoy.values()))
+
+
+    return JsonResponse({
+        'bloques_estudio': total_estudio,
+        'minutos_totales': tiempo_total,
+    })
+
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from datetime import date
+from .models import BloqueEstudio  # Asegúrate de importar bien tu modelo
+
+@login_required
+def productividad_api(request):
+    hoy = date.today()
+
+    bloques = BloqueEstudio.objects.filter(
+        usuario=request.user,
+        fecha=hoy,
+        tipo='estudio',
+        completado=True
+    )
+
+    bloques_completados = bloques.count()
+    minutos_totales = sum([b.duracion_min for b in bloques])
+
+    return JsonResponse({
+        "bloques_estudio": bloques_completados,
+        "minutos_totales": minutos_totales,
+    })
