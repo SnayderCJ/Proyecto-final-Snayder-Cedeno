@@ -69,8 +69,7 @@
         if (overlay) {
             overlay.addEventListener('click', toggleMenu);
         }
-
-        // Cerrar sidebar al hacer clic en enlaces (móvil)
+)
         const sidebarLinks = sidebar?.querySelectorAll('a');
         if (sidebarLinks) {
             sidebarLinks.forEach(link => {
@@ -81,6 +80,33 @@
                 });
             });
         }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {Add commentMore actions
+      fetch("/planner/api/productividad/")
+        .then(response => response.json())
+        .then(data => {
+          let porcentaje = parseFloat(data.productividad);
+
+          // Validación extra
+          if (isNaN(porcentaje) || porcentaje < 0) {
+            porcentaje = 0;
+          }
+
+          porcentaje = Math.min(porcentaje, 100);
+
+          const header = document.getElementById("header-productividad");
+          if (header) {
+            header.textContent = porcentaje + "%";
+          }
+        })
+        .catch(error => {
+          console.error("Error al cargar productividad:", error);
+          const header = document.getElementById("header-productividad");
+          if (header) {
+            header.textContent = "0%";
+          }
+        });
     });
     </script>
     {% endblock extra_js %}
