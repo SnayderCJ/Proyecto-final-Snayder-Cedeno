@@ -4,8 +4,8 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="flex flex-col gap-6 lg:gap-8">
-    <section>
+<div class="flex flex-col gap-6 lg:gap-8 animate-fade-in">
+    <section class="animate-slide-up">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
                 <h2 class="text-lg font-semibold tracking-tight">Acciones rápidas</h2>
@@ -13,32 +13,18 @@
             </div>
 
             <div class="mt-4 flex shrink-0 flex-wrap gap-4 md:mt-0">
-                <button class="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm transition-all hover:bg-accent hover:border-accent hover:scale-105 shadow-sm">
-                    <i class="fas fa-plus text-xl text-primary"></i>
-                    <div class="text-left">
-                        <div class="font-medium">Nueva tarea</div>
-                        <div class="text-xs text-muted-foreground">Añadir tarea pendiente</div>
-                    </div>
-                </button>
-                <button class="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm transition-all hover:bg-accent hover:border-accent hover:scale-105 shadow-sm">
-                    <i class="fas fa-calendar-plus text-xl text-primary"></i>
+                <a href="{% url 'planner:event_create' %}" class="btn-animate flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm transition-all hover:bg-accent hover:border-accent hover:scale-105 shadow-sm hover-glow">
+                    <i class="fas fa-calendar-plus text-xl text-blue-500"></i>
                     <div class="text-left">
                         <div class="font-medium">Evento</div>
                         <div class="text-xs text-muted-foreground">Programar en calendario</div>
                     </div>
-                </button>
-                <button class="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm transition-all hover:bg-accent hover:border-accent hover:scale-105 shadow-sm">
-                    <i class="fas fa-clock text-xl text-primary"></i>
+                </a>
+                <button onclick="optimizarHorario()" class="btn-animate flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm transition-all hover:bg-accent hover:border-accent hover:scale-105 shadow-sm hover-glow">
+                    <i class="fas fa-magic text-xl text-purple-500"></i>
                     <div class="text-left">
-                        <div class="font-medium">Pomodoro</div>
-                        <div class="text-xs text-muted-foreground">Iniciar sesión de estudio</div>
-                    </div>
-                </button>
-                <button class="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm transition-all hover:bg-accent hover:border-accent hover:scale-105 shadow-sm">
-                    <i class="fas fa-list text-xl text-primary"></i>
-                    <div class="text-left">
-                        <div class="font-medium">Planificar</div>
-                        <div class="text-xs text-muted-foreground">Organizar semana</div>
+                        <div class="font-medium">Optimizar Horario</div>
+                        <div class="text-xs text-muted-foreground">Optimiza tu horario automáticamente</div>
                     </div>
                 </button>
             </div>
@@ -48,178 +34,112 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         <div class="flex flex-col gap-6 lg:col-span-2 lg:gap-8">
             <!-- Mi espacio de trabajo -->
-            <section class="rounded-xl border border-border bg-card">
+            <section class="card rounded-xl border border-border bg-card animate-slide-in">
                 <div class="p-4 sm:p-6">
                     <h2 class="text-lg font-semibold tracking-tight">Mi espacio de trabajo</h2>
                     <p class="text-sm text-muted-foreground">Gestiona tus tareas y horario académico</p>
                 </div>
-                <div class="border-b border-border">
-                    <nav id="workspace-tabs" class="-mb-px flex gap-6 px-4 sm:px-6">
-                        <button data-tab="tasks" class="whitespace-nowrap border-b-2 border-primary py-3 text-sm font-medium text-primary transition-colors">Tareas</button>
-                        <button data-tab="calendar" class="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground">Calendario</button>
-                    </nav>
-                </div>
                 <div class="p-4 sm:p-6">
-                    <div id="tasks-content" class="tab-content">
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-                            <div class="flex flex-col gap-4">
-                                <div class="flex items-center justify-between"><h3 class="font-semibold">Pendientes</h3><span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">3</span></div>
-                                <div class="flex flex-col gap-4">
-                                    <div class="rounded-lg border border-border bg-background p-4">
-                                        <h4 class="font-medium">Completar informe de laboratorio</h4>
-                                        <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <i class="fa-solid fa-clock"></i><span>Hoy, 19:00</span>
-                                        </p>
-                                        <div class="mt-3"><span class="rounded-full bg-red-500/20 px-2.5 py-0.5 text-xs text-red-400">Química</span></div>
-                                    </div>
-                                    <div class="rounded-lg border border-border bg-background p-4">
-                                        <h4 class="font-medium">Estudiar para examen de matemáticas</h4>
-                                        <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <i class="fa-solid fa-clock"></i><span>Mañana, 09:00</span>
-                                        </p>
-                                        <div class="mt-3"><span class="rounded-full bg-blue-500/20 px-2.5 py-0.5 text-xs text-blue-400">Matemáticas</span></div>
-                                    </div>
-                                    <div class="rounded-lg border border-border bg-background p-4">
-                                        <h4 class="font-medium">Preparar presentación de proyecto</h4>
-                                        <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <i class="fa-solid fa-clock"></i><span>En 3 días</span>
-                                        </p>
-                                        <div class="mt-3"><span class="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-xs text-purple-400">Programación</span></div>
-                                    </div>
-                                </div>
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <!-- Tareas Pendientes -->
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold">Pendientes</h3>
+                                <span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{{ pending_count }}</span>
                             </div>
                             <div class="flex flex-col gap-4">
-                                <div class="flex items-center justify-between"><h3 class="font-semibold">En progreso</h3><span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">1</span></div>
-                                <div class="flex flex-col gap-4">
-                                    <div class="rounded-lg border border-border bg-background p-4">
-                                        <h4 class="font-medium">Revisar notas de clase</h4>
-                                        <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <i class="fa-solid fa-clock"></i><span>En 5 días</span>
-                                        </p>
-                                        <div class="mt-3"><span class="rounded-full bg-yellow-500/20 px-2.5 py-0.5 text-xs text-yellow-400">Historia</span></div>
+                                {% for task in pending_tasks|slice:":5" %}
+                                <div class="rounded-lg border border-border bg-background p-4">
+                                    <h4 class="font-medium">{{ task.title }}</h4>
+                                    <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
+                                        <i class="fa-solid fa-clock"></i>
+                                        <span>{{ task.start_time|date:"d/m/Y H:i" }}</span>
+                                    </p>
+                                    <div class="mt-3">
+                                        <span class="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-xs text-purple-400">
+                                            General
+                                        </span>
                                     </div>
                                 </div>
+                                {% empty %}
+                                <div class="rounded-lg border border-border bg-background p-4 text-center text-muted-foreground">
+                                    <i class="fas fa-check-circle text-2xl mb-2"></i>
+                                    <p class="text-sm">¡No tienes tareas pendientes!</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Tareas Completadas -->
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-semibold">Completadas</h3>
+                                <span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{{ completed_count }}</span>
                             </div>
                             <div class="flex flex-col gap-4">
-                                <div class="flex items-center justify-between"><h3 class="font-semibold">Completadas</h3><span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-muted-foreground">1</span></div>
-                                <div class="flex flex-col gap-4">
-                                    <div class="rounded-lg border border-border bg-background p-4 opacity-60">
-                                        <h4 class="font-medium line-through">Leer capitulo 5 de programación</h4>
-                                        <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
-                                            <i class="fa-solid fa-check"></i><span>Completada</span>
-                                        </p>
-                                        <div class="mt-3"><span class="rounded-full bg-green-500/20 px-2.5 py-0.5 text-xs text-green-400">Programación</span></div>
+                                {% for task in completed_tasks|slice:":3" %}
+                                <div class="rounded-lg border border-border bg-background p-4 opacity-60">
+                                    <h4 class="font-medium line-through">{{ task.title }}</h4>
+                                    <p class="mt-1.5 text-xs text-muted-foreground flex items-center gap-1.5">
+                                        <i class="fa-solid fa-check"></i>
+                                        <span>Completada</span>
+                                    </p>
+                                    <div class="mt-3">
+                                        <span class="rounded-full bg-green-500/20 px-2.5 py-0.5 text-xs text-green-400">
+                                            General
+                                        </span>
                                     </div>
                                 </div>
+                                {% empty %}
+                                <div class="rounded-lg border border-border bg-background p-4 text-center text-muted-foreground">
+                                    <i class="fas fa-tasks text-2xl mb-2"></i>
+                                    <p class="text-sm">Aún no has completado tareas</p>
+                                </div>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
-                    <div id="calendar-content" class="tab-content hidden"><p>Aquí irá el componente de calendario.</p></div>
                 </div>
             </section>
 
             <!-- Vista Semanal -->
-            <section class="rounded-xl border border-border bg-card">
+            <section class="card rounded-xl border border-border bg-card animate-slide-in">
                 <div class="p-4 sm:p-6">
                     <h2 class="text-lg font-semibold tracking-tight">Vista Semanal</h2>
                     
                     <div class="mt-6 grid grid-cols-7 gap-4">
-                        <!-- Lunes -->
+                        {% for day in week_days_data %}
                         <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Lun</span>
+                            <span class="text-sm font-medium {% if day.is_today %}text-primary{% else %}text-muted-foreground{% endif %} mb-2">
+                                {{ day.name }}
+                                {% if day.is_today %}<span class="text-xs">(Hoy)</span>{% endif %}
+                            </span>
                             <div class="space-y-2">
-                                <div class="rounded-lg bg-purple-500/20 p-2 text-xs">
-                                    <div class="text-purple-400 font-medium">Matemáticas</div>
-                                    <div class="text-muted-foreground">09:00 - 11:00</div>
+                                {% for event in day.events|slice:":3" %}
+                                <div class="rounded-lg bg-{{ event.color_class }}-500/20 p-2 text-xs {% if event.is_completed %}opacity-60{% endif %}">
+                                    <div class="text-{{ event.color_class }}-400 font-medium {% if event.is_completed %}line-through{% endif %}">
+                                        {{ event.title|truncatechars:15 }}
+                                    </div>
+                                    <div class="text-muted-foreground">
+                                        {{ event.start_time }} - {{ event.end_time }}
+                                    </div>
                                 </div>
-                                <div class="rounded-lg bg-blue-500/20 p-2 text-xs">
-                                    <div class="text-blue-400 font-medium">Estudio</div>
-                                    <div class="text-muted-foreground">14:00 - 16:00</div>
+                                {% empty %}
+                                {% if forloop.first %}
+                                <div class="rounded-lg border border-dashed border-border p-2 text-xs text-center text-muted-foreground">
+                                    Sin eventos
                                 </div>
+                                {% endif %}
+                                {% endfor %}
+                                
+                                {% if day.events|length > 3 %}
+                                <div class="text-xs text-muted-foreground text-center">
+                                    +{{ day.events|length|add:"-3" }} más
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
-
-                        <!-- Martes -->
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Mar</span>
-                            <div class="space-y-2">
-                                <div class="rounded-lg bg-green-500/20 p-2 text-xs">
-                                    <div class="text-green-400 font-medium">Física</div>
-                                    <div class="text-muted-foreground">10:00 - 11:00</div>
-                                </div>
-                                <div class="rounded-lg bg-yellow-500/20 p-2 text-xs">
-                                    <div class="text-yellow-400 font-medium">Química</div>
-                                    <div class="text-muted-foreground">14:00 - 16:00</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Miércoles -->
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Mié</span>
-                            <div class="space-y-2">
-                                <div class="rounded-lg bg-purple-500/20 p-2 text-xs">
-                                    <div class="text-purple-400 font-medium">Programación</div>
-                                    <div class="text-muted-foreground">09:00 - 12:00</div>
-                                </div>
-                                <div class="rounded-lg bg-green-500/20 p-2 text-xs">
-                                    <div class="text-green-400 font-medium">Proyecto Grupal</div>
-                                    <div class="text-muted-foreground">14:00 - 17:00</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Jueves -->
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Jue</span>
-                            <div class="space-y-2">
-                                <div class="rounded-lg bg-blue-500/20 p-2 text-xs">
-                                    <div class="text-blue-400 font-medium">Proyecto Grupal</div>
-                                    <div class="text-muted-foreground">09:00 - 12:00</div>
-                                </div>
-                                <div class="rounded-lg bg-red-500/20 p-2 text-xs">
-                                    <div class="text-red-400 font-medium">Entrega Informe</div>
-                                    <div class="text-muted-foreground">15:00 - 16:00</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Viernes -->
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Vie</span>
-                            <div class="space-y-2">
-                                <div class="rounded-lg bg-orange-500/20 p-2 text-xs">
-                                    <div class="text-orange-400 font-medium">Examen</div>
-                                    <div class="text-muted-foreground">10:00 - 12:00</div>
-                                </div>
-                                <div class="rounded-lg bg-green-500/20 p-2 text-xs">
-                                    <div class="text-green-400 font-medium">Descanso</div>
-                                    <div class="text-muted-foreground">14:00 - 16:00</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sábado -->
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Sáb</span>
-                            <div class="space-y-2">
-                                <div class="rounded-lg bg-purple-500/20 p-2 text-xs">
-                                    <div class="text-purple-400 font-medium">Descanso</div>
-                                    <div class="text-muted-foreground">Todo el día</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Domingo -->
-                        <div class="flex flex-col">
-                            <span class="text-sm font-medium text-muted-foreground mb-2">Dom</span>
-                            <div class="space-y-2">
-                                <div class="rounded-lg bg-purple-500/20 p-2 text-xs">
-                                    <div class="text-purple-400 font-medium">Planificación</div>
-                                    <div class="text-muted-foreground">10:00 - 12:00</div>
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </section>
@@ -227,98 +147,73 @@
 
         <div class="flex flex-col gap-6 lg:gap-8">
             <!-- Modo Pomodoro -->
-            <section class="rounded-xl border-2 border-primary/20 bg-card p-6 text-center">
+            <section class="card rounded-xl border-2 border-purple-500/20 bg-card p-6 text-center animate-slide-in">
                 <h2 class="font-semibold tracking-tight">Modo Pomodoro: Concentración</h2>
-                <p class="mt-4 text-6xl font-bold tracking-tighter">25:00</p>
+                <p id="pomodoro-timer" class="mt-4 text-6xl font-bold tracking-tighter text-purple-500">25:00</p>
                 <div class="mt-6 flex w-full gap-2">
-                    <button class="w-full rounded-lg bg-secondary py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">Reiniciar</button>
-                    <button class="w-full rounded-lg bg-primary py-2 text-sm text-primary-foreground transition-colors hover:bg-primary-hover">Iniciar</button>
+                    <button id="pomodoro-reset" class="btn-animate w-full rounded-lg bg-gray-600 py-2 text-sm text-white transition-colors hover:bg-gray-500">Reiniciar</button>
+                    <button id="pomodoro-start" class="btn-animate w-full rounded-lg bg-purple-600 py-2 text-sm text-white transition-colors hover:bg-purple-500">Iniciar</button>
                 </div>
             </section>
 
             <!-- Próximas entregas -->
-            <section class="rounded-xl border border-border bg-card">
+            <section class="card rounded-xl border border-border bg-card animate-slide-in">
                 <div class="p-4 sm:p-6">
                     <h2 class="font-semibold tracking-tight">Próximas entregas</h2>
                 </div>
                 <div class="flex flex-col gap-4 p-4 sm:p-6 pt-0">
+                    {% for task in upcoming_tasks %}
                     <div class="flex items-start gap-4">
-                        <div class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-400">
-                            <i class="fas fa-calendar-day"></i>
+                        <div class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-{{ task.color_class }}-500/20 text-{{ task.color_class }}-400">
+                            {% if task.event_type == 'clase' %}
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            {% elif task.event_type == 'tarea' %}
+                                <i class="fas fa-file-alt"></i>
+                            {% elif task.event_type == 'examen' %}
+                                <i class="fas fa-calendar-day"></i>
+                            {% elif task.event_type == 'proyecto' %}
+                                <i class="fas fa-project-diagram"></i>
+                            {% else %}
+                                <i class="fas fa-calendar-check"></i>
+                            {% endif %}
                         </div>
                         <div class="flex-1">
-                            <p class="font-medium">Examen de Matemáticas</p>
-                            <p class="text-xs text-muted-foreground">Mañana, 10:00</p>
+                            <p class="font-medium">{{ task.title }}</p>
+                            <p class="text-xs text-muted-foreground">{{ task.start_time|date:"l, j \d\e F - H:i" }}</p>
                         </div>
-                        <span class="text-xs text-muted-foreground">Matemáticas</span>
+                        <span class="text-xs text-muted-foreground">General</span>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <div class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500/20 text-red-400">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-medium">Entrega de Proyecto</p>
-                            <p class="text-xs text-muted-foreground">Viernes, 23:00</p>
-                        </div>
-                        <span class="text-xs text-muted-foreground">Programación</span>
+                    {% empty %}
+                    <div class="text-center text-muted-foreground py-4">
+                        <i class="fas fa-calendar-check text-2xl mb-2"></i>
+                        <p class="text-sm">No hay entregas próximas</p>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <div class="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-400">
-                            <i class="fas fa-flask"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="font-medium">Informe de Laboratorio</p>
-                            <p class="text-xs text-muted-foreground">Próxima semana</p>
-                        </div>
-                        <span class="text-xs text-muted-foreground">Química</span>
-                    </div>
+                    {% endfor %}
                 </div>
             </section>
 
-            <!-- Análisis de Productividad con gráfico de barras -->
-            <section class="rounded-xl border border-border bg-card p-6">
+            <!-- Análisis de Productividad -->
+            <section class="card rounded-xl border border-border bg-card p-6 animate-slide-in">
                 <h3 class="font-semibold">Análisis de Productividad</h3>
                 
                 <!-- Gráfico de barras -->
                 <div class="mt-6 flex items-end justify-between h-32 px-4">
+                    {% for day in productivity_data %}
                     <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 60%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">L</span>
+                        <div class="w-8 bg-primary rounded-t" style="height: {{ day.percentage }}%"></div>
+                        <span class="text-xs text-muted-foreground mt-2">{{ day.name }}</span>
                     </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 80%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">M</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 45%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">M</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 90%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">J</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 100%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">V</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 70%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">S</span>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: 55%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">D</span>
-                    </div>
+                    {% endfor %}
                 </div>
                 
                 <div class="mt-4 flex items-center justify-between text-sm">
                     <span class="text-muted-foreground">Tiempo de enfoque</span>
-                    <span class="text-primary">Optimizado</span>
+                    <span class="text-primary">{{ productivity_status }}</span>
                 </div>
             </section>
 
             <!-- Consejo del Día -->
-            <section class="rounded-xl bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 p-6 text-white shadow-lg">
+            <section class="card rounded-xl bg-gradient-to-br from-purple-800 via-purple-700 to-purple-600 p-6 text-white shadow-lg animate-slide-in">
                 <div class="flex items-start gap-4">
                     <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
                         <i class="fas fa-lightbulb text-lg"></i>
@@ -339,38 +234,70 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const tabsContainer = document.getElementById('workspace-tabs');
-    if (!tabsContainer) return;
+    // Configuración del temporizador Pomodoro
+    let pomodoroTime = 25 * 60;
+    let timerInterval = null;
+    let isRunning = false;
 
-    const tabButtons = tabsContainer.querySelectorAll('button');
-    const tasksContent = document.getElementById('tasks-content');
-    const calendarContent = document.getElementById('calendar-content');
-    const contentPanels = [tasksContent, calendarContent];
+    const timerDisplay = document.getElementById('pomodoro-timer');
+    const startButton = document.getElementById('pomodoro-start');
+    const resetButton = document.getElementById('pomodoro-reset');
 
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Desactivar todos los botones
-            tabButtons.forEach(btn => {
-                btn.classList.remove('border-primary', 'text-primary');
-                btn.classList.add('border-transparent', 'text-muted-foreground');
-            });
+    function updateTimerDisplay(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+        if (!isRunning) {
+            isRunning = true;
+            startButton.textContent = 'Pausar';
+            startButton.classList.remove('bg-purple-600', 'hover:bg-purple-500');
+            startButton.classList.add('bg-red-600', 'hover:bg-red-500');
             
-            // Activar el botón clickeado
-            button.classList.add('border-primary', 'text-primary');
-            button.classList.remove('border-transparent', 'text-muted-foreground');
-            
-            // Ocultar todos los paneles
-            contentPanels.forEach(panel => {
-                if(panel) panel.classList.add('hidden');
-            });
+            timerInterval = setInterval(() => {
+                if (pomodoroTime > 0) {
+                    pomodoroTime--;
+                    updateTimerDisplay(pomodoroTime);
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    new Audio('/static/sounds/timer-end.mp3').play().catch(() => {});
+                    if (Notification.permission === 'granted') {
+                        new Notification('¡Tiempo completado!', {
+                            body: 'Tu sesión Pomodoro ha terminado. ¡Toma un descanso!',
+                            icon: '/static/img/Logo2.png'
+                        });
+                    }
+                }
+            }, 1000);
+        } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            startButton.textContent = 'Iniciar';
+            startButton.classList.remove('bg-red-600', 'hover:bg-red-500');
+            startButton.classList.add('bg-purple-600', 'hover:bg-purple-500');
+        }
+    }
 
-            // Mostrar el panel correcto
-            const targetContent = document.getElementById(button.dataset.tab + '-content');
-            if(targetContent) {
-                targetContent.classList.remove('hidden');
-            }
-        });
-    });
+    function resetTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        pomodoroTime = 25 * 60;
+        updateTimerDisplay(pomodoroTime);
+        startButton.textContent = 'Iniciar';
+        startButton.classList.remove('bg-red-600', 'hover:bg-red-500');
+        startButton.classList.add('bg-purple-600', 'hover:bg-purple-500');
+    }
+
+    if (startButton) startButton.addEventListener('click', startTimer);
+    if (resetButton) resetButton.addEventListener('click', resetTimer);
+
+    // Función para optimizar horario
+    window.optimizarHorario = function() {
+        window.location.href = "{% url 'planner:horarios' %}?optimize=true";
+    };
 
     // Consejo del día automático
     const tips = [
@@ -394,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Actualizar el consejo cada 24 horas
     const lastUpdate = localStorage.getItem('lastTipUpdate');
     const now = new Date().getTime();
 

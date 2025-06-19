@@ -36,7 +36,13 @@ document.addEventListener('DOMContentLoaded', function () {
           if (data.suggestions && data.suggestions.length > 0) {
             await showSuggestions(data.suggestions);
           } else {
-            alert(data.message || 'No se encontraron optimizaciones posibles.');
+            if (data.insufficient_tasks) {
+              const currentTasks = data.current_tasks || 0;
+              const remainingTasks = 4 - currentTasks;
+              alert(`Se necesitan al menos 4 tareas para generar sugerencias óptimas.\nActualmente tienes ${currentTasks} tarea(s).\nAgrega ${remainingTasks} tarea(s) más para poder optimizar tu horario.`);
+            } else {
+              alert(data.message || 'No se encontraron optimizaciones posibles.');
+            }
           }
         } else {
           throw new Error(data.message || 'Error desconocido');

@@ -332,10 +332,23 @@ function toggleEventCompletion(eventId) {
         hideLoading();
         if (data.success) {
             document.querySelectorAll(`[data-event-id="${eventId}"]`).forEach(eventElement => {
+                // Actualizar clases y estilos
                 if (data.is_completed) {
-                    eventElement.classList.add('completed');
+                    eventElement.classList.add('opacity-60', 'line-through', 'bg-opacity-30');
+                    // Agregar el ícono de check si no existe
+                    if (!eventElement.querySelector('.fa-check-circle')) {
+                        const titleDiv = eventElement.querySelector('.font-medium');
+                        const checkIcon = document.createElement('i');
+                        checkIcon.className = 'fas fa-check-circle text-green-500 text-sm';
+                        titleDiv.insertBefore(checkIcon, titleDiv.firstChild);
+                    }
                 } else {
-                    eventElement.classList.remove('completed');
+                    eventElement.classList.remove('opacity-60', 'line-through', 'bg-opacity-30');
+                    // Remover el ícono de check si existe
+                    const checkIcon = eventElement.querySelector('.fa-check-circle');
+                    if (checkIcon) {
+                        checkIcon.remove();
+                    }
                 }
             });
             showNotification(data.message, 'success');
