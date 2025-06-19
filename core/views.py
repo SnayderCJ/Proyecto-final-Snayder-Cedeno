@@ -26,8 +26,11 @@ def home(request):
     from planner.models import Event
     from datetime import timedelta
     
+    # Obtener zona horaria del usuario
+    user_tz = get_user_timezone(request.user)
+    
     # Obtener tareas del usuario para la semana actual
-    today = timezone.now().date()
+    today = timezone.now().astimezone(user_tz).date()
     now = timezone.now()
     start_of_week = today - timedelta(days=today.weekday())
     end_of_week = start_of_week + timedelta(days=6)
@@ -39,9 +42,10 @@ def home(request):
         start_time__date__lte=end_of_week
     ).order_by('start_time')
     
-    # Separar tareas pendientes y completadas
+    # Separar tareas por estado
     pending_tasks = user_events.filter(is_completed=False)
     completed_tasks = user_events.filter(is_completed=True)
+    in_progress_tasks = pending_tasks.filter(start_time__lte=now, end_time__gte=now)
     
     # Obtener próximas entregas (tareas futuras no completadas)
     upcoming_tasks = Event.objects.filter(
@@ -50,14 +54,145 @@ def home(request):
         is_completed=False    # Solo tareas no completadas
     ).order_by('start_time')[:5]  # Limitar a las próximas 5 tareas
     
+    # Organizar eventos por día de la semana para la vista semanal
+    week_events = {i: [] for i in range(7)}  # 0=Lunes, 6=Domingo
+    day_names_short = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    
+    for event in user_events:
+        event_local = event.start_time.astimezone(user_tz)
+        day_of_week = event_local.weekday()
+        
+        # Determinar color según el tipo de evento
+        color_class = 'purple'  # default
+        if event.event_type == 'clase':
+            color_class = 'blue'
+        elif event.event_type == 'descanso':
+            color_class = 'green'
+        elif event.event_type == 'personal':
+            color_class = 'orange'
+        elif event.event_type == 'tarea':
+            color_class = 'purple'
+        
+        week_events[day_of_week].append({
+            'title': event.title,
+            'start_time': event_local.strftime('%H:%M'),
+            'end_time': event.end_time.astimezone(user_tz).strftime('%H:%M'),
+            'color_class': color_class,
+            'is_completed': event.is_completed
+        })
+    
+    # Crear datos para los días de la semana
+    week_days_data = []
+    for i in range(7):
+        current_day = start_of_week + timedelta(days=i)
+        week_days_data.append({
+            'name': day_names_short[i],
+            'date': current_day.day,
+            'is_today': current_day == today,
+            'events': week_events[i]
+        })
+    
+    # Función para extraer materia del título
+    def extract_subject_from_title(title):
+        title_lower = title.lower().strip()
+        subject_keywords = {
+            'Matemáticas': ['matematicas', 'matemáticas', 'algebra', 'álgebra', 'calculo', 'cálculo'],
+            'Física': ['fisica', 'física', 'mecanica', 'mecánica'],
+            'Química': ['quimica', 'química', 'laboratorio'],
+            'Programación': ['programacion', 'programación', 'codigo', 'código', 'python', 'javascript'],
+            'Historia': ['historia'],
+            'Inglés': ['ingles', 'inglés', 'english'],
+            'Biología': ['biologia', 'biología'],
+        }
+        
+        for subject, keywords in subject_keywords.items():
+            if any(keyword in title_lower for keyword in keywords):
+                return subject
+        return 'General'
+    
+    # Preparar datos de próximas entregas con colores
+    upcoming_tasks_data = []
+    for task in upcoming_tasks:
+        color_class = 'purple'  # default
+        if task.event_type == 'clase':
+            color_class = 'blue'
+        elif task.event_type == 'descanso':
+            color_class = 'green'
+        elif task.event_type == 'personal':
+            color_class = 'orange'
+        elif task.event_type == 'tarea':
+            color_class = 'purple'
+        elif task.event_type == 'examen':
+            color_class = 'red'
+        elif task.event_type == 'proyecto':
+            color_class = 'indigo'
+        
+        upcoming_tasks_data.append({
+            'title': task.title,
+            'start_time': task.start_time,
+            'event_type': task.event_type,
+            'color_class': color_class
+        })
+    
+    # Calcular datos de productividad reales basados en tareas completadas
+    import calendar
+    from datetime import timedelta
+
+    today = timezone.now().date()
+    week_start = today - timedelta(days=today.weekday())
+
+    productivity_data = []
+    total_productivity = 0
+    days_with_data = 0
+
+    for i in range(7):
+        day = week_start + timedelta(days=i)
+        day_name = calendar.day_name[day.weekday()][:1]  # Primera letra del día
+
+        day_tasks = user_events.filter(start_time__date=day)
+        completed_tasks_count = day_tasks.filter(is_completed=True).count()
+        total_tasks_count = day_tasks.count()
+
+        if total_tasks_count > 0:
+            percentage = int((completed_tasks_count / total_tasks_count) * 100)
+            total_productivity += percentage
+            days_with_data += 1
+        else:
+            percentage = 50  # Valor base si no hay tareas
+
+        productivity_data.append({
+            'name': day_name,
+            'percentage': min(percentage, 100)
+        })
+
+    if days_with_data > 0:
+        avg_productivity = int(total_productivity / days_with_data)
+    else:
+        avg_productivity = 0
+
+    if avg_productivity >= 80:
+        productivity_status = "Excelente"
+    elif avg_productivity >= 60:
+        productivity_status = "Optimizado"
+    elif avg_productivity >= 40:
+        productivity_status = "Regular"
+    else:
+        productivity_status = "Necesita mejora"
+    
     context = {
         'greeting': get_greeting(request.user),
         'current_date': get_formatted_date(request.user),
         'pending_tasks': pending_tasks,
         'completed_tasks': completed_tasks,
+        'in_progress_tasks': in_progress_tasks,
         'pending_count': pending_tasks.count(),
         'completed_count': completed_tasks.count(),
-        'upcoming_tasks': upcoming_tasks,
+        'in_progress_count': in_progress_tasks.count(),
+        'upcoming_tasks': upcoming_tasks_data,
+        'week_days_data': week_days_data,
+        'extract_subject': extract_subject_from_title,
+        'productivity_data': productivity_data,
+        'productivity_status': productivity_status,
     }
     
     # Agregar información del usuario y Google si está autenticado

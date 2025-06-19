@@ -476,6 +476,16 @@ def optimize_schedule(request):
                     'message': 'No hay eventos pendientes para optimizar en los próximos 7 días.'
                 })
             
+            # Verificar que hay al menos 4 tareas para generar sugerencias óptimas
+            if user_events.count() < 4:
+                return JsonResponse({
+                    'success': True,
+                    'suggestions': [],
+                    'message': 'Se necesitan al menos 4 tareas programadas para generar sugerencias de optimización precisas.',
+                    'insufficient_tasks': True,
+                    'current_tasks': user_events.count()
+                })
+            
             # Obtener sugerencias de optimización
             suggestions = []
             for event in user_events:

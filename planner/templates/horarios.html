@@ -5,7 +5,7 @@
 {% block title %}StudyFly - Horarios{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/optimizer.css' %}">
+
 {% endblock %}
 
 {% block content %}
@@ -62,10 +62,10 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-border">
-            <th class="sticky top-0 bg-card p-4 text-left font-medium"></th>
+            <th class="sticky top-0 backdrop-blur-md bg-card/80 p-4 text-left font-medium z-10"></th>
             {% for day_data in week_days_data %}
-            <th class="sticky top-0 bg-card p-4 text-center font-medium {% if day_data.is_today %}text-primary{% endif %}">
-              <div class="text-lg">{{ day_data.day_num }}</div>
+            <th class="sticky top-0 backdrop-blur-md bg-card/80 p-4 text-center font-medium z-10 {% if day_data.is_today %}text-primary{% endif %}">
+              <div class="text-lg font-bold">{{ day_data.day_num }}</div>
               <div class="text-sm text-muted-foreground">{{ day_data.day_name_short|capfirst }}</div>
             </th>
             {% endfor %}
@@ -86,11 +86,16 @@
                          {% elif event.css_class == 'event-descanso' %}bg-green-500/20 text-green-400
                          {% elif event.css_class == 'event-personal' %}bg-orange-500/20 text-orange-400
                          {% else %}bg-gray-500/20 text-gray-400{% endif %}
-                         {% if event.is_completed %}opacity-60{% endif %}
+                         {% if event.is_completed %}opacity-60 line-through bg-opacity-30{% endif %}
                          {% if event.due_date and event.due_date < today and not event.is_completed %}border-2 border-red-500{% endif %}"
                    data-event-id="{{ event.id }}"
                    data-priority="{{ event.priority }}">
-                  <div class="font-medium">{{ event.title }}</div>
+                  <div class="font-medium flex items-center gap-2">
+                    {% if event.is_completed %}
+                    <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                    {% endif %}
+                    {{ event.title }}
+                  </div>
                   <div class="text-xs">{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
                   {% if event.description and event.description|length > 0 %}
                   <div class="mt-1 text-xs text-muted-foreground">{{ event.description|truncatechars:30 }}</div>

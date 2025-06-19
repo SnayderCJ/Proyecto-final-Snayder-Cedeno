@@ -2,9 +2,9 @@
 {% load planner_tags %}
 
 {% block content %}
-<div class="flex flex-col w-full gap-6">
+<div class="flex flex-col w-full gap-6 transition-all duration-500 ease-in-out transform motion-safe:hover:scale-[1.01]">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-6 bg-card rounded-xl border border-border">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-6 bg-card rounded-xl border border-border transform transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:border-primary/50">
         <div class="space-y-1">
             <h1 class="text-2xl font-semibold">Tareas de la Semana</h1>
             <p class="text-sm text-muted-foreground">{{ current_week_range }}</p>
@@ -13,10 +13,10 @@
     
     <!-- Stats Bar -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="flex items-center justify-between p-4 bg-card rounded-xl border border-border">
+        <div class="flex items-center justify-between p-4 bg-card rounded-xl border border-border transform transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:border-primary/50 motion-safe:hover:-translate-y-1">
             <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20">
-                    <i class="fas fa-tasks text-blue-400"></i>
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/20 transition-all duration-300 hover:bg-blue-500/30">
+                    <i class="fas fa-tasks text-blue-400 transition-all duration-300 hover:scale-110"></i>
                 </div>
                 <div>
                     <p class="text-sm text-muted-foreground">Total</p>
@@ -25,10 +25,10 @@
             </div>
         </div>
         
-        <div class="flex items-center justify-between p-4 bg-card rounded-xl border border-border">
+        <div class="flex items-center justify-between p-4 bg-card rounded-xl border border-border transform transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:border-primary/50 motion-safe:hover:-translate-y-1">
             <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20">
-                    <i class="fas fa-check text-green-400"></i>
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/20 transition-all duration-300 hover:bg-green-500/30">
+                    <i class="fas fa-check text-green-400 transition-all duration-300 hover:scale-110"></i>
                 </div>
                 <div>
                     <p class="text-sm text-muted-foreground">Completadas</p>
@@ -37,10 +37,10 @@
             </div>
         </div>
         
-        <div class="flex items-center justify-between p-4 bg-card rounded-xl border border-border">
+        <div class="flex items-center justify-between p-4 bg-card rounded-xl border border-border transform transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:border-primary/50 motion-safe:hover:-translate-y-1">
             <div class="flex items-center gap-3">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20">
-                    <i class="fas fa-clock text-orange-400"></i>
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/20 transition-all duration-300 hover:bg-orange-500/30">
+                    <i class="fas fa-clock text-orange-400 transition-all duration-300 hover:scale-110"></i>
                 </div>
                 <div>
                     <p class="text-sm text-muted-foreground">Pendientes</p>
@@ -53,7 +53,7 @@
     <!-- Week Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
         {% for day_data in week_days_data %}
-        <div class="flex flex-col gap-4 p-4 bg-card rounded-xl border border-border {% if day_data.is_today %}ring-2 ring-primary{% endif %}">
+        <div class="flex flex-col gap-4 p-4 bg-card rounded-xl border border-border transform transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:border-primary/50 motion-safe:hover:-translate-y-1 {% if day_data.is_today %}ring-2 ring-primary{% endif %}">
             <!-- Day Header -->
             <div class="flex items-center justify-between">
                 <div class="space-y-1">
@@ -94,11 +94,11 @@
                         <!-- Tasks -->
                         <div class="space-y-2">
                             {% for event in events %}
-                            <div class="flex items-start gap-3 p-3 rounded-lg border border-border bg-background transition-colors hover:bg-accent {% if event.is_completed %}opacity-60{% endif %}" 
+                            <div class="flex items-start gap-3 p-3 rounded-lg border border-border bg-background transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg hover:bg-accent hover:border-primary/50 motion-safe:hover:-translate-y-0.5 {% if event.is_completed %}opacity-60{% endif %}" 
                                  data-event-id="{{ event.id }}">
                                 <!-- Checkbox -->
-                                <button class="mt-0.5 flex h-5 w-5 items-center justify-center rounded border-2 transition-colors {% if event.is_completed %}border-green-500 bg-green-500 text-white{% else %}border-muted-foreground hover:border-primary{% endif %}" 
-                                        onclick="toggleEventCompletion({{ event.id }}, this)">
+                <button class="mt-0.5 flex h-5 w-5 items-center justify-center rounded border-2 transition-all duration-200 ease-in-out hover:-translate-y-0.5 active:translate-y-0 {% if event.is_completed %}border-green-500 bg-green-500 text-white{% else %}border-muted-foreground hover:border-primary{% endif %}" 
+                        onclick="toggleEventCompletion({{ event.id }}, this)">
                                     {% if event.is_completed %}
                                     <i class="fas fa-check text-xs"></i>
                                     {% endif %}
