@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+{% csrf_token %}
+
+
+<link rel="stylesheet" href="{% static 'css/bloques_enfocados.css' %}">
+
+<div class="bloques-layout">
+  
+  <!-- BLOQUES IA -->
+  <div class="bloques-tabla">
+    <h2 class="seccion-titulo">Bloques de Tiempo Enfocado</h2>
+    <div class="tabla-scroll">
+      <table class="tabla-bloques">
+        <thead>
+          <tr>
+            <!-- <th>Hora</th>-->
+            {% with "LMXJVSD" as letras_dias %}
+              {% for letra in letras_dias|make_list %}
+                {% if forloop.counter0 == 0 %}<th>Lun</th>{% endif %}
+                {% if forloop.counter0 == 1 %}<th>Mar</th>{% endif %}
+                {% if forloop.counter0 == 2 %}<th>Mié</th>{% endif %}
+                {% if forloop.counter0 == 3 %}<th>Jue</th>{% endif %}
+                {% if forloop.counter0 == 4 %}<th>Vie</th>{% endif %}
+                {% if forloop.counter0 == 5 %}<th>Sáb</th>{% endif %}
+                {% if forloop.counter0 == 6 %}<th>Dom</th>{% endif %}
+              {% endfor %}
+            {% endwith %}
+          </tr>
+        </thead>
+         <tbody>
+          {% for hora in horas %}
+            <tr>
+              <!-- <td>{{ hora }}</td>-->
+              {% for i in "0123456"|make_list %}
+                <td>
+                  {% for bloque in bloques %}
+                    {% if bloque.hora_slot == hora and bloque.weekday|stringformat:"i" == i %}
+
+                      {% if bloque.event_type == 'bloque_estudio' or bloque.event_type == 'descanso_recomendado' or bloque.event_type == 'descanso_real' or bloque.event_type == 'otro' %}
+                        <div class="bloque
+                            {% if bloque.event_type == 'bloque_estudio' %}bloque-real{% endif %}
+                            {% if bloque.event_type == 'descanso_recomendado' %}bloque-descanso-recomendado{% endif %}
+                            {% if bloque.event_type == 'descanso_real' %}bloque-descanso{% endif %}
+                            {% if bloque.event_type == 'otro' %}bloque-real{% endif %}">
+                          {{ bloque.title }}<br>
+                          {{ bloque.start_time|time:"H:i" }} - {{ bloque.end_time|time:"H:i" }}
+                        </div>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+
+                </td>
+
+              {% endfor %}
+            </tr>
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+
+    <!-- AGRUPACIÓN DE TEMPORIZADOR Y CONFIGURACIÓN -->
+  <div class="bloque-temporizador">
+    <div class="temporizador">
+      <h2 class="seccion-titulo">Tiempo de Enfoque</h2>
+      <div id="temporizador">25:00</div>
+      <p id="objetivo-actual" style="margin-top: 10px; font-size: 1.1rem;"></p>
+      <div class="botones">
+        <button onclick="iniciarPomodoro()">Iniciar</button>
+        <button onclick="pausarPomodoro()">Pausar</button>
+        <button onclick="reiniciarPomodoro()">Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="configuracion-rapida espacio-ajustado">
+      <h3>Configuración rápida</h3>
+      <form onsubmit="return false;">
+        <label>Duración del enfoque (min):</label>
+        <input type="number" name="duracion_enfoque" id="inputEnfoque" value="25">
+
+        <label>Objetivo del bloque:</label>
+        <select name="objetivo" id="inputObjetivo">
+          <option value="estudio">Estudio</option>
+          <option value="descanso">Descanso</option>
+        </select>
+
+
+        <button type="button" onclick="aplicarConfiguracion()">Aplicar</button>
+      </form>
+    </div>
+
+
+  <!-- ESTADÍSTICAS -->
+    <div class="resumen-hoy">
+        <h3>Bloques Completados hoy:</h3>
+        <ul id="resumen-productividad">
+          <li class="logro">✅ 0 bloques de estudio completados hoy</li>
+          <li class="logro">⏱️ Tiempo Acumulado: 0m</li>
+        </ul>
+    </div>
+</div>
+
+
+<script>
+  let tiempo = 25 * 60;
+  let enMarcha = false;
+  let intervalo;
+
+  function actualizarTemporizador() {
+    const min = Math.floor(tiempo / 60).toString().padStart(2, '0');
+    const seg = (tiempo % 60).toString().padStart(2, '0');
+    document.getElementById("temporizador").textContent = `${min}:${seg}`;
+  }
+
+  function aplicarConfiguracion() {
+    const minutos = parseInt(document.getElementById("inputEnfoque").value) || 25;
+    const objetivo = document.getElementById("inputObjetivo").value;
+
+    tiempo = minutos * 60;
+    actualizarTemporizador();
+
+    document.getElementById("objetivo-actual").textContent = objetivo === "estudio"
+      ? "🎯 Estudio"
+      : "🛌 Descanso";
+
+  }
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function iniciarPomodoro() {
+    if (!enMarcha) {
+      enMarcha = true;
+
+      intervalo = setInterval(() => {
+        if (tiempo > 0) {
+          tiempo--;
+          actualizarTemporizador();
+        } else {
+          clearInterval(intervalo);
+          enMarcha = false;
+
+          mostrarToast();
+
+          // Obtener valores de duración y tipo
+          const enfoqueMin = parseInt(document.getElementById("inputEnfoque").value) || 25;
+          const tipoBloque = document.getElementById("inputObjetivo").value || "estudio";
+          //para saber si esta bien
+          console.log("Enviando bloque:", {
+            tipo: tipoBloque,
+            duracion: enfoqueMin
+          });
+          // Enviar bloque al backend
+          fetch("/planner/registrar-bloque-temporizador/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({
+              tipo: tipoBloque,
+              duracion: enfoqueMin
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log("Bloque registrado:", data);
+          })
+          .catch(error => {
+            console.error("Error al registrar bloque:", error);
+          });
+
+          // Reglas de productividad
+          if (tipoBloque === "estudio" && enfoqueMin >= 25) {
+            bloquesCompletados++;
+          }
+
+// Ya no mostramos alerta para bloques cortos de estudio ni para descansos
+
+
+          minutosAcumulados += enfoqueMin;
+          actualizarResumenProductividad();
+        }
+      }, 1000);
+    }
+  }
+
+
+  function pausarPomodoro() {
+    clearInterval(intervalo);
+    enMarcha = false;
+  }
+
+  function reiniciarPomodoro() {
+    clearInterval(intervalo);
+    tiempo = 25 * 60;
+    actualizarTemporizador();
+    enMarcha = false;
+    document.getElementById("objetivo-actual").textContent = "";
+  }
+
+  function actualizarResumenProductividad() {
+    fetch("/planner/api/productividad/")
+      .then(response => response.json())
+      .then(data => {
+        const resumen = document.getElementById("resumen-productividad");
+        const tiempoTexto = data.minutos_totales >= 60
+          ? `${Math.floor(data.minutos_totales / 60)}h ${data.minutos_totales % 60}m`
+          : `${data.minutos_totales}m`;
+
+        resumen.innerHTML = `
+          <li class="logro">✅ ${data.bloques_estudio} bloques de estudio completados hoy</li>
+          <li class="logro">⏱️ Tiempo Acumulado: ${tiempoTexto}</li>
+        `;
+      })
+      .catch(error => {
+        console.error("Error al cargar productividad:", error);
+      });
+  }
+
+
+
+    function mostrarToast() {
+    const toast = document.getElementById("toast");
+    toast.classList.add("toast-visible");
+    setTimeout(() => {
+      toast.classList.remove("toast-visible");
+    }, 3000);
+  }
+
+  // Inicial
+  actualizarTemporizador();
+  actualizarResumenProductividad();
+</script>
+
+<div id="toast" class="toast-oculto">✅ ¡Bloque guardado exitosamente!</div>
+
+<style>
+  .toast-oculto {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4BB543;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.3s ease;
+    z-index: 9999;
+  }
+
+  .toast-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+    pointer-events: auto;
+  }
+</style>
+
+
+{% endblock %}

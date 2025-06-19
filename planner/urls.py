@@ -19,5 +19,12 @@ urlpatterns = [
    path('suggestions_template/', views.suggestions_template, name='suggestions_template'),
    
    # Tareas
-   path('tareas/', views.tareas_view, name='tareas')
+   path('tareas/', views.tareas_view, name='tareas'),
+   
+   # Rutas de API
+   path('tiempo-enfocado/', views.focused_time_view, name='focused_time'),
+   path("productividad/", views.productividad_view, name="productividad"),
+   path('registrar-bloque-temporizador/', views.registrar_bloque_temporizador, name='registrar_bloque_temporizador'),
+   path('api/productividad/', views.obtener_estadisticas_productividad, name='api_productividad'),
+   path("api/productividad/", views.productividad_api, name="productividad_api"),
 ]

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/productividad.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="main-content">
+  <link rel="stylesheet" href="{% static 'css/productividad.css' %}">
+  <section class="productividad-container">
+
+    <h2><span style="color: #fff;">Análisis De</span> <span style="color: #A259FF;">Productividad</span></h2>
+
+    <!-- Panel principal: Barras + Donut + Indicadores -->
+    <div class="fila-arriba">
+      <div class="grafico-barras card">
+        <canvas id="graficoProductividad"></canvas>
+      </div>
+      
+      <div class="columna-derecha">
+        <div class="donut-card">
+          <div class="donut-container">
+            <canvas id="donutChart"></canvas>
+            <div class="donut-text">
+              <span id="donutPorcentaje">{{ productividad_hoy }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="indicadores">
+          <p><strong>{{ productividad_hoy }}%</strong> Progreso</p>
+          <p class="{% if dif_ayer_positivo %}positivo{% else %}negativo{% endif %}">
+            {{ dif_ayer_valor }}% {% if dif_ayer_positivo %}más{% else %}menos{% endif %} productivo que ayer
+          </p>
+          <p class="{% if dif_promedio_positivo %}positivo{% else %}negativo{% endif %}">
+            {{ dif_promedio_valor }}% {% if dif_promedio_positivo %}más{% else %}menos{% endif %} que tu promedio semanal
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patrones -->
+    <div class="patrones card">
+      <h3>🧠 <span style="color: #fff;">Patrones</span> <span style="color: #A259FF;">Identificados</span></h3>
+      <ul>
+        <li>📅 Tu día más productivo es: <strong>{{ dia_productivo }}</strong></li>
+        <li>🕒 Mayor rendimiento del día: <strong>{{ mejor_rango }}</strong></li>
+      </ul>
+    </div>
+
+  </section>
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const dataProductividad = {{ productividad_dias|safe }};
+  const ctx = document.getElementById('graficoProductividad').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      datasets: [{
+        label: 'Nivel de Productividad',
+        data: dataProductividad,
+        backgroundColor: ['#6EE7B7', '#3B82F6', '#818CF8', '#A78BFA', '#F472B6', '#FBBF24', '#F87171'],
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#ddd' } },
+        x: { ticks: { color: '#ddd' } }
+      }
+    }
+  });
+
+  const porcentaje = {{ productividad_hoy }};
+  const restante = 100 - porcentaje;
+
+  // Donut grande dinámico
+  new Chart(document.getElementById("donutChart").getContext("2d"), {
+    type: 'doughnut',
+    data: {
+      labels: ['Productivo', 'Restante'],
+      datasets: [{
+        data: [porcentaje, restante],
+        backgroundColor: ['#A259FF', '#3f3f46'],
+        borderWidth: 0,
+        cutout: '75%',
+      }]
+    },
+    options: {
+      responsive: false,
+      animation: {
+        animateRotate: true,
+        duration: 1000,
+        onProgress: function(animation) {
+          const progress = animation.currentStep / animation.numSteps;
+          document.getElementById("donutPorcentaje").textContent = Math.round(porcentaje * progress) + "%";
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+});
+</script>
+{% endblock %}

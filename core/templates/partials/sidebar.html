@@ -21,12 +21,12 @@
             <i class="fa-solid fa-list-check text-lg"></i>
             <span>Tareas</span>
         </a>
-        <a href="" 
+        <a href="{% url 'planner:productividad' %}" 
            class="flex items-center gap-4 rounded-md px-4 py-3 text-sidebar-muted transition-colors hover:text-foreground {% if request.resolver_match.url_name == 'productividad' %}!text-[#29CC39] bg-white/5{% endif %}">
             <i class="fa-solid fa-chart-simple text-lg"></i>
             <span>Productividad</span>
         </a>
-        <a href="" 
+        <a href="{% url 'planner:focused_time' %}" 
            class="flex items-center gap-4 rounded-md px-4 py-3 text-sidebar-muted transition-colors hover:text-foreground {% if request.resolver_match.url_name == 'pomodoro' %}!text-[#29CC39] bg-white/5{% endif %}">
             <i class="fa-solid fa-clock text-lg"></i>
             <span>Tiempo de Enfoque</span>
