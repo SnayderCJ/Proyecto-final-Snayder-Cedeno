@@ -4,6 +4,11 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<!-- Datos de productividad para JavaScript -->
+<script type="application/json" id="productivity-data">
+    {{ productivity_data_json|safe }}
+</script>
+
 <div class="flex flex-col gap-6 lg:gap-8 animate-fade-in">
     <section class="animate-slide-up">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -198,12 +203,29 @@
                 
                 <!-- Gráfico de barras -->
                 <div class="mt-6 flex items-end justify-between h-32 px-4">
-                    {% for day in productivity_data %}
-                    <div class="flex flex-col items-center">
-                        <div class="w-8 bg-primary rounded-t" style="height: {{ day.percentage }}%"></div>
-                        <span class="text-xs text-muted-foreground mt-2">{{ day.name }}</span>
-                    </div>
-                    {% endfor %}
+                    {% if productivity_data %}
+                        {% for day in productivity_data %}
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-300" 
+                                 style="height: {% if day.percentage > 0 %}{{ day.percentage }}%{% else %}5%{% endif %};">
+                                <div class="w-full h-full relative group">
+                                    <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 transition-opacity duration-200">
+                                        {{ day.percentage }}%
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-medium text-muted-foreground mt-2">{{ day.name }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for day in "LMMJVSD" %}
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 bg-gradient-to-t from-purple-600/30 to-purple-400/30 rounded-t-lg" 
+                                 style="height: 5%;"></div>
+                            <span class="text-xs font-medium text-muted-foreground mt-2">{{ day }}</span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
                 </div>
                 
                 <div class="mt-4 flex items-center justify-between text-sm">
@@ -218,9 +240,9 @@
                     <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
                         <i class="fas fa-lightbulb text-lg"></i>
                     </div>
-                    <div>
+                    <div class="flex-1">
                         <h3 class="font-semibold text-white">Consejo del día</h3>
-                        <p class="mt-2 text-purple-100" id="daily-tip">
+                        <p class="mt-2 text-purple-100 cursor-pointer hover:text-white transition-colors" id="daily-tip">
                             La técnica Pomodoro puede aumentar tu productividad hasta un 75%. Tus patrones de estudio muestran que eres más productivo en sesiones de 25 minutos.
                         </p>
                     </div>
@@ -233,6 +255,7 @@
 
 {% block extra_js %}
 {{ block.super }}
+<script src="{% static 'js/home.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Configuración del temporizador Pomodoro

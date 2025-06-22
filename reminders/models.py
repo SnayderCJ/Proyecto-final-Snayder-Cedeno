@@ -1,262 +1,184 @@
-# reminders/models.py
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.utils import timezone
-from datetime import timedelta
-import uuid
 
-class ReminderType(models.TextChoices):
-    EMAIL = 'email', 'Solo Email'
-    CALENDAR = 'calendar', 'Solo Google Calendar'
-    BOTH = 'both', 'Email + Google Calendar'
 
-class ReminderTiming(models.TextChoices):
-    IMMEDIATE = 'immediate', 'Inmediato'
-    MIN_15 = '15_min', '15 minutos antes'
-    HOUR_1 = '1_hour', '1 hora antes'
-    HOUR_2 = '2_hours', '2 horas antes'
-    DAY_1 = '1_day', '1 día antes'
-    DAY_3 = '3_days', '3 días antes'
-
-class ReminderStatus(models.TextChoices):
-    PENDING = 'pending', 'Pendiente'
-    SENT = 'sent', 'Enviado'
-    COMPLETED = 'completed', 'Completado'
-    CANCELLED = 'cancelled', 'Cancelado'
-    FAILED = 'failed', 'Fallido'
-
-class ReminderFrequency(models.TextChoices):
-    HIGH = 'high', 'Alta (frecuencia normal)'
-    MEDIUM = 'medium', 'Media (frecuencia reducida)'
-    LOW = 'low', 'Baja (frecuencia mínima)'
-    DISABLED = 'disabled', 'Deshabilitado'
-
-class ReminderConfiguration(models.Model):
+class ReminderConfig(models.Model):
     """Configuración de recordatorios por usuario"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='reminder_config')
-    reminders_enabled = models.BooleanField(default=True, verbose_name="Recordatorios activos")
+
+    REMINDER_TYPES = [
+        ("email", "Solo Email"),
+        ("calendar", "Solo Calendario"),
+        ("both", "Email y Calendario"),
+    ]
+
+    FREQUENCY_CHOICES = [
+        ("low", "Baja (1 recordatorio)"),
+        ("normal", "Normal (2 recordatorios)"),
+        ("high", "Alta (3 recordatorios)"),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reminder_config",
+    )
+
+    # Configuración general
+    reminders_enabled = models.BooleanField(default=True)
+    email_enabled = models.BooleanField(default=True)
+    calendar_enabled = models.BooleanField(default=True)
+
+    # Preferencias
     preferred_type = models.CharField(
-        max_length=20, 
-        choices=ReminderType.choices, 
-        default=ReminderType.BOTH,
-        verbose_name="Tipo preferido"
+        max_length=10, choices=REMINDER_TYPES, default="both"
     )
-    default_timing = models.CharField(
-        max_length=20,
-        choices=ReminderTiming.choices,
-        default=ReminderTiming.HOUR_1,
-        verbose_name="Tiempo de anticipación"
-    )
-    adaptive_frequency = models.BooleanField(default=True, verbose_name="Frecuencia adaptativa")
     current_frequency = models.CharField(
-        max_length=20,
-        choices=ReminderFrequency.choices,
-        default=ReminderFrequency.HIGH
+        max_length=10, choices=FREQUENCY_CHOICES, default="normal"
     )
-    consecutive_ignored = models.IntegerField(default=0)
-    last_adaptation = models.DateTimeField(null=True, blank=True)
-    
-    # Preferencias específicas
-    email_enabled = models.BooleanField(default=True, verbose_name="Emails activos")
-    calendar_enabled = models.BooleanField(default=True, verbose_name="Google Calendar activo")
-    
+
+    # Metadatos
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
-        return f"Configuración de {self.user.get_full_name() or self.user.username}"
+        return f"Configuración de recordatorios para {self.user.email}"
 
-    def should_adapt_frequency(self):
-        return self.adaptive_frequency and self.consecutive_ignored >= 3
-
-    def adapt_frequency(self):
-        if self.current_frequency == ReminderFrequency.HIGH:
-            self.current_frequency = ReminderFrequency.MEDIUM
-        elif self.current_frequency == ReminderFrequency.MEDIUM:
-            self.current_frequency = ReminderFrequency.LOW
-        
-        self.consecutive_ignored = 0
-        self.last_adaptation = timezone.now()
-        self.save()
-
-    class Meta:
-        verbose_name = "Configuración de Recordatorio"
-        verbose_name_plural = "Configuraciones de Recordatorios"
 
 class Reminder(models.Model):
-    """Recordatorio individual"""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reminders')
-    
-    # Contenido principal
-    title = models.CharField(max_length=200, verbose_name="Título")
-    description = models.TextField(blank=True, verbose_name="Descripción")
-    target_datetime = models.DateTimeField(verbose_name="Fecha y hora objetivo")
-    
-    # Configuración del recordatorio
+    """Modelo para recordatorios"""
+
+    STATUS_CHOICES = [
+        ("pending", "Pendiente"),
+        ("sent", "Enviado"),
+        ("completed", "Completado"),
+        ("cancelled", "Cancelado"),
+        ("failed", "Fallido"),
+    ]
+
+    REMINDER_TYPES = [
+        ("email", "Email"),
+        ("calendar", "Calendario"),
+        ("both", "Ambos"),
+    ]
+
+    TIMING_CHOICES = [
+        ("immediate", "Inmediato"),
+        ("5min", "5 minutos antes"),
+        ("15min", "15 minutos antes"),
+        ("30min", "30 minutos antes"),
+        ("1hour", "1 hora antes"),
+        ("1day", "1 día antes"),
+    ]
+
+    # Relaciones
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reminders"
+    )
+
+    # Datos básicos
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    target_datetime = models.DateTimeField()
+
+    # Configuración
     reminder_type = models.CharField(
-        max_length=20, 
-        choices=ReminderType.choices,
-        default=ReminderType.BOTH,
-        verbose_name="Tipo de recordatorio"
+        max_length=10, choices=REMINDER_TYPES, default="email"
     )
-    timing = models.CharField(
-        max_length=20, 
-        choices=ReminderTiming.choices,
-        default=ReminderTiming.HOUR_1,
-        verbose_name="Tiempo de anticipación"
-    )
-    
+    timing = models.CharField(max_length=10, choices=TIMING_CHOICES, default="15min")
+
     # Estado y seguimiento
-    status = models.CharField(
-        max_length=20, 
-        choices=ReminderStatus.choices, 
-        default=ReminderStatus.PENDING,
-        verbose_name="Estado"
-    )
-    scheduled_send_time = models.DateTimeField(verbose_name="Programado para")
-    actual_send_time = models.DateTimeField(null=True, blank=True)
-    
-    # Interacción del usuario
-    responded = models.BooleanField(default=False)
-    response_time = models.DateTimeField(null=True, blank=True)
-    response_action = models.CharField(max_length=50, blank=True)
-    
-    # IDs de servicios externos
-    email_message_id = models.CharField(max_length=255, blank=True)
-    calendar_event_id = models.CharField(max_length=255, blank=True)
-    
-    # Metadatos
-    send_attempts = models.IntegerField(default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    send_attempts = models.PositiveIntegerField(default=0)
+    last_attempt = models.DateTimeField(null=True, blank=True)
     last_error = models.TextField(blank=True)
-    
-    # IA personalization
-    ai_subject = models.CharField(max_length=200, blank=True, verbose_name="Asunto generado por IA")
-    ai_description = models.TextField(blank=True, verbose_name="Descripción generada por IA")
-    ai_priority = models.CharField(max_length=20, default='medium')
-    
+
+    # Datos de IA
+    ai_subject = models.CharField(max_length=200, blank=True)
+    ai_description = models.TextField(blank=True)
+
+    # Metadatos
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    scheduled_send_time = models.DateTimeField()
+
     def save(self, *args, **kwargs):
-        if not self.scheduled_send_time:
-            self.calculate_send_time()
+        # Calcular tiempo de envío programado si es nuevo
+        if not self.id:
+            self.scheduled_send_time = self.calculate_send_time()
         super().save(*args, **kwargs)
-    
+
     def calculate_send_time(self):
-        """Calcula cuándo enviar el recordatorio"""
-        timing_map = {
-            ReminderTiming.IMMEDIATE: timedelta(0),
-            ReminderTiming.MIN_15: timedelta(minutes=15),
-            ReminderTiming.HOUR_1: timedelta(hours=1),
-            ReminderTiming.HOUR_2: timedelta(hours=2),
-            ReminderTiming.DAY_1: timedelta(days=1),
-            ReminderTiming.DAY_3: timedelta(days=3),
-        }
-        
-        time_delta = timing_map.get(ReminderTiming(self.timing), timedelta(hours=1))
-        self.scheduled_send_time = self.target_datetime - time_delta
-    
+        """Calcula cuándo debe enviarse el recordatorio basado en timing"""
+        if self.timing == "immediate":
+            return timezone.now()
+
+        delta = {
+            "5min": timezone.timedelta(minutes=5),
+            "15min": timezone.timedelta(minutes=15),
+            "30min": timezone.timedelta(minutes=30),
+            "1hour": timezone.timedelta(hours=1),
+            "1day": timezone.timedelta(days=1),
+        }.get(self.timing, timezone.timedelta(minutes=15))
+
+        return self.target_datetime - delta
+
     def mark_as_sent(self):
-        self.status = ReminderStatus.SENT
-        self.actual_send_time = timezone.now()
+        """Marca el recordatorio como enviado"""
+        self.status = "sent"
+        self.last_attempt = timezone.now()
+        self.send_attempts += 1
         self.save()
-    
-    def mark_as_responded(self, action='completed'):
-        """Marcar como respondido - RESETEA el contador de ignorados"""
-        self.responded = True
-        self.response_time = timezone.now()
-        self.response_action = action
-        self.status = ReminderStatus.COMPLETED
+
+    def mark_as_completed(self):
+        """Marca el recordatorio como completado"""
+        self.status = "completed"
         self.save()
-        
-        # RESETEAR contador de ignorados cuando el usuario responde
-        config = getattr(self.user, 'reminder_config', None)
-        if config:
-            config.consecutive_ignored = 0
-            config.save()
-    
-    def mark_as_ignored(self):
-        """Marcar como ignorado - INCREMENTA el contador"""
-        config = getattr(self.user, 'reminder_config', None)
-        if config:
-            config.consecutive_ignored += 1
-            
-            if config.should_adapt_frequency():
-                config.adapt_frequency()
-            else:
-                config.save()
-    
-    def is_ready_to_send(self):
-        return (
-            self.status == ReminderStatus.PENDING and
-            timezone.now() >= self.scheduled_send_time
-        )
-    
-    def get_user_full_name(self):
-        """Obtiene nombre completo del usuario"""
-        return f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username
-    
+
+    def mark_as_failed(self, error_message):
+        """Marca el recordatorio como fallido"""
+        self.status = "failed"
+        self.last_error = error_message
+        self.last_attempt = timezone.now()
+        self.send_attempts += 1
+        self.save()
+
+    def cancel(self):
+        """Cancela el recordatorio"""
+        self.status = "cancelled"
+        self.save()
+
+    def snooze(self, minutes=15):
+        """Pospone el recordatorio"""
+        self.target_datetime = timezone.now() + timezone.timedelta(minutes=minutes)
+        self.scheduled_send_time = self.calculate_send_time()
+        self.status = "pending"
+        self.save()
+
     def __str__(self):
-        return f"{self.title} - {self.get_user_full_name()}"
-    
+        return f"{self.title} ({self.get_status_display()})"
+
     class Meta:
-        verbose_name = "Recordatorio"
-        verbose_name_plural = "Recordatorios"
-        ordering = ['-created_at']
+        ordering = ["scheduled_send_time"]
+        indexes = [
+            models.Index(fields=["status", "scheduled_send_time"]),
+            models.Index(fields=["user", "status"]),
+        ]
 
 
 class ReminderLog(models.Model):
-    """Log de actividades"""
-    # CAMBIO: Permitir reminder=None para logs de configuración
+    """Registro de actividad de recordatorios"""
+
     reminder = models.ForeignKey(
-        Reminder, 
-        on_delete=models.CASCADE, 
-        related_name='logs',
-        null=True,  # ← AGREGAR ESTO
-        blank=True  # ← AGREGAR ESTO
+        Reminder, on_delete=models.CASCADE, related_name="logs"
     )
+    timestamp = models.DateTimeField(auto_now_add=True)
     action = models.CharField(max_length=50)
     details = models.TextField(blank=True)
-    timestamp = models.DateTimeField(auto_now_add=True)
     success = models.BooleanField(default=True)
-    error_message = models.TextField(blank=True)
-    
-    # AGREGAR campo de usuario para logs sin recordatorio
-    user = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
-    
+
     def __str__(self):
-        status = "✅" if self.success else "❌"
-        if self.reminder:
-            return f"{status} {self.action} - {self.reminder.title}"
-        else:
-            return f"{status} {self.action} - Sistema"
-    
-    @classmethod
-    def log_action(cls, reminder=None, action="", details="", success=True, error_message="", user=None):
-        """Crear log de acción - MEJORADO"""
-        # Si hay reminder, usar su usuario; si no, usar el usuario pasado
-        log_user = None
-        if reminder:
-            log_user = reminder.user
-        elif user:
-            log_user = user
-            
-        return cls.objects.create(
-            reminder=reminder,
-            user=log_user,
-            action=action,
-            details=details,
-            success=success,
-            error_message=error_message
-        )
-    
+        return f"{self.action} - {self.timestamp}"
+
     class Meta:
-        verbose_name = "Log de Recordatorio"
-        verbose_name_plural = "Logs de Recordatorios"
-        ordering = ['-timestamp']
+        ordering = ["-timestamp"]

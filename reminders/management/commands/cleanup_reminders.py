@@ -1,93 +1,81 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import timedelta
 from reminders.models import Reminder, ReminderLog
+import logging
+
+logger = logging.getLogger('reminders')
 
 class Command(BaseCommand):
-    help = 'Limpia recordatorios vencidos y logs antiguos'
+    help = 'Limpia recordatorios antiguos y registros de log'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--days',
             type=int,
             default=30,
-            help='Días de antigüedad para limpiar recordatorios completados (default: 30)',
+            help='Días de antigüedad para limpiar recordatorios (default: 30)',
         )
         parser.add_argument(
             '--log-days',
             type=int,
-            default=90,
-            help='Días de antigüedad para limpiar logs (default: 90)',
+            default=60,
+            help='Días de antigüedad para limpiar logs (default: 60)',
         )
         parser.add_argument(
             '--dry-run',
             action='store_true',
-            help='Ejecutar en modo simulación sin eliminar datos',
+            help='Simular la limpieza sin eliminar realmente',
         )
 
     def handle(self, *args, **options):
-        dry_run = options['dry_run']
         days = options['days']
         log_days = options['log_days']
-        now = timezone.now()
+        dry_run = options['dry_run']
 
-        self.stdout.write(f"🧹 Iniciando limpieza de recordatorios... ({now.strftime('%Y-%m-%d %H:%M:%S')})")
+        cutoff_date = timezone.now() - timezone.timedelta(days=days)
+        log_cutoff_date = timezone.now() - timezone.timedelta(days=log_days)
 
-        # 1. Marcar recordatorios vencidos como fallidos
-        expired_reminders = Reminder.objects.filter(
-            status='pending',
-            target_datetime__lt=now - timedelta(hours=1)  # 1 hora de gracia
+        # Recordatorios a limpiar
+        reminders_to_clean = Reminder.objects.filter(
+            status__in=['completed', 'cancelled', 'failed'],
+            updated_at__lt=cutoff_date
         )
 
-        if expired_reminders.exists():
-            count = expired_reminders.count()
-            self.stdout.write(f"⏰ Encontrados {count} recordatorios vencidos")
-            
-            if not dry_run:
-                expired_reminders.update(status='failed', last_error='Recordatorio vencido')
-                self.stdout.write(f"✅ Marcados {count} recordatorios como fallidos")
-            else:
-                self.stdout.write(f"🔸 [DRY RUN] Se marcarían {count} recordatorios como fallidos")
-
-        # 2. Limpiar recordatorios completados antiguos
-        old_completed = Reminder.objects.filter(
-            status__in=['completed', 'cancelled'],
-            updated_at__lt=now - timedelta(days=days)
+        # Logs a limpiar
+        logs_to_clean = ReminderLog.objects.filter(
+            timestamp__lt=log_cutoff_date
         )
 
-        if old_completed.exists():
-            count = old_completed.count()
-            self.stdout.write(f"📦 Encontrados {count} recordatorios completados antiguos (>{days} días)")
-            
-            if not dry_run:
-                old_completed.delete()
-                self.stdout.write(f"🗑️ Eliminados {count} recordatorios antiguos")
-            else:
-                self.stdout.write(f"🔸 [DRY RUN] Se eliminarían {count} recordatorios antiguos")
+        if dry_run:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'🔍 Simulando limpieza de:\n'
+                    f'- {reminders_to_clean.count()} recordatorios antiguos\n'
+                    f'- {logs_to_clean.count()} registros de log'
+                )
+            )
+            return
 
-        # 3. Limpiar logs antiguos
-        old_logs = ReminderLog.objects.filter(
-            timestamp__lt=now - timedelta(days=log_days)
+        # Limpiar recordatorios
+        reminders_count = reminders_to_clean.count()
+        reminders_to_clean.delete()
+
+        # Limpiar logs
+        logs_count = logs_to_clean.count()
+        logs_to_clean.delete()
+
+        # Registrar limpieza
+        logger.info(
+            f'Limpieza completada: {reminders_count} recordatorios y {logs_count} logs eliminados'
         )
 
-        if old_logs.exists():
-            count = old_logs.count()
-            self.stdout.write(f"📋 Encontrados {count} logs antiguos (>{log_days} días)")
-            
-            if not dry_run:
-                old_logs.delete()
-                self.stdout.write(f"🗑️ Eliminados {count} logs antiguos")
-            else:
-                self.stdout.write(f"🔸 [DRY RUN] Se eliminarían {count} logs antiguos")
+        # Resumen
+        summary = f"""
+📊 Resumen de limpieza:
+- Recordatorios eliminados: {reminders_count}
+- Logs eliminados: {logs_count}
+- Fecha de corte recordatorios: {cutoff_date.strftime('%Y-%m-%d')}
+- Fecha de corte logs: {log_cutoff_date.strftime('%Y-%m-%d')}
+        """
 
-        # 4. Estadísticas finales
-        total_reminders = Reminder.objects.count()
-        pending_reminders = Reminder.objects.filter(status='pending').count()
-        total_logs = ReminderLog.objects.count()
-
-        self.stdout.write(f"\n📊 Estadísticas actuales:")
-        self.stdout.write(f"   📋 Total recordatorios: {total_reminders}")
-        self.stdout.write(f"   ⏳ Pendientes: {pending_reminders}")
-        self.stdout.write(f"   📝 Total logs: {total_logs}")
-
-        self.stdout.write(self.style.SUCCESS("✅ Limpieza completada"))
+        self.stdout.write(self.style.SUCCESS(summary))

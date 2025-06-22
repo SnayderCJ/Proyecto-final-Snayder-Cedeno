@@ -23,7 +23,8 @@ from django.utils import timezone
 
 @login_required
 def home(request):
-    from planner.models import Event
+    from planner.models import Event, BloqueEstudio
+    from planner.views import get_productividad_hoy
     from datetime import timedelta
     
     # Obtener zona horaria del usuario
@@ -134,47 +135,74 @@ def home(request):
             'color_class': color_class
         })
     
-    # Calcular datos de productividad reales basados en tareas completadas
+    # Obtener datos de productividad usando la función del planner
+    productividad_hoy = get_productividad_hoy(request.user)
+    
+    # Calcular datos de productividad para la semana
     import calendar
     from datetime import timedelta
+    from collections import defaultdict
 
     today = timezone.now().date()
     week_start = today - timedelta(days=today.weekday())
 
+    # Obtener bloques de estudio completados para la semana
+    bloques_semana = BloqueEstudio.objects.filter(
+        usuario=request.user,
+        fecha__range=(week_start, week_start + timedelta(days=6)),
+        completado=True
+    )
+
+    # Obtener eventos completados para la semana
+    eventos_completados = Event.objects.filter(
+        user=request.user,
+        start_time__date__range=(week_start, week_start + timedelta(days=6)),
+        is_completed=True,
+        event_type__in=['tarea', 'clase']
+    )
+
+    # Calcular productividad por día
+    productividad_dias = [0] * 7
+    meta_diaria = 120  # 2 horas en minutos
+
+    # Agregar minutos de bloques de estudio
+    for bloque in bloques_semana:
+        index = bloque.fecha.weekday()
+        productividad_dias[index] += bloque.duracion_min
+
+    # Agregar minutos de eventos completados
+    for evento in eventos_completados:
+        fecha_evento = evento.start_time.date()
+        if week_start <= fecha_evento <= week_start + timedelta(days=6):
+            index = fecha_evento.weekday()
+            duracion = (evento.end_time - evento.start_time).total_seconds() / 60
+            productividad_dias[index] += int(duracion)
+
+    # Convertir a porcentajes para el gráfico
     productivity_data = []
-    total_productivity = 0
-    days_with_data = 0
-
+    day_names = ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+    
     for i in range(7):
-        day = week_start + timedelta(days=i)
-        day_name = calendar.day_name[day.weekday()][:1]  # Primera letra del día
-
-        day_tasks = user_events.filter(start_time__date=day)
-        completed_tasks_count = day_tasks.filter(is_completed=True).count()
-        total_tasks_count = day_tasks.count()
-
-        if total_tasks_count > 0:
-            percentage = int((completed_tasks_count / total_tasks_count) * 100)
-            total_productivity += percentage
-            days_with_data += 1
-        else:
-            percentage = 50  # Valor base si no hay tareas
-
+        percentage = min(100, int((productividad_dias[i] / meta_diaria) * 100))
         productivity_data.append({
-            'name': day_name,
-            'percentage': min(percentage, 100)
+            'name': day_names[i],
+            'percentage': percentage
         })
+    
+    # Debug: Imprimir datos de productividad
+    print(f"🔍 Debug - Productividad por días (minutos): {productividad_dias}")
+    print(f"🔍 Debug - Datos de productividad para gráfico: {productivity_data}")
+    
+    # Convertir datos a JSON para el template
+    import json
+    productivity_data_json = json.dumps(productivity_data)
 
-    if days_with_data > 0:
-        avg_productivity = int(total_productivity / days_with_data)
-    else:
-        avg_productivity = 0
-
-    if avg_productivity >= 80:
+    # Calcular estado de productividad
+    if productividad_hoy >= 80:
         productivity_status = "Excelente"
-    elif avg_productivity >= 60:
+    elif productividad_hoy >= 60:
         productivity_status = "Optimizado"
-    elif avg_productivity >= 40:
+    elif productividad_hoy >= 40:
         productivity_status = "Regular"
     else:
         productivity_status = "Necesita mejora"
@@ -192,7 +220,9 @@ def home(request):
         'week_days_data': week_days_data,
         'extract_subject': extract_subject_from_title,
         'productivity_data': productivity_data,
+        'productivity_data_json': productivity_data_json,
         'productivity_status': productivity_status,
+        'productividad_hoy': productividad_hoy,
     }
     
     # Agregar información del usuario y Google si está autenticado
@@ -334,6 +364,9 @@ def perfil(request):
     # Obtener o crear perfil del usuario
     user_profile, created = UserProfile.objects.get_or_create(user=request.user)
     
+    # Obtener o crear configuraciones del usuario
+    user_settings, settings_created = UserSettings.objects.get_or_create(user=request.user)
+    
     # Inicializar formularios - IMPORTANTE: pasar is_google_user al formulario
     profile_form = ProfileForm(instance=request.user, is_google_user=is_google_user)
     password_form = CustomPasswordChangeForm(request.user) if user_has_password else None
@@ -397,6 +430,7 @@ def perfil(request):
         'user_avatar': get_user_avatar(request.user),
         'profile_form': profile_form,
         'password_form': password_form,
+        'user_settings': user_settings,
     }
 
     return render(request, 'pages/perfil.html', context)
@@ -643,13 +677,42 @@ def settings(request):
     user_settings, _ = UserSettings.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        form = SettingsForm(request.POST)
-        if form.is_valid():
-            user_settings.language = form.cleaned_data['language']
-            user_settings.timezone = form.cleaned_data['timezone']
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'notifications':
+            # Actualizar preferencias de notificación
+            user_settings.email_notifications = request.POST.get('email_notifications') == 'on'
+            user_settings.task_reminders = request.POST.get('task_reminders') == 'on'
             user_settings.save()
-            messages.success(request, "¡Tus configuraciones han sido guardadas exitosamente!")
-            return redirect('core:settings')
+            
+            # Sincronizar con configuración de recordatorios
+            try:
+                from reminders.models import ReminderConfig
+                reminder_config, created = ReminderConfig.objects.get_or_create(user=request.user)
+                
+                # Sincronizar configuraciones
+                reminder_config.reminders_enabled = user_settings.task_reminders
+                reminder_config.email_enabled = user_settings.email_notifications
+                reminder_config.save()
+                
+                if created:
+                    messages.info(request, "Se ha creado tu configuración de recordatorios automáticamente.")
+                    
+            except ImportError:
+                # Si la app reminders no está disponible, continuar sin error
+                pass
+            
+            messages.success(request, "¡Tus preferencias de notificación han sido actualizadas!")
+            return redirect('core:perfil')
+            
+        elif form_type == 'settings':
+            form = SettingsForm(request.POST)
+            if form.is_valid():
+                user_settings.language = form.cleaned_data['language']
+                user_settings.timezone = form.cleaned_data['timezone']
+                user_settings.save()
+                messages.success(request, "¡Tus configuraciones han sido guardadas exitosamente!")
+                return redirect('core:settings')
         else:
             messages.error(request, "Por favor corrige los errores en el formulario.")
     else:
