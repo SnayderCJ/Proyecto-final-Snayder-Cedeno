@@ -554,16 +554,34 @@ def optimize_schedule(request):
                 )
                 suggested_end_datetime = suggested_datetime + timedelta(hours=event_data['duration'])
                 
-                # Solo sugerir si es diferente al horario actual y está disponible
-                if suggested_datetime.hour != event.start_time.hour and prediction.get('disponible', True):
+                # Verificar conflictos con otros eventos sugeridos
+                has_conflict = False
+                for existing_suggestion in suggestions:
+                    existing_start = datetime.fromisoformat(existing_suggestion['suggested_time_iso'])
+                    existing_end = datetime.fromisoformat(existing_suggestion['suggested_end_time_iso'])
+                    
+                    # Verificar si hay solapamiento
+                    if (suggested_datetime <= existing_end and 
+                        suggested_end_datetime >= existing_start and
+                        existing_start.date() == suggested_datetime.date()):
+                        has_conflict = True
+                        break
+
+                # Solo sugerir si es diferente al horario actual, está disponible y no tiene conflictos
+                if (suggested_datetime.hour != event.start_time.hour and 
+                    prediction.get('disponible', True) and 
+                    not has_conflict):
                     suggestions.append({
                         'event_id': event.id,
                         'title': event.title,
-                        'current_time': event.start_time.isoformat(),
-                        'suggested_time': suggested_datetime.isoformat(),
-                        'suggested_end_time': suggested_end_datetime.isoformat(),
+                        'current_time': event.start_time.strftime('%H:%M'),
+                        'suggested_time': suggested_datetime.strftime('%H:%M'),
+                        'suggested_end_time': suggested_end_datetime.strftime('%H:%M'),
+                        'current_time_iso': event.start_time.isoformat(),
+                        'suggested_time_iso': suggested_datetime.isoformat(),
+                        'suggested_end_time_iso': suggested_end_datetime.isoformat(),
                         'improvement_score': round((prediction['score'] - 0.5) * 100, 1),
-                        'confianza': prediction['confianza'],
+                        'confianza': round(prediction['confianza'] * 100),
                         'mejor_hora': prediction['mejor_hora'],
                         'todas_opciones': prediction['todas_opciones'],
                         'reason': optimizer._generate_reason(event_data, prediction)

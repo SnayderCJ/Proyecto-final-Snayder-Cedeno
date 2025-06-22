@@ -232,6 +232,7 @@
 {% endblock content %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Configuración del temporizador Pomodoro

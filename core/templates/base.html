@@ -69,7 +69,7 @@
         if (overlay) {
             overlay.addEventListener('click', toggleMenu);
         }
-)
+
         const sidebarLinks = sidebar?.querySelectorAll('a');
         if (sidebarLinks) {
             sidebarLinks.forEach(link => {
@@ -82,7 +82,7 @@
         }
     });
 
-    document.addEventListener("DOMContentLoaded", function () {Add commentMore actions
+    document.addEventListener("DOMContentLoaded", function () {
       fetch("/planner/api/productividad/")
         .then(response => response.json())
         .then(data => {

@@ -158,7 +158,7 @@ async function showSuggestions(suggestions) {
 
             if (suggestion) { 
               console.log(`Aplicando cambio para evento ${eventId}`);
-              await applySuggestionWithTimes(eventId, suggestion.suggested_time, suggestion.suggested_end_time);
+              await applySuggestionWithTimes(eventId, suggestion.suggested_time_iso, suggestion.suggested_end_time_iso);
             }
           }
 
