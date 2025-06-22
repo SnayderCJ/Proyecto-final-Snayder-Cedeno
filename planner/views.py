@@ -47,9 +47,9 @@ def get_productividad_hoy(usuario):
     minutos_totales = minutos_bloques + minutos_eventos
     meta_diaria = 120  # 2 horas
     
-    # Calcular porcentaje permitiendo superar el 100%
+    # Calcular porcentaje limitado al 100%
     porcentaje = int((minutos_totales / meta_diaria) * 100) if minutos_totales > 0 else 0
-    return porcentaje  # Permitir que supere el 100% para mostrar sobrelogro
+    return min(100, porcentaje)  # Limitar al 100% máximo
 
 @login_required
 def calendar_view(request):
@@ -735,15 +735,14 @@ def productividad_view(request):
     # Guardar los minutos originales para cálculos
     minutos_originales = productividad_dias.copy()
     
-    # Convertir minutos a porcentajes basados en la meta diaria para el gráfico
-    meta_diaria = 120  # 2 horas
-    productividad_dias_porcentajes = [int((minutos / meta_diaria) * 100) for minutos in productividad_dias]
-
     # Calcular total de actividad real
-    if all(p == 0 for p in productividad_dias):
+    if all(m == 0 for m in productividad_dias):
         print("⚠️ No hay actividad registrada. Usando datos de ejemplo.")
         productividad_dias = [0, 0, 0, 0, 0, 0, 0]  # Iniciar en 0 para mostrar progreso real
-        productividad_dias_porcentajes = [0, 0, 0, 0, 0, 0, 0]
+    
+    # Convertir minutos a porcentajes basados en la meta diaria para el gráfico, limitando al 100%
+    meta_diaria = 120  # 2 horas
+    productividad_dias_porcentajes = [min(100, int((minutos / meta_diaria) * 100)) for minutos in productividad_dias]
 
     print(f"🔍 Debug - Productividad por días (minutos): {productividad_dias}")
     print(f"🔍 Debug - Productividad por días (porcentajes): {productividad_dias_porcentajes}")
@@ -758,36 +757,41 @@ def productividad_view(request):
     dif_ayer = minutos_hoy - minutos_originales[hoy_index - 1] if hoy_index > 0 else 0
     dif_promedio = minutos_hoy - promedio
 
-    # Calcular porcentaje basado en actividad real
-    productividad_hoy_percent = int((minutos_hoy / meta_diaria) * 100) if minutos_hoy > 0 else 0
+    # Calcular porcentaje basado en actividad real, limitando al 100%
+    productividad_hoy_percent = min(100, int((minutos_hoy / meta_diaria) * 100)) if minutos_hoy > 0 else 0
     
-    # Permitir que el porcentaje supere el 100% para mostrar sobrelogro
+    # Calcular porcentajes de ayer y promedio para comparación
+    minutos_ayer = minutos_originales[hoy_index - 1] if hoy_index > 0 else 0
+    porcentaje_ayer = min(100, int((minutos_ayer / meta_diaria) * 100)) if minutos_ayer > 0 else 0
+    porcentaje_promedio = min(100, int((promedio / meta_diaria) * 100)) if promedio > 0 else 0
+    
+    # Calcular diferencias en puntos porcentuales (no como porcentaje del valor anterior)
+    dif_ayer_puntos = productividad_hoy_percent - porcentaje_ayer
+    dif_promedio_puntos = productividad_hoy_percent - porcentaje_promedio
+    
     print(f"🎯 Meta diaria: {meta_diaria} minutos")
     print(f"⏱️ Minutos completados hoy: {minutos_hoy}")
-    print(f"📊 Porcentaje de productividad: {productividad_hoy_percent}%")
-
-    print(f"🔍 Debug - Minutos hoy: {minutos_hoy}")
-    print(f"🔍 Debug - Promedio: {promedio}")
-    print(f"🔍 Debug - Porcentaje hoy: {productividad_hoy_percent}")
+    print(f"⏱️ Minutos completados ayer: {minutos_ayer}")
+    print(f"📊 Porcentaje de productividad hoy: {productividad_hoy_percent}%")
+    print(f"📊 Porcentaje de productividad ayer: {porcentaje_ayer}%")
+    print(f"📊 Diferencia en puntos porcentuales: {dif_ayer_puntos}%")
 
     import json
     # Usar los porcentajes para el gráfico
     datos_productividad = json.dumps(productividad_dias_porcentajes)
-    print(f"🔍 Debug - JSON productividad_dias: {datos_productividad}")
-    print(f"🔍 Debug - Porcentaje hoy: {productividad_hoy_percent}%")
     
     context = {
         'productividad_dias': datos_productividad,
         'productividad_hoy': productividad_hoy_percent,
         'productividad_restante': 100 - productividad_hoy_percent,
 
-        # Limitar la diferencia con ayer a 100%
-        'dif_ayer_valor': min(100, abs(int(dif_ayer / minutos_originales[hoy_index - 1] * 100))) if hoy_index > 0 and minutos_originales[hoy_index - 1] > 0 else 0,
-        'dif_ayer_positivo': dif_ayer >= 0,
+        # Usar diferencias en puntos porcentuales
+        'dif_ayer_valor': abs(dif_ayer_puntos),
+        'dif_ayer_positivo': dif_ayer_puntos >= 0,
 
-        # Limitar la diferencia con el promedio a 100%
-        'dif_promedio_valor': min(100, abs(int(dif_promedio / promedio * 100))) if promedio > 0 else 0,
-        'dif_promedio_positivo': dif_promedio >= 0,
+        # Usar diferencias en puntos porcentuales para el promedio
+        'dif_promedio_valor': abs(dif_promedio_puntos),
+        'dif_promedio_positivo': dif_promedio_puntos >= 0,
 
         'dia_productivo': dias[minutos_originales.index(max(minutos_originales))] if max(minutos_originales) > 0 else "Ninguno",
         'mejor_rango': calcular_mejor_rango_combinado(bloques, eventos_completados),
