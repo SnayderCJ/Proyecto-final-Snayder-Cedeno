@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
       scales: {
         y: {
           beginAtZero: true,
+          max: 100,
           grid: {
             color: 'rgba(255, 255, 255, 0.1)'
           },
@@ -35,7 +36,8 @@ document.addEventListener("DOMContentLoaded", function () {
             color: '#ddd',
             font: {
               family: "'Inter', sans-serif"
-            }
+            },
+            stepSize: 10
           }
         },
         x: {

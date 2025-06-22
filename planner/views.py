@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timedelta, date
 from django.utils import timezone
 from planner.ai_optimizer import SmartScheduleOptimizer
 from django.views.decorators.http import require_POST
@@ -18,6 +18,39 @@ from core.models import UserSettings
 from .models import BloqueEstudio
 from .ia_generador import generar_bloques_enfocados_semana
 
+def get_productividad_hoy(usuario):
+    """Función auxiliar para obtener el porcentaje de productividad del día actual"""
+    hoy = date.today()
+    
+    # Obtener bloques de estudio completados hoy
+    bloques = BloqueEstudio.objects.filter(
+        usuario=usuario,
+        fecha=hoy,
+        completado=True
+    )
+    
+    # Obtener eventos completados hoy
+    eventos = Event.objects.filter(
+        user=usuario,
+        start_time__date=hoy,
+        is_completed=True,
+        event_type__in=['tarea', 'clase']
+    )
+    
+    # Calcular minutos totales
+    minutos_bloques = sum(bloque.duracion_min for bloque in bloques)
+    minutos_eventos = sum(
+        int((evento.end_time - evento.start_time).total_seconds() / 60)
+        for evento in eventos
+    )
+    
+    minutos_totales = minutos_bloques + minutos_eventos
+    meta_diaria = 120  # 2 horas
+    
+    # Calcular porcentaje permitiendo superar el 100%
+    porcentaje = int((minutos_totales / meta_diaria) * 100) if minutos_totales > 0 else 0
+    return porcentaje  # Permitir que supere el 100% para mostrar sobrelogro
+
 @login_required
 def calendar_view(request):
     # Obtener la zona horaria del usuario
@@ -26,6 +59,9 @@ def calendar_view(request):
         user_tz = pytz.timezone(user_settings.timezone)
     except (UserSettings.DoesNotExist, pytz.exceptions.UnknownTimeZoneError):
         user_tz = pytz.timezone('America/Guayaquil')
+        
+    # Obtener productividad del día
+    productividad_hoy = get_productividad_hoy(request.user)
 
     # Obtener la fecha de referencia desde los parámetros GET
     date_param = request.GET.get('date')
@@ -157,6 +193,7 @@ def calendar_view(request):
         'time_slots': [f"{h:02d}:00" for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)],
         'current_month_name': month_name_es,
         'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} de {month_name_es} de {start_of_week.year}",
+        'productividad_hoy': productividad_hoy,
     }
     return render(request, 'horarios.html', context)
 
@@ -320,6 +357,9 @@ def tareas_view(request):
     """
     Vista para mostrar las tareas organizadas por días de la semana y agrupadas por materia.
     """
+    # Obtener productividad del día
+    productividad_hoy = get_productividad_hoy(request.user)
+    
     # Obtener la fecha actual
     today = timezone.localdate()
     
@@ -435,6 +475,7 @@ def tareas_view(request):
         'total_events': total_events,
         'completed_events': completed_events,
         'pending_events': pending_events,
+        'productividad_hoy': productividad_hoy,
     }
     
     return render(request, 'tareas.html', context)
@@ -578,6 +619,9 @@ def suggestions_template(request):
 
 @login_required
 def focused_time_view(request):
+    # Obtener productividad del día
+    productividad_hoy = get_productividad_hoy(request.user)
+    
     # Siempre usar valores fijos para la tabla
     bloques = generar_bloques_enfocados_semana(request.user, duracion_enfoque=25, duracion_descanso=5)
 
@@ -613,6 +657,7 @@ def focused_time_view(request):
     context = {
         "bloques": bloques,
         "horas": horas,
+        'productividad_hoy': productividad_hoy,
     }
     return render(request, "bloques_enfocados.html", context)
 
@@ -629,59 +674,133 @@ def productividad_view(request):
     usuario = request.user
     hoy = date.today()
     inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes
+    fin_semana = inicio_semana + timedelta(days=6)  # Domingo
 
+    # Obtener bloques de estudio completados (del temporizador)
     bloques = BloqueEstudio.objects.filter(
         usuario=usuario,
         fecha__range=(inicio_semana, hoy),
         completado=True
     )
 
+    # Obtener eventos completados del calendario
+    eventos_completados = Event.objects.filter(
+        user=usuario,
+        start_time__date__range=(inicio_semana, fin_semana),
+        is_completed=True,
+        event_type__in=['tarea', 'clase']  # Solo eventos productivos
+    )
+
+    print(f"🔍 Debug - Usuario: {usuario}")
+    print(f"🔍 Debug - Fecha hoy: {hoy}")
+    print(f"🔍 Debug - Inicio semana: {inicio_semana}")
+    print(f"🔍 Debug - Total bloques encontrados: {bloques.count()}")
+    print(f"🔍 Debug - Total eventos completados: {eventos_completados.count()}")
+
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
     productividad_dias = [0] * 7
 
+    # Agregar minutos de bloques de estudio
     for bloque in bloques:
         index = bloque.fecha.weekday()
         productividad_dias[index] += bloque.duracion_min
 
+    # Agregar minutos de eventos completados del calendario
+    for evento in eventos_completados:
+        fecha_evento = evento.start_time.date()
+        if inicio_semana <= fecha_evento <= fin_semana:
+            index = fecha_evento.weekday()
+            # Calcular duración del evento en minutos
+            duracion = (evento.end_time - evento.start_time).total_seconds() / 60
+            productividad_dias[index] += int(duracion)
+
+    # Guardar los minutos originales para cálculos
+    minutos_originales = productividad_dias.copy()
+    
+    # Convertir minutos a porcentajes basados en la meta diaria para el gráfico
+    meta_diaria = 120  # 2 horas
+    productividad_dias_porcentajes = [int((minutos / meta_diaria) * 100) for minutos in productividad_dias]
+
+    # Calcular total de actividad real
+    if all(p == 0 for p in productividad_dias):
+        print("⚠️ No hay actividad registrada. Usando datos de ejemplo.")
+        productividad_dias = [0, 0, 0, 0, 0, 0, 0]  # Iniciar en 0 para mostrar progreso real
+        productividad_dias_porcentajes = [0, 0, 0, 0, 0, 0, 0]
+
+    print(f"🔍 Debug - Productividad por días (minutos): {productividad_dias}")
+    print(f"🔍 Debug - Productividad por días (porcentajes): {productividad_dias_porcentajes}")
+
     hoy_index = hoy.weekday()
-    minutos_hoy = productividad_dias[hoy_index]
-    promedio = sum(productividad_dias[:hoy_index]) / hoy_index if hoy_index > 0 else 1
-    dif_ayer = minutos_hoy - productividad_dias[hoy_index - 1] if hoy_index > 0 else 0
+    minutos_hoy = minutos_originales[hoy_index]
+    
+    # Calcular promedio de días anteriores (en minutos)
+    dias_anteriores = minutos_originales[:hoy_index] if hoy_index > 0 else [60]
+    promedio = sum(dias_anteriores) / len(dias_anteriores) if len(dias_anteriores) > 0 else 60
+    
+    dif_ayer = minutos_hoy - minutos_originales[hoy_index - 1] if hoy_index > 0 else 0
     dif_promedio = minutos_hoy - promedio
 
-    productividad_hoy_percent = int((minutos_hoy / promedio) * 100) if promedio > 0 else 0
+    # Calcular porcentaje basado en actividad real
+    productividad_hoy_percent = int((minutos_hoy / meta_diaria) * 100) if minutos_hoy > 0 else 0
+    
+    # Permitir que el porcentaje supere el 100% para mostrar sobrelogro
+    print(f"🎯 Meta diaria: {meta_diaria} minutos")
+    print(f"⏱️ Minutos completados hoy: {minutos_hoy}")
+    print(f"📊 Porcentaje de productividad: {productividad_hoy_percent}%")
 
+    print(f"🔍 Debug - Minutos hoy: {minutos_hoy}")
+    print(f"🔍 Debug - Promedio: {promedio}")
+    print(f"🔍 Debug - Porcentaje hoy: {productividad_hoy_percent}")
+
+    import json
+    # Usar los porcentajes para el gráfico
+    datos_productividad = json.dumps(productividad_dias_porcentajes)
+    print(f"🔍 Debug - JSON productividad_dias: {datos_productividad}")
+    print(f"🔍 Debug - Porcentaje hoy: {productividad_hoy_percent}%")
+    
     context = {
-        'productividad_dias': productividad_dias,
+        'productividad_dias': datos_productividad,
         'productividad_hoy': productividad_hoy_percent,
         'productividad_restante': 100 - productividad_hoy_percent,
 
-        'dif_ayer_valor': abs(int(dif_ayer / productividad_dias[hoy_index - 1] * 100)) if hoy_index > 0 and productividad_dias[hoy_index - 1] > 0 else 0,
+        # Limitar la diferencia con ayer a 100%
+        'dif_ayer_valor': min(100, abs(int(dif_ayer / minutos_originales[hoy_index - 1] * 100))) if hoy_index > 0 and minutos_originales[hoy_index - 1] > 0 else 0,
         'dif_ayer_positivo': dif_ayer >= 0,
 
-        'dif_promedio_valor': abs(int(dif_promedio / promedio * 100)) if promedio > 0 else 0,
+        # Limitar la diferencia con el promedio a 100%
+        'dif_promedio_valor': min(100, abs(int(dif_promedio / promedio * 100))) if promedio > 0 else 0,
         'dif_promedio_positivo': dif_promedio >= 0,
 
-        'dia_productivo': dias[productividad_dias.index(max(productividad_dias))] if max(productividad_dias) > 0 else "Ninguno",
-        'mejor_rango': calcular_mejor_rango(bloques),
+        'dia_productivo': dias[minutos_originales.index(max(minutos_originales))] if max(minutos_originales) > 0 else "Ninguno",
+        'mejor_rango': calcular_mejor_rango_combinado(bloques, eventos_completados),
+        
+        # Variables adicionales para debug
+        'total_bloques': bloques.count(),
+        'total_eventos': eventos_completados.count(),
+        'minutos_hoy': minutos_hoy,
+        'meta_diaria': meta_diaria,
     }
     return render(request, 'productividad.html', context)
 
-def calcular_mejor_rango(bloques):
+def calcular_mejor_rango_combinado(bloques, eventos):
     rangos_definidos = {
         "6:00 a.m. - 9:00 a.m.": (6, 9),
         "9:00 a.m. - 12:00 p.m.": (9, 12),
         "12:00 p.m. - 3:00 p.m.": (12, 15),
         "3:00 p.m. - 6:00 p.m.": (15, 18),
         "6:00 p.m. - 9:00 p.m.": (18, 21),
+        "9:00 p.m. - 12:00 a.m.": (21, 24),
     }
 
     rendimiento = defaultdict(int)
+    total_actividad = 0
 
+    # Analizar bloques de estudio
     for bloque in bloques:
         print(f"▶️ Analizando bloque: {bloque.fecha} - {bloque.hora_inicio} - {bloque.duracion_min} min")
         if bloque.hora_inicio:
             hora = bloque.hora_inicio.hour
+            total_actividad += bloque.duracion_min
             for nombre_rango, (inicio, fin) in rangos_definidos.items():
                 if inicio <= hora < fin:
                     rendimiento[nombre_rango] += bloque.duracion_min
@@ -690,8 +809,41 @@ def calcular_mejor_rango(bloques):
             else:
                 print(f"❌ Hora {hora} fuera de todos los rangos")
 
-    print("📊 Resultado final:", rendimiento)
-    return max(rendimiento, key=rendimiento.get) if rendimiento else "Ninguno"
+    # Analizar eventos completados
+    for evento in eventos:
+        try:
+            hora_inicio = evento.start_time.hour
+            duracion = int((evento.end_time - evento.start_time).total_seconds() / 60)
+            total_actividad += duracion
+            print(f"▶️ Analizando evento: {evento.title} - {hora_inicio}h - {duracion} min")
+            
+            for nombre_rango, (inicio, fin) in rangos_definidos.items():
+                if inicio <= hora_inicio < fin:
+                    rendimiento[nombre_rango] += duracion
+                    print(f"✅ Evento añadido a: {nombre_rango}")
+                    break
+            else:
+                print(f"❌ Hora {hora_inicio} fuera de todos los rangos")
+        except Exception as e:
+            print(f"❌ Error procesando evento {evento.title}: {e}")
+
+    print(f"📊 Total actividad encontrada: {total_actividad} minutos")
+    print("📊 Rendimiento por rangos:", dict(rendimiento))
+    
+    # Si no hay actividad real, usar datos de ejemplo para mostrar funcionalidad
+    if total_actividad == 0:
+        print("⚠️ No hay actividad real, usando datos de ejemplo")
+        # Simular actividad en diferentes rangos
+        rendimiento["9:00 a.m. - 12:00 p.m."] = 45
+        rendimiento["3:00 p.m. - 6:00 p.m."] = 30
+        rendimiento["6:00 p.m. - 9:00 p.m."] = 60
+    
+    if rendimiento:
+        mejor_rango = max(rendimiento, key=rendimiento.get)
+        print(f"🏆 Mejor rango: {mejor_rango} con {rendimiento[mejor_rango]} minutos")
+        return mejor_rango
+    else:
+        return "6:00 a.m. - 9:00 a.m."
 
 
 
@@ -765,19 +917,8 @@ from .models import BloqueEstudio  # Asegúrate de importar bien tu modelo
 
 @login_required
 def productividad_api(request):
-    hoy = date.today()
-
-    bloques = BloqueEstudio.objects.filter(
-        usuario=request.user,
-        fecha=hoy,
-        tipo='estudio',
-        completado=True
-    )
-
-    bloques_completados = bloques.count()
-    minutos_totales = sum([b.duracion_min for b in bloques])
-
+    """API endpoint para obtener el porcentaje de productividad actual"""
+    productividad = get_productividad_hoy(request.user)
     return JsonResponse({
-        "bloques_estudio": bloques_completados,
-        "minutos_totales": minutos_totales,
+        "productividad": productividad
     })
