@@ -26,4 +26,5 @@ urlpatterns = [
    path("productividad/", views.productividad_view, name="productividad"),
    path('registrar-bloque-temporizador/', views.registrar_bloque_temporizador, name='registrar_bloque_temporizador'),
    path("api/productividad/", views.productividad_api, name="productividad_api"),
+   path('obtener-estadisticas-productividad/', views.obtener_estadisticas_productividad, name='obtener_estadisticas_productividad'),
 ]

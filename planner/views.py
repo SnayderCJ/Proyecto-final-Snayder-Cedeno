@@ -906,22 +906,30 @@ def registrar_bloque_temporizador(request):
 #----vista para obtener estadisticas 
 from .models import BloqueEstudio
 
+@login_required
 def obtener_estadisticas_productividad(request):
     usuario = request.user
     hoy = timezone.now().date()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes
+    fin_semana = inicio_semana + timedelta(days=6)  # Domingo
 
-    bloques_hoy = BloqueEstudio.objects.filter(usuario=usuario, fecha=hoy)
+    bloques_semana = BloqueEstudio.objects.filter(
+        usuario=usuario, 
+        fecha__range=(inicio_semana, fin_semana),
+        completado=True
+    )
 
-    bloques_estudio = bloques_hoy.filter(tipo='estudio')
+    bloques_estudio = bloques_semana.filter(tipo='estudio')
     total_estudio = bloques_estudio.count()
 
-    tiempo_total = bloques_hoy.aggregate(Sum('duracion_min'))['duracion_min__sum'] or 0
+    tiempo_total = bloques_semana.aggregate(Sum('duracion_min'))['duracion_min__sum'] or 0
 
     print("Usuario:", usuario)
     print("Fecha:", hoy)
-    print("Total bloques hoy:", bloques_hoy.count())
-    print("Todos los bloques hoy:", list(bloques_hoy.values()))
-
+    print("Inicio semana:", inicio_semana)
+    print("Fin semana:", fin_semana)
+    print("Total bloques semana:", bloques_semana.count())
+    print("Todos los bloques semana:", list(bloques_semana.values()))
 
     return JsonResponse({
         'bloques_estudio': total_estudio,

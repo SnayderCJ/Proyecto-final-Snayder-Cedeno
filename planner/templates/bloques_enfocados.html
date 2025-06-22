@@ -92,6 +92,30 @@
       <!-- Configuración -->
       <div class="bg-card rounded-xl border border-border p-6">
         <h3 class="text-lg font-semibold mb-4">Configuración rápida</h3>
+        
+        <!-- Configuraciones predefinidas -->
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">Configuraciones predefinidas:</label>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <button onclick="aplicarConfiguracionPredefinida('pomodoro')" 
+                    class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm transition-colors">
+              🍅 Pomodoro (25m)
+            </button>
+            <button onclick="aplicarConfiguracionPredefinida('bloqueCorto')" 
+                    class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors">
+              ⚡ Corto (15m)
+            </button>
+            <button onclick="aplicarConfiguracionPredefinida('bloqueLargo')" 
+                    class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors">
+              🎯 Largo (50m)
+            </button>
+            <button onclick="aplicarConfiguracion()" 
+                    class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors">
+              ⚙️ Personal
+            </button>
+          </div>
+        </div>
+
         <form onsubmit="return false;" class="space-y-4">
           <div>
             <label class="block text-sm text-gray-400 mb-1">Duración del enfoque (min):</label>
@@ -110,9 +134,22 @@
 
           <button type="button" onclick="aplicarConfiguracion()"
             class="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors">
-            Aplicar
+            Aplicar Configuración
           </button>
         </form>
+
+        <!-- Información del ciclo -->
+        <div class="mt-4 p-3 bg-gray-800/50 rounded-lg">
+          <p id="info-ciclo" class="text-sm text-gray-400">Ciclo 1 - Bloques completados: 0</p>
+        </div>
+
+        <!-- Atajos de teclado -->
+        <div class="mt-4 text-xs text-gray-500">
+          <p class="font-semibold mb-1">Atajos de teclado:</p>
+          <p>Espacio: Iniciar/Pausar</p>
+          <p>R: Reiniciar</p>
+          <p>1: Pomodoro | 2: Corto | 3: Largo</p>
+        </div>
       </div>
 
       <!-- Estadísticas -->
@@ -138,5 +175,5 @@
   ✅ ¡Bloque guardado exitosamente!
 </div>
 
-<script src="{% static 'js/bloques_enfocados.js' %}"></script>
+<script src="{% static 'js/bloques_enfocados_mejorado.js' %}"></script>
 {% endblock %}
