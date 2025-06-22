@@ -12,12 +12,21 @@
     <!-- Sección de foto de perfil -->
     <div class="flex flex-col items-center justify-center mb-6">
       <div class="relative w-32 h-32 mb-4">
+        {% if user_avatar %}
         <img
           id="profileImage"
-          src="{% if user_avatar %}{{ user_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
+          src="{{ user_avatar }}"
           alt="Foto de perfil"
           class="w-full h-full rounded-full object-cover border-2 border-border"
         />
+        {% else %}
+        <div
+          id="profileImage"
+          class="w-full h-full rounded-full bg-purple-600 flex items-center justify-center text-white text-4xl font-bold border-2 border-border"
+        >
+          {{ user_display_name|first|upper }}
+        </div>
+        {% endif %}
       </div>
       <input type="file" id="fileInput" accept="image/*" class="hidden" />
       <div class="flex gap-4">
@@ -542,6 +551,15 @@
     function showImagePreview(file, imageElement) {
       const reader = new FileReader();
       reader.onload = function (e) {
+        // Si es un div (avatar por defecto), convertirlo en img
+        if (imageElement.tagName === 'DIV') {
+          const img = document.createElement('img');
+          img.id = 'profileImage';
+          img.className = 'w-full h-full rounded-full object-cover border-2 border-border';
+          img.alt = 'Foto de perfil';
+          imageElement.parentNode.replaceChild(img, imageElement);
+          imageElement = img;
+        }
         imageElement.src = e.target.result;
         imageElement.style.opacity = "0.7";
       };

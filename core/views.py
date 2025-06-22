@@ -675,6 +675,12 @@ def set_password(request):
 @login_required
 def settings(request):
     user_settings, _ = UserSettings.objects.get_or_create(user=request.user)
+    
+    # Initialize form at the start
+    form = SettingsForm(initial={
+        'language': user_settings.language,
+        'timezone': user_settings.timezone
+    })
 
     if request.method == 'POST':
         form_type = request.POST.get('form_type')
@@ -713,13 +719,10 @@ def settings(request):
                 user_settings.save()
                 messages.success(request, "¡Tus configuraciones han sido guardadas exitosamente!")
                 return redirect('core:settings')
-        else:
-            messages.error(request, "Por favor corrige los errores en el formulario.")
-    else:
-        form = SettingsForm(initial={
-            'language': user_settings.language,
-            'timezone': user_settings.timezone
-        })
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{form.fields[field].label}: {error}")
 
     context = {
         'form': form,

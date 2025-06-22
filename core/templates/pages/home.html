@@ -242,9 +242,10 @@
                     </div>
                     <div class="flex-1">
                         <h3 class="font-semibold text-white">Consejo del día</h3>
-                        <p class="mt-2 text-purple-100 cursor-pointer hover:text-white transition-colors" id="daily-tip">
+                        <p class="mt-2 text-purple-100 cursor-pointer hover:text-white transition-all duration-300" id="daily-tip">
                             La técnica Pomodoro puede aumentar tu productividad hasta un 75%. Tus patrones de estudio muestran que eres más productivo en sesiones de 25 minutos.
                         </p>
+                        <small class="text-purple-200/60 mt-2 block text-xs">Haz clic para ver otro consejo</small>
                     </div>
                 </div>
             </section>
@@ -334,15 +335,41 @@ document.addEventListener('DOMContentLoaded', function() {
         "Hacer ejercicio regular puede mejorar tu capacidad de concentración y memoria en hasta un 20%.",
         "Establecer metas específicas y alcanzables puede aumentar tu motivación y productividad en un 25%.",
         "Mantener un espacio de trabajo ordenado puede reducir la distracción y aumentar la concentración en un 15%.",
-        "Tomar descansos regulares puede prevenir la fatiga mental y mantener altos niveles de productividad durante todo el día."
+        "Tomar descansos regulares puede prevenir la fatiga mental y mantener altos niveles de productividad durante todo el día.",
+        "Revisar el material antes de dormir puede mejorar la retención de información en un 30%.",
+        "Usar técnicas de visualización puede aumentar la comprensión de conceptos complejos en un 40%.",
+        "Crear mapas mentales puede mejorar la organización y retención de información en un 35%.",
+        "Practicar ejercicios de respiración antes de estudiar puede reducir el estrés y mejorar la concentración en un 25%.",
+        "Escuchar música instrumental suave puede aumentar la productividad en un 15% durante el estudio.",
+        "Establecer rutinas de estudio regulares puede mejorar la retención de información en un 45%.",
+        "Usar técnicas de memorización activa puede duplicar la retención de información.",
+        "Estudiar en el mismo lugar puede aumentar la concentración en un 20% debido a la asociación mental.",
+        "Hacer preguntas durante el estudio puede mejorar la comprensión en un 50%.",
+        "Tomar pequeños descansos cada 25 minutos puede mantener la mente fresca y receptiva."
     ];
 
     function updateTip() {
         const tipElement = document.getElementById('daily-tip');
         if (tipElement) {
-            const randomTip = tips[Math.floor(Math.random() * tips.length)];
-            tipElement.textContent = randomTip;
+            let currentTip = tipElement.textContent.trim();
+            let newTip;
+            do {
+                newTip = tips[Math.floor(Math.random() * tips.length)];
+            } while (newTip === currentTip);
+            
+            // Usar clases de Tailwind para la animación
+            tipElement.classList.add('opacity-0');
+            setTimeout(() => {
+                tipElement.textContent = newTip;
+                tipElement.classList.remove('opacity-0');
+            }, 300);
         }
+    }
+
+    // Agregar evento de clic directamente
+    const tipElement = document.getElementById('daily-tip');
+    if (tipElement) {
+        tipElement.addEventListener('click', updateTip);
     }
 
     const lastUpdate = localStorage.getItem('lastTipUpdate');
