@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Encabezado -->
+    <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-foreground">Configuración de Recordatorios</h1>
+                <p class="text-muted-foreground">Personaliza cómo y cuándo recibir recordatorios automáticos</p>
+            </div>
+            <div class="text-purple-500">
+                <i class="fas fa-bell text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración Principal -->
+    <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Activar/Desactivar Recordatorios -->
+            <div class="flex items-center justify-between py-4 border-b border-border">
+                <div>
+                    <div class="text-foreground font-medium">Recordatorios Automáticos</div>
+                    <div class="text-xs text-muted-foreground">Activar sistema de recordatorios</div>
+                </div>
+                <label class="relative inline-block w-14 h-7">
+                    <input type="checkbox" name="reminders_enabled" {% if config.reminders_enabled %}checked{% endif %} class="peer opacity-0 w-0 h-0">
+                    <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-all duration-200 before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-all before:duration-200 peer-checked:bg-purple-600 peer-checked:before:translate-x-7"></span>
+                </label>
+            </div>
+
+            <!-- Tipo de Recordatorios -->
+            <div class="py-6 border-b border-border">
+                <h3 class="text-lg font-semibold text-foreground mb-4">Tipo de Recordatorios</h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-foreground">📧 Notificaciones por Email</div>
+                            <div class="text-xs text-muted-foreground">Recibir recordatorios en tu correo</div>
+                        </div>
+                        <label class="relative inline-block w-14 h-7">
+                            <input type="checkbox" name="email_enabled" {% if config.email_enabled %}checked{% endif %} class="peer opacity-0 w-0 h-0">
+                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-all duration-200 before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-all before:duration-200 peer-checked:bg-purple-600 peer-checked:before:translate-x-7"></span>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-foreground">📅 Eventos de Calendario</div>
+                            <div class="text-xs text-muted-foreground">Crear eventos en Google Calendar</div>
+                        </div>
+                        <label class="relative inline-block w-14 h-7">
+                            <input type="checkbox" name="calendar_enabled" {% if config.calendar_enabled %}checked{% endif %} class="peer opacity-0 w-0 h-0">
+                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-all duration-200 before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-all before:duration-200 peer-checked:bg-purple-600 peer-checked:before:translate-x-7"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preferencias Avanzadas -->
+            <div class="py-6 border-b border-border">
+                <h3 class="text-lg font-semibold text-foreground mb-4">Preferencias Avanzadas</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-muted-foreground mb-2">Tipo Preferido</label>
+                        <select name="preferred_type" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
+                            {% for value, label in reminder_types %}
+                                <option value="{{ value }}" {% if config.preferred_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-muted-foreground mb-2">Frecuencia</label>
+                        <select name="current_frequency" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
+                            {% for value, label in frequency_choices %}
+                                <option value="{{ value }}" {% if config.current_frequency == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex justify-between items-center pt-6">
+                <div>
+                    {% if user.is_staff %}
+                        <a href="{% url 'reminders:test' %}" class="inline-flex items-center px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                            <i class="fas fa-flask mr-2"></i> Probar Sistema
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="flex gap-4">
+                    <a href="{% url 'core:perfil' %}" class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90">
+                        <i class="fas fa-save mr-2"></i> Guardar Configuración
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Información del Sistema -->
+    <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+        <h3 class="text-lg font-semibold text-foreground mb-4">📊 Estado del Sistema</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center p-4 bg-muted rounded-lg">
+                <div class="text-2xl font-bold text-foreground">
+                    {% if config.reminders_enabled %}✅{% else %}❌{% endif %}
+                </div>
+                <div class="text-sm text-muted-foreground">Recordatorios</div>
+            </div>
+            
+            <div class="text-center p-4 bg-muted rounded-lg">
+                <div class="text-2xl font-bold text-foreground">
+                    {% if config.email_enabled %}📧{% else %}📪{% endif %}
+                </div>
+                <div class="text-sm text-muted-foreground">Email</div>
+            </div>
+            
+            <div class="text-center p-4 bg-muted rounded-lg">
+                <div class="text-2xl font-bold text-foreground">
+                    {% if config.calendar_enabled %}📅{% else %}📋{% endif %}
+                </div>
+                <div class="text-sm text-muted-foreground">Calendario</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

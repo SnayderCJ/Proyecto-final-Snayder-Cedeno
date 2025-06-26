@@ -1,6 +1,8 @@
 from allauth.socialaccount.models import SocialAccount
 from core.models import UserProfile
 import unicodedata
+from datetime import date
+from planner.models import BloqueEstudio, Event
 
 def normalize_text(text):
     """Normaliza el texto para manejar correctamente caracteres especiales"""
@@ -67,6 +69,41 @@ def get_user_avatar(user):
     # Si no tiene ningún avatar, retornar None
     return None
 
+def get_productividad_hoy(usuario):
+    """Función auxiliar para obtener el porcentaje de productividad del día actual"""
+    hoy = date.today()
+    
+    # Obtener bloques de estudio completados hoy
+    bloques = BloqueEstudio.objects.filter(
+        usuario=usuario,
+        fecha=hoy,
+        completado=True
+    )
+    
+    # Obtener eventos completados hoy
+    eventos = Event.objects.filter(
+        user=usuario,
+        start_time__date=hoy,
+        is_completed=True,
+        event_type__in=['tarea', 'clase']
+    )
+    
+    # Calcular minutos totales
+    minutos_bloques = sum(bloque.duracion_min for bloque in bloques)
+    minutos_eventos = sum(
+        int((evento.end_time - evento.start_time).total_seconds() / 60)
+        for evento in eventos
+    )
+    
+    minutos_totales = minutos_bloques + minutos_eventos
+    meta_diaria = 120  # 2 horas
+    
+    # Calcular porcentaje limitado al 100%
+    porcentaje = int((minutos_totales / meta_diaria) * 100) if minutos_totales > 0 else 0
+    porcentaje_final = min(100, porcentaje)
+    
+    return porcentaje_final
+
 def user_context(request):
     """Context processor para agregar información del usuario a todos los templates"""
     context = {}
@@ -74,11 +111,15 @@ def user_context(request):
     if request.user.is_authenticated:
         google_account = SocialAccount.objects.filter(user=request.user, provider='google').first()
         
+        # Obtener productividad del día actual
+        productividad_hoy = get_productividad_hoy(request.user)
+        
         context.update({
             'user_display_name': format_user_name(request.user),
             'user_avatar': get_user_avatar(request.user),
             'is_google_user': bool(google_account),
             'user_has_password': request.user.has_usable_password(),
+            'productividad_hoy': productividad_hoy,
         })
     
     return context

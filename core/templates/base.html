@@ -6,12 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StudyFly | {% block title %}Dashboard{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'img/Logo2.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{% static 'css/output.css' %}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     {% block extra_css %}{% endblock %}
     <script src="{% static 'js/messages.js' %}"></script>
     <script src="{% static 'js/datetime.js' %}"></script>
     <script src="{% static 'js/navigation.js' %}"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
+    <script src="{% static 'js/home.js' %}"></script>
 </head>
 
 <body class="flex h-screen flex-col bg-background text-foreground font-sans">
@@ -68,7 +72,6 @@
             overlay.addEventListener('click', toggleMenu);
         }
 
-        // Cerrar sidebar al hacer clic en enlaces (móvil)
         const sidebarLinks = sidebar?.querySelectorAll('a');
         if (sidebarLinks) {
             sidebarLinks.forEach(link => {
@@ -80,6 +83,7 @@
             });
         }
     });
+
     </script>
     {% endblock extra_js %}
 </body>

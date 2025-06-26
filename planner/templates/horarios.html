@@ -4,6 +4,10 @@
 
 {% block title %}StudyFly - Horarios{% endblock %}
 
+{% block extra_css %}
+
+{% endblock %}
+
 {% block content %}
 <div class="flex flex-col w-full gap-6">
   <!-- Header del Calendario -->
@@ -32,9 +36,16 @@
       </div>
       
       <div class="flex items-center gap-2">
-        <button class="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm text-white transition-colors hover:bg-primary/90">
-          <i class="fas fa-robot mr-2"></i>
-          Optimizar
+        <button id="optimize-btn" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 disabled:bg-purple-300 disabled:cursor-not-allowed disabled:opacity-70 relative overflow-hidden" type="button">
+          <span class="flex items-center gap-2">
+            🤖 Optimizar Horario
+          </span>
+          <span class="absolute inset-0 flex items-center justify-center hidden loading-spinner">
+            <svg class="w-4 h-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0l4 4-4 4z"></path>
+            </svg>
+          </span>
         </button>
         <a href="{% url 'planner:event_create' %}" 
            class="inline-flex items-center justify-center rounded-lg border border-primary bg-primary px-4 py-2 text-sm text-white transition-colors hover:bg-primary/90">
@@ -51,10 +62,10 @@
       <table class="w-full border-collapse">
         <thead>
           <tr class="border-b border-border">
-            <th class="sticky top-0 bg-card p-4 text-left font-medium"></th>
+            <th class="sticky top-0 backdrop-blur-md bg-card/80 p-4 text-left font-medium z-10"></th>
             {% for day_data in week_days_data %}
-            <th class="sticky top-0 bg-card p-4 text-center font-medium {% if day_data.is_today %}text-primary{% endif %}">
-              <div class="text-lg">{{ day_data.day_num }}</div>
+            <th class="sticky top-0 backdrop-blur-md bg-card/80 p-4 text-center font-medium z-10 {% if day_data.is_today %}text-primary{% endif %}">
+              <div class="text-lg font-bold">{{ day_data.day_num }}</div>
               <div class="text-sm text-muted-foreground">{{ day_data.day_name_short|capfirst }}</div>
             </th>
             {% endfor %}
@@ -75,11 +86,16 @@
                          {% elif event.css_class == 'event-descanso' %}bg-green-500/20 text-green-400
                          {% elif event.css_class == 'event-personal' %}bg-orange-500/20 text-orange-400
                          {% else %}bg-gray-500/20 text-gray-400{% endif %}
-                         {% if event.is_completed %}opacity-60{% endif %}
+                         {% if event.is_completed %}opacity-60 line-through bg-opacity-30{% endif %}
                          {% if event.due_date and event.due_date < today and not event.is_completed %}border-2 border-red-500{% endif %}"
                    data-event-id="{{ event.id }}"
                    data-priority="{{ event.priority }}">
-                  <div class="font-medium">{{ event.title }}</div>
+                  <div class="font-medium flex items-center gap-2">
+                    {% if event.is_completed %}
+                    <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                    {% endif %}
+                    {{ event.title }}
+                  </div>
                   <div class="text-xs">{{ event.start_time|date:"H:i" }} - {{ event.end_time|date:"H:i" }}</div>
                   {% if event.description and event.description|length > 0 %}
                   <div class="mt-1 text-xs text-muted-foreground">{{ event.description|truncatechars:30 }}</div>
@@ -137,6 +153,10 @@
       <span class="text-sm">Otro</span>
     </div>
   </div>
+
+  <!-- Placeholder para el modal (opcional) -->
+  <!-- El modal se cargará dinámicamente por optimizer.js -->
+  <div id="modal-container"></div>
 </div>
 
 <script>
@@ -147,7 +167,26 @@
       const scrollPosition = Math.max(0, (currentHour - 2) * 100);
       document.querySelector(".max-h-\\[calc\\(100vh-16rem\\)\\]").scrollTop = scrollPosition;
     }
-  });
+
+    // Mejorar tooltips
+    document.querySelectorAll(".event").forEach(function (event) {
+      event.addEventListener("mouseenter", function () {
+        const tooltip = this.querySelector(".custom-tooltip");
+        if (tooltip) {
+          tooltip.style.opacity = "1";
+          tooltip.style.visibility = "visible";
+        }
+      });
+
+      event.addEventListener("mouseleave", function () {
+        const tooltip = this.querySelector(".custom-tooltip");
+        if (tooltip) {
+          tooltip.style.opacity = "0";
+          tooltip.style.visibility = "hidden";
+        }
+      });
+    });
+  }); 
 </script>
 {% endblock %}
 

@@ -21,6 +21,8 @@ class UserSettings(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='core_settings')
     language = models.CharField(max_length=50, default='es')
     timezone = models.CharField(max_length=100, default='America/Guayaquil')
+    email_notifications = models.BooleanField(default=True, verbose_name="Notificaciones por Email")
+    task_reminders = models.BooleanField(default=False, verbose_name="Recordatorio de Tareas")
 
     def __str__(self):
         return f"Configuración de {self.user.username}"

@@ -50,6 +50,16 @@ class SettingsForm(forms.Form):
         ],
         widget=forms.Select(attrs={'class': 'input-field', 'id': 'timezone-select'})
     )
+    email_notifications = forms.BooleanField(
+        label="Notificaciones por Email",
+        required=False,
+        help_text="Recordatorios y alertas del sistema"
+    )
+    task_reminders = forms.BooleanField(
+        label="Recordatorio de Tareas",
+        required=False,
+        help_text="Alertas de vencimientos"
+    )
 
 class ProfileForm(forms.ModelForm):
     """Formulario para editar información personal"""

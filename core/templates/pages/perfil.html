@@ -1,413 +1,705 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block content %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
-   <!-- Sección de Información Personal -->
-   <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-6">
-         <div class="text-lg font-semibold text-foreground">Información Personal</div>
-         <div class="text-purple-500">•</div>
+  <!-- Sección de Información Personal -->
+  <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <div class="text-lg font-semibold text-foreground">
+        Información Personal
+      </div>
+      <div class="text-purple-500">•</div>
+    </div>
+
+    <!-- Sección de foto de perfil -->
+    <div class="flex flex-col items-center justify-center mb-6">
+      <div class="relative w-32 h-32 mb-4">
+        {% if user_avatar %}
+        <img
+          id="profileImage"
+          src="{{ user_avatar }}"
+          alt="Foto de perfil"
+          class="w-full h-full rounded-full object-cover border-2 border-border"
+        />
+        {% else %}
+        <div
+          id="profileImage"
+          class="w-full h-full rounded-full bg-purple-600 flex items-center justify-center text-white text-4xl font-bold border-2 border-border"
+        >
+          {{ user_display_name|first|upper }}
+        </div>
+        {% endif %}
+      </div>
+      <input type="file" id="fileInput" accept="image/*" class="hidden" />
+      <div class="flex gap-4">
+        <button
+          type="button"
+          class="inline-flex items-center px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+          id="uploadBtn"
+        >
+          <i class="fas fa-camera mr-2"></i> Cambiar Foto
+        </button>
+        {% if user_avatar %}
+        <button
+          type="button"
+          class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+          id="removeBtn"
+        >
+          <i class="fas fa-trash mr-2"></i> Eliminar
+        </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Formulario de información personal -->
+    <form method="post" id="profileForm">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="profile" />
+
+      <div class="mb-6">
+        <div class="block text-sm font-medium text-muted-foreground mb-2">
+          {{ profile_form.first_name.label }}
+        </div>
+        {% if is_google_user %}
+        <input
+          type="text"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
+          value="{{ request.user.first_name }}"
+          disabled
+        />
+        <small class="text-muted-foreground text-xs mt-1 block"
+          >Este campo no se puede editar porque iniciaste sesión con
+          Google</small
+        >
+        {% else %}
+        <input
+          type="text"
+          name="first_name"
+          value="{{ profile_form.first_name.value|default:'' }}"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+        />
+        {% for error in profile_form.first_name.errors %}
+        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+        {% endfor %} {% endif %}
       </div>
 
-      <!-- Sección de foto de perfil -->
-      <div class="flex flex-col items-center justify-center mb-6">
-         <div class="relative w-32 h-32 mb-4">
-            <img id="profileImage"
-                 src="{% if user_avatar %}{{ user_avatar }}{% else %}/api/placeholder/150/150{% endif %}"
-                 alt="Foto de perfil"
-                 class="w-full h-full rounded-full object-cover border-2 border-border">
-         </div>
-         <input type="file" id="fileInput" accept="image/*" class="hidden">
-         <div class="flex gap-4">
-            <button type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors" id="uploadBtn">
-               <i class="fas fa-camera mr-2"></i> Cambiar Foto
-            </button>
-            {% if user_avatar %}
-            <button type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors" id="removeBtn">
-               <i class="fas fa-trash mr-2"></i> Eliminar
-            </button>
-            {% endif %}
-         </div>
+      <div class="mb-6">
+        <div class="block text-sm font-medium text-muted-foreground mb-2">
+          {{ profile_form.last_name.label }}
+        </div>
+        {% if is_google_user %}
+        <input
+          type="text"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
+          value="{{ request.user.last_name }}"
+          disabled
+        />
+        <small class="text-muted-foreground text-xs mt-1 block"
+          >Este campo no se puede editar porque iniciaste sesión con
+          Google</small
+        >
+        {% else %}
+        <input
+          type="text"
+          name="last_name"
+          value="{{ profile_form.last_name.value|default:'' }}"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+        />
+        {% for error in profile_form.last_name.errors %}
+        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+        {% endfor %} {% endif %}
       </div>
 
-      <!-- Formulario de información personal -->
-      <form method="post" id="profileForm">
-         {% csrf_token %}
-         <input type="hidden" name="form_type" value="profile">
-         
-         <div class="mb-6">
-            <div class="block text-sm font-medium text-muted-foreground mb-2">{{ profile_form.first_name.label }}</div>
-            {% if is_google_user %}
-               <input type="text" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-70" 
-                      value="{{ request.user.first_name }}" 
-                      disabled>
-               <small class="text-muted-foreground text-xs mt-1 block">Este campo no se puede editar porque iniciaste sesión con Google</small>
-            {% else %}
-               <input type="text" name="first_name" value="{{ profile_form.first_name.value|default:'' }}" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-               {% for error in profile_form.first_name.errors %}
-                  <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-               {% endfor %}
-            {% endif %}
-         </div>
-
-         <div class="mb-6">
-            <div class="block text-sm font-medium text-muted-foreground mb-2">{{ profile_form.last_name.label }}</div>
-            {% if is_google_user %}
-               <input type="text" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-70" 
-                      value="{{ request.user.last_name }}" 
-                      disabled>
-               <small class="text-muted-foreground text-xs mt-1 block">Este campo no se puede editar porque iniciaste sesión con Google</small>
-            {% else %}
-               <input type="text" name="last_name" value="{{ profile_form.last_name.value|default:'' }}" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-               {% for error in profile_form.last_name.errors %}
-                  <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-               {% endfor %}
-            {% endif %}
-         </div>
-
-         <div class="mb-6">
-            <div class="block text-sm font-medium text-muted-foreground mb-2">{{ profile_form.email.label }}</div>
-            {% if is_google_user %}
-               <input type="email" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-70" 
-                      value="{{ request.user.email }}" 
-                      disabled>
-               <small class="text-muted-foreground text-xs mt-1 block">Este campo no se puede editar porque iniciaste sesión con Google</small>
-            {% else %}
-               <input type="email" name="email" value="{{ profile_form.email.value|default:'' }}" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-               {% for error in profile_form.email.errors %}
-                  <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-               {% endfor %}
-            {% endif %}
-         </div>
-
-         {% if not is_google_user %}
-         <div class="flex justify-end gap-4 mt-6">
-            <button type="button" class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80">Cancelar</button>
-            <button type="submit" class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90">Guardar Cambios</button>
-         </div>
-         {% endif %}
-      </form>
-   </div>
-
-   <!-- Sección de Seguridad -->
-   <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-6">
-         <div class="text-lg font-semibold text-foreground">Seguridad</div>
-         <div class="text-purple-500">•</div>
+      <div class="mb-6">
+        <div class="block text-sm font-medium text-muted-foreground mb-2">
+          {{ profile_form.email.label }}
+        </div>
+        {% if is_google_user %}
+        <input
+          type="email"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-70"
+          value="{{ request.user.email }}"
+          disabled
+        />
+        <small class="text-muted-foreground text-xs mt-1 block"
+          >Este campo no se puede editar porque iniciaste sesión con
+          Google</small
+        >
+        {% else %}
+        <input
+          type="email"
+          name="email"
+          value="{{ profile_form.email.value|default:'' }}"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+        />
+        {% for error in profile_form.email.errors %}
+        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+        {% endfor %} {% endif %}
       </div>
 
-      {% if is_google_user and not user_has_password %}
-         <!-- Usuario de Google sin contraseña establecida -->
-         <div class="text-center py-8">
-            <div class="mb-8">
-               <svg class="w-12 h-12 mx-auto mb-4 text-purple-500" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" stroke="currentColor" stroke-width="2" fill="none"/>
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
-               </svg>
-               <h3 class="text-lg font-semibold text-foreground mb-3">Establece una Contraseña</h3>
-               <p class="text-muted-foreground mb-6">
-                  Para mayor seguridad, puedes establecer una contraseña específica para esta aplicación.
-                  Esto te permitirá iniciar sesión tanto con Google como con tu contraseña.
-               </p>
-            </div>
-            
-            <a href="{% url 'core:request_password_setup' %}" class="inline-flex items-center px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90">
-               <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="12" cy="16" r="1" fill="currentColor"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2"/>
-               </svg>
-               Establecer Contraseña
-            </a>
-            
-            <div class="mt-4">
-               <small class="text-muted-foreground text-xs">Te enviaremos un código de verificación a tu correo electrónico</small>
-            </div>
-         </div>
-         
-      {% elif is_google_user and user_has_password %}
-         <!-- Usuario de Google con contraseña ya establecida -->
-         <div class="text-center py-8">
-            <div class="mb-8">
-               <svg class="w-12 h-12 mx-auto mb-4 text-green-500" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" stroke="currentColor" stroke-width="2" fill="none"/>
-                  <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" fill="none"/>
-               </svg>
-               <h3 class="text-lg font-semibold text-foreground mb-3">Contraseña Configurada</h3>
-               <p class="text-muted-foreground mb-6">
-                  Ya tienes una contraseña establecida. Puedes iniciar sesión con Google o con tu contraseña.
-               </p>
-            </div>
-            
-            <!-- Formulario de cambio de contraseña -->
-            <details class="text-left mt-6">
-               <summary class="cursor-pointer text-purple-500 font-medium mb-4 hover:text-purple-400 transition-colors">Cambiar Contraseña</summary>
-               
-               <form method="post" id="passwordForm" class="mt-4">
-                  {% csrf_token %}
-                  <input type="hidden" name="form_type" value="password">
-                  
-                  <div class="mb-6">
-                     <div class="block text-sm font-medium text-muted-foreground mb-2">{{ password_form.old_password.label }}</div>
-                     <input type="password" name="old_password" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-                     {% for error in password_form.old_password.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-                     {% endfor %}
-                  </div>
-
-                  <div class="mb-6">
-                     <div class="block text-sm font-medium text-muted-foreground mb-2">{{ password_form.new_password1.label }}</div>
-                     <input type="password" name="new_password1" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-                     {% if password_form.new_password1.help_text %}
-                        <small class="text-muted-foreground text-xs mt-1 block">{{ password_form.new_password1.help_text }}</small>
-                     {% endif %}
-                     {% for error in password_form.new_password1.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-                     {% endfor %}
-                  </div>
-
-                  <div class="mb-6">
-                     <div class="block text-sm font-medium text-muted-foreground mb-2">{{ password_form.new_password2.label }}</div>
-                     <input type="password" name="new_password2" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-                     {% for error in password_form.new_password2.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-                     {% endfor %}
-                  </div>
-
-                  <div class="flex justify-end gap-4 mt-6">
-                     <button type="button" class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80">Cancelar</button>
-                     <button type="submit" class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90">Cambiar Contraseña</button>
-                  </div>
-               </form>
-            </details>
-         </div>
-         
-      {% else %}
-         <!-- Usuario normal (no Google) -->
-         <form method="post" id="passwordForm">
-            {% csrf_token %}
-            <input type="hidden" name="form_type" value="password">
-            
-            <div class="mb-6">
-               <div class="block text-sm font-medium text-muted-foreground mb-2">{{ password_form.old_password.label }}</div>
-               <input type="password" name="old_password" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-               {% for error in password_form.old_password.errors %}
-                  <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-               {% endfor %}
-            </div>
-
-            <div class="mb-6">
-               <div class="block text-sm font-medium text-muted-foreground mb-2">{{ password_form.new_password1.label }}</div>
-               <input type="password" name="new_password1" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-               {% if password_form.new_password1.help_text %}
-                  <small class="text-muted-foreground text-xs mt-1 block">{{ password_form.new_password1.help_text }}</small>
-               {% endif %}
-               {% for error in password_form.new_password1.errors %}
-                  <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-               {% endfor %}
-            </div>
-
-            <div class="mb-6">
-               <div class="block text-sm font-medium text-muted-foreground mb-2">{{ password_form.new_password2.label }}</div>
-               <input type="password" name="new_password2" class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
-               {% for error in password_form.new_password2.errors %}
-                  <div class="text-red-500 text-sm mt-1">{{ error }}</div>
-               {% endfor %}
-            </div>
-
-            <div class="flex justify-end gap-4 mt-6">
-               <button type="button" class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80">Cancelar</button>
-               <button type="submit" class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90">Cambiar Contraseña</button>
-            </div>
-         </form>
+      {% if not is_google_user %}
+      <div class="flex justify-end gap-4 mt-6">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          Guardar Cambios
+        </button>
+      </div>
       {% endif %}
-   </div>
+    </form>
+  </div>
 
-   <!-- Sección de Preferencias de Notificación -->
-   <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-6">
-         <div class="text-lg font-semibold text-foreground">Preferencias de Notificación</div>
+  <!-- Sección de Seguridad -->
+  <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <div class="text-lg font-semibold text-foreground">Seguridad</div>
+      <div class="text-purple-500">•</div>
+    </div>
+
+    {% if is_google_user and not user_has_password %}
+    <!-- Usuario de Google sin contraseña establecida -->
+    <div class="text-center py-8">
+      <div class="mb-8">
+        <svg
+          class="w-12 h-12 mx-auto mb-4 text-purple-500"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          />
+          <path
+            d="M9 12l2 2 4-4"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          />
+        </svg>
+        <h3 class="text-lg font-semibold text-foreground mb-3">
+          Establece una Contraseña
+        </h3>
+        <p class="text-muted-foreground mb-6">
+          Para mayor seguridad, puedes establecer una contraseña específica para
+          esta aplicación. Esto te permitirá iniciar sesión tanto con Google
+          como con tu contraseña.
+        </p>
       </div>
 
-      <div class="flex items-center justify-between py-4 border-b border-border">
-         <div>
-            <div class="text-foreground">Notificaciones por Email</div>
-            <div class="text-xs text-muted-foreground">Recordatorios y alertas del sistema</div>
-         </div>
-         <label class="relative inline-block w-14 h-7">
-            <input type="checkbox" checked class="opacity-0 w-0 h-0">
-            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-colors before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform checked:bg-purple-600 checked:before:transform checked:before:translate-x-7"></span>
-         </label>
+      <a
+        href="{% url 'core:request_password_setup' %}"
+        class="inline-flex items-center px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+      >
+        <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none">
+          <rect
+            x="3"
+            y="11"
+            width="18"
+            height="11"
+            rx="2"
+            ry="2"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <circle cx="12" cy="16" r="1" fill="currentColor" />
+          <path
+            d="M7 11V7a5 5 0 0 1 10 0v4"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+        </svg>
+        Establecer Contraseña
+      </a>
+
+      <div class="mt-4">
+        <small class="text-muted-foreground text-xs"
+          >Te enviaremos un código de verificación a tu correo
+          electrónico</small
+        >
+      </div>
+    </div>
+
+    {% elif is_google_user and user_has_password %}
+    <!-- Usuario de Google con contraseña ya establecida -->
+    <div class="text-center py-8">
+      <div class="mb-8">
+        <svg
+          class="w-12 h-12 mx-auto mb-4 text-green-500"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          />
+          <path
+            d="M9 12l2 2 4-4"
+            stroke="currentColor"
+            stroke-width="2"
+            fill="none"
+          />
+        </svg>
+        <h3 class="text-lg font-semibold text-foreground mb-3">
+          Contraseña Configurada
+        </h3>
+        <p class="text-muted-foreground mb-6">
+          Ya tienes una contraseña establecida. Puedes iniciar sesión con Google
+          o con tu contraseña.
+        </p>
       </div>
 
-      <div class="flex items-center justify-between py-4">
-         <div>
-            <div class="text-foreground">Recordatorio de Tareas</div>
-            <div class="text-xs text-muted-foreground">Alertas de vencimientos</div>
-         </div>
-         <label class="relative inline-block w-14 h-7">
-            <input type="checkbox" class="opacity-0 w-0 h-0">
-            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-colors before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform checked:bg-purple-600 checked:before:transform checked:before:translate-x-7"></span>
-         </label>
+      <!-- Formulario de cambio de contraseña -->
+      <details class="text-left mt-6">
+        <summary
+          class="cursor-pointer text-purple-500 font-medium mb-4 hover:text-purple-400 transition-colors"
+        >
+          Cambiar Contraseña
+        </summary>
+
+        <form method="post" id="passwordForm" class="mt-4">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="password" />
+
+          <div class="mb-6">
+            <div class="block text-sm font-medium text-muted-foreground mb-2">
+              {{ password_form.old_password.label }}
+            </div>
+            <input
+              type="password"
+              name="old_password"
+              class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+            />
+            {% for error in password_form.old_password.errors %}
+            <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-6">
+            <div class="block text-sm font-medium text-muted-foreground mb-2">
+              {{ password_form.new_password1.label }}
+            </div>
+            <input
+              type="password"
+              name="new_password1"
+              class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+            />
+            {% if password_form.new_password1.help_text %}
+            <small class="text-muted-foreground text-xs mt-1 block"
+              >{{ password_form.new_password1.help_text }}</small
+            >
+            {% endif %} {% for error in password_form.new_password1.errors %}
+            <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-6">
+            <div class="block text-sm font-medium text-muted-foreground mb-2">
+              {{ password_form.new_password2.label }}
+            </div>
+            <input
+              type="password"
+              name="new_password2"
+              class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+            />
+            {% for error in password_form.new_password2.errors %}
+            <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="flex justify-end gap-4 mt-6">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Cambiar Contraseña
+            </button>
+          </div>
+        </form>
+      </details>
+    </div>
+
+    {% else %}
+    <!-- Usuario normal (no Google) -->
+    <form method="post" id="passwordForm">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="password" />
+
+      <div class="mb-6">
+        <div class="block text-sm font-medium text-muted-foreground mb-2">
+          {{ password_form.old_password.label }}
+        </div>
+        <input
+          type="password"
+          name="old_password"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+        />
+        {% for error in password_form.old_password.errors %}
+        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+        {% endfor %}
       </div>
-   </div>
+
+      <div class="mb-6">
+        <div class="block text-sm font-medium text-muted-foreground mb-2">
+          {{ password_form.new_password1.label }}
+        </div>
+        <input
+          type="password"
+          name="new_password1"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+        />
+        {% if password_form.new_password1.help_text %}
+        <small class="text-muted-foreground text-xs mt-1 block"
+          >{{ password_form.new_password1.help_text }}</small
+        >
+        {% endif %} {% for error in password_form.new_password1.errors %}
+        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="mb-6">
+        <div class="block text-sm font-medium text-muted-foreground mb-2">
+          {{ password_form.new_password2.label }}
+        </div>
+        <input
+          type="password"
+          name="new_password2"
+          class="w-full px-4 py-2 rounded-md bg-input border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+        />
+        {% for error in password_form.new_password2.errors %}
+        <div class="text-red-500 text-sm mt-1">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <div class="flex justify-end gap-4 mt-6">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-md font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          class="px-4 py-2 rounded-md font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          Cambiar Contraseña
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Sección de Preferencias de Notificación -->
+  <div class="bg-card rounded-lg border border-border p-6 shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <div class="text-lg font-semibold text-foreground">
+        Preferencias de Notificación
+      </div>
+      <a
+        href="{% url 'reminders:configuration' %}"
+        class="text-purple-500 hover:text-purple-400 transition-colors"
+      >
+        <i class="fas fa-cog"></i>
+      </a>
+    </div>
+
+    <form method="post" id="notificationsForm">
+      {% csrf_token %}
+      <input type="hidden" name="form_type" value="notifications" />
+
+      <div
+        class="flex items-center justify-between py-4 border-b border-border"
+      >
+        <div>
+          <div class="text-foreground">Notificaciones por Email</div>
+          <div class="text-xs text-muted-foreground">
+            Recordatorios y alertas del sistema
+          </div>
+        </div>
+        <label class="relative inline-block w-14 h-7">
+          <input
+            type="checkbox"
+            name="email_notifications"
+            {%
+            if
+            user_settings.email_notifications
+            %}checked{%
+            endif
+            %}
+            class="peer opacity-0 w-0 h-0"
+          />
+          <span
+            class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-all duration-200 before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-all before:duration-200 peer-checked:bg-purple-600 peer-checked:before:translate-x-7"
+          ></span>
+        </label>
+      </div>
+
+      <div
+        class="flex items-center justify-between py-4 border-b border-border"
+      >
+        <div>
+          <div class="text-foreground">Recordatorio de Tareas</div>
+          <div class="text-xs text-muted-foreground">
+            Alertas de vencimientos
+          </div>
+        </div>
+        <label class="relative inline-block w-14 h-7">
+          <input
+            type="checkbox"
+            name="task_reminders"
+            {%
+            if
+            user_settings.task_reminders
+            %}checked{%
+            endif
+            %}
+            class="peer opacity-0 w-0 h-0"
+          />
+          <span
+            class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-muted rounded-full transition-all duration-200 before:content-[''] before:absolute before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-all before:duration-200 peer-checked:bg-purple-600 peer-checked:before:translate-x-7"
+          ></span>
+        </label>
+      </div>
+
+      <div class="pt-4">
+        <a
+          href="{% url 'reminders:configuration' %}"
+          class="inline-flex items-center text-sm text-purple-500 hover:text-purple-400 transition-colors"
+        >
+          <i class="fas fa-bell mr-2"></i>
+          Configuración Avanzada de Recordatorios
+          <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener("DOMContentLoaded", function () {
     // ====== FUNCIONALIDAD DE AVATAR ======
-    const fileInput = document.getElementById('fileInput');
-    const uploadBtn = document.getElementById('uploadBtn');
-    const removeBtn = document.getElementById('removeBtn');
-    const profileImage = document.getElementById('profileImage');
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const removeBtn = document.getElementById("removeBtn");
+    const profileImage = document.getElementById("profileImage");
 
     if (uploadBtn) {
-        uploadBtn.addEventListener('click', function() {
-            fileInput.click();
-        });
+      uploadBtn.addEventListener("click", function () {
+        fileInput.click();
+      });
     }
 
     if (fileInput) {
-        fileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                if (validateImageFile(file)) {
-                    showImagePreview(file, profileImage);
-                    uploadAvatar(file);
-                }
-            }
-        });
+      fileInput.addEventListener("change", function (event) {
+        const file = event.target.files[0];
+        if (file) {
+          if (validateImageFile(file)) {
+            showImagePreview(file, profileImage);
+            uploadAvatar(file);
+          }
+        }
+      });
     }
 
     if (removeBtn) {
-        removeBtn.addEventListener('click', function() {
-            if (confirm('¿Estás seguro de que quieres eliminar tu foto de perfil?')) {
-                removeAvatar();
-            }
-        });
+      removeBtn.addEventListener("click", function () {
+        if (
+          confirm("¿Estás seguro de que quieres eliminar tu foto de perfil?")
+        ) {
+          removeAvatar();
+        }
+      });
     }
 
     function validateImageFile(file) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('El archivo es demasiado grande. Máximo 5MB.');
-            return false;
-        }
+      if (file.size > 5 * 1024 * 1024) {
+        alert("El archivo es demasiado grande. Máximo 5MB.");
+        return false;
+      }
 
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Tipo de archivo no permitido. Solo se permiten JPG, PNG, GIF y WebP.');
-            return false;
-        }
-        
-        return true;
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        alert(
+          "Tipo de archivo no permitido. Solo se permiten JPG, PNG, GIF y WebP."
+        );
+        return false;
+      }
+
+      return true;
     }
 
     function showImagePreview(file, imageElement) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imageElement.src = e.target.result;
-            imageElement.style.opacity = '0.7';
-        };
-        reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        // Si es un div (avatar por defecto), convertirlo en img
+        if (imageElement.tagName === 'DIV') {
+          const img = document.createElement('img');
+          img.id = 'profileImage';
+          img.className = 'w-full h-full rounded-full object-cover border-2 border-border';
+          img.alt = 'Foto de perfil';
+          imageElement.parentNode.replaceChild(img, imageElement);
+          imageElement = img;
+        }
+        imageElement.src = e.target.result;
+        imageElement.style.opacity = "0.7";
+      };
+      reader.readAsDataURL(file);
     }
 
     function uploadAvatar(file) {
-        const formData = new FormData();
-        formData.append('avatar', file);
-        
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        formData.append('csrfmiddlewaretoken', csrfToken);
+      const formData = new FormData();
+      formData.append("avatar", file);
 
-        const uploadBtn = document.getElementById('uploadBtn');
-        const originalContent = uploadBtn.innerHTML;
-        
-        uploadBtn.disabled = true;
-        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+      const csrfToken = document.querySelector(
+        "[name=csrfmiddlewaretoken]"
+      ).value;
+      formData.append("csrfmiddlewaretoken", csrfToken);
 
-        fetch('{% url "core:upload_avatar" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken
+      const uploadBtn = document.getElementById("uploadBtn");
+      const originalContent = uploadBtn.innerHTML;
+
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+
+      fetch('{% url "core:upload_avatar" %}', {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const profileImage = document.getElementById("profileImage");
+
+          if (data.success) {
+            profileImage.src = data.avatar_url + "?t=" + new Date().getTime();
+            profileImage.style.opacity = "1";
+            alert(data.message);
+
+            if (!document.getElementById("removeBtn")) {
+              setTimeout(() => location.reload(), 1500);
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            const profileImage = document.getElementById('profileImage');
-            
-            if (data.success) {
-                profileImage.src = data.avatar_url + '?t=' + new Date().getTime();
-                profileImage.style.opacity = '1';
-                alert(data.message);
-                
-                if (!document.getElementById('removeBtn')) {
-                    setTimeout(() => location.reload(), 1500);
-                }
-            } else {
-                alert(data.error);
-                setTimeout(() => location.reload(), 2000);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al subir la imagen. Intenta de nuevo.');
+          } else {
+            alert(data.error);
             setTimeout(() => location.reload(), 2000);
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Error al subir la imagen. Intenta de nuevo.");
+          setTimeout(() => location.reload(), 2000);
         })
         .finally(() => {
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML = originalContent;
-            document.getElementById('profileImage').style.opacity = '1';
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = originalContent;
+          document.getElementById("profileImage").style.opacity = "1";
         });
     }
 
     function removeAvatar() {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const removeBtn = document.getElementById('removeBtn');
-        const originalContent = removeBtn.innerHTML;
+      const csrfToken = document.querySelector(
+        "[name=csrfmiddlewaretoken]"
+      ).value;
+      const removeBtn = document.getElementById("removeBtn");
+      const originalContent = removeBtn.innerHTML;
 
-        removeBtn.disabled = true;
-        removeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+      removeBtn.disabled = true;
+      removeBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
 
-        fetch('{% url "core:remove_avatar" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            }
+      fetch('{% url "core:remove_avatar" %}', {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert(data.message);
+            setTimeout(() => location.reload(), 1500);
+          } else {
+            alert(data.error);
+          }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                alert(data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al eliminar la imagen. Intenta de nuevo.');
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Error al eliminar la imagen. Intenta de nuevo.");
         })
         .finally(() => {
-            removeBtn.disabled = false;
-            removeBtn.innerHTML = originalContent;
+          removeBtn.disabled = false;
+          removeBtn.innerHTML = originalContent;
         });
     }
 
     // ====== TOGGLE SWITCHES ======
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const span = this.nextElementSibling;
-            if (this.checked) {
-                span.classList.add('checked:bg-purple-600', 'checked:before:transform', 'checked:before:translate-x-7');
-            } else {
-                span.classList.remove('checked:bg-purple-600', 'checked:before:transform', 'checked:before:translate-x-7');
-            }
-        });
+    document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+      checkbox.addEventListener("change", function () {
+        // Auto-submit para preferencias de notificación
+        if (
+          this.name === "email_notifications" ||
+          this.name === "task_reminders"
+        ) {
+          const form = document.getElementById("notificationsForm");
+          if (form) {
+            const formData = new FormData(form);
+            const csrfToken = document.querySelector(
+              "[name=csrfmiddlewaretoken]"
+            ).value;
+
+            fetch('{% url "core:perfil" %}', {
+              method: "POST",
+              body: formData,
+              headers: {
+                "X-CSRFToken": csrfToken,
+              },
+            })
+              .then((response) => {
+                if (response.ok) {
+                  // Mostrar feedback visual temporal
+                  const notification = document.createElement("div");
+                  notification.className =
+                    "fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-lg z-50";
+                  notification.textContent = "Preferencias actualizadas";
+                  document.body.appendChild(notification);
+
+                  setTimeout(() => {
+                    notification.remove();
+                  }, 2000);
+                }
+              })
+              .catch((error) => {
+                console.error("Error:", error);
+              });
+          }
+        }
+      });
     });
 
-    console.log('Profile functionality initialized successfully');
-});
+    console.log("Profile functionality initialized successfully");
+  });
 </script>
 {% endblock content %}

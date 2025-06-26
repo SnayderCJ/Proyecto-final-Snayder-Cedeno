@@ -3,7 +3,7 @@ from django.conf import settings  # Para importar la configuración de AUTH_USER
 from django.core.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
-
+from django.contrib.auth.models import User
 
 class Event(models.Model):
     """
@@ -121,3 +121,20 @@ class Event(models.Model):
         # Lanzar todas las validaciones juntas
         if errors:
             raise ValidationError(errors)
+        
+class BloqueEstudio(models.Model):
+    TIPO_CHOICES = [
+        ('estudio', 'Estudio'),
+        ('descanso', 'Descanso'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='estudio')
+    fecha = models.DateField(auto_now_add=True)
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+    duracion_min = models.IntegerField()
+    completado = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.usuario.username} | {self.tipo} | {self.fecha} | {self.hora_inicio}-{self.hora_fin}"

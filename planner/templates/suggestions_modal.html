@@ -1,0 +1,165 @@
+<!-- Modal de Sugerencias de IA - Diseño Moderno -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4" id="suggestions-modal">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    
+    <!-- Header del Modal -->
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <span class="text-2xl">🤖</span>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-white">Sugerencias de IA</h3>
+            <p class="text-purple-100 text-sm">Optimización inteligente de horarios</p>
+          </div>
+        </div>
+        <button class="close-btn w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white transition-all duration-200" type="button" aria-label="Cerrar modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido del Modal -->
+    <div class="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+      <form id="suggestions-form" class="space-y-6">
+        {% for suggestion in suggestions %}
+          <div class="suggestion-item bg-gradient-to-r from-purple-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 rounded-xl p-6 border border-purple-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
+            
+            <!-- Header de la Sugerencia -->
+            <div class="flex items-start gap-4 mb-4">
+              <div class="flex-shrink-0 mt-1">
+                <input type="checkbox" name="suggestion" value="{{ suggestion.event_id }}" 
+                       class="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2" checked>
+              </div>
+              
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">{{ suggestion.title }}</h4>
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Confianza {% if suggestion.confianza >= 80 %}Alta{% elif suggestion.confianza >= 60 %}Media{% else %}Baja{% endif %} ({{ suggestion.confianza }}%)
+                  </span>
+                </div>
+
+                <!-- Información del Cambio -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="bg-white dark:bg-slate-700 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-1">
+                      <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      Horario Actual
+                    </div>
+                    <div class="font-medium text-gray-900 dark:text-white">{{ suggestion.current_time }}</div>
+                  </div>
+                  
+                  <div class="bg-white dark:bg-slate-700 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-1">
+                      <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                      </svg>
+                      Horario Sugerido
+                    </div>
+                    <div class="font-medium text-green-600 dark:text-green-400">{{ suggestion.suggested_time }}</div>
+                  </div>
+                  
+                  <div class="bg-white dark:bg-slate-700 rounded-lg p-3 border border-gray-200 dark:border-slate-600">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 mb-1">
+                      <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                      </svg>
+                      Mejora Esperada
+                    </div>
+                    <div class="font-medium text-blue-600 dark:text-blue-400">+{% if suggestion.improvement_score > 100 %}100{% else %}{{ suggestion.improvement_score }}{% endif %}%</div>
+                  </div>
+                </div>
+
+                <!-- Razón de la Sugerencia -->
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
+                  <div class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    <div>
+                      <p class="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">Razón de la optimización:</p>
+                      <p class="text-sm text-amber-700 dark:text-amber-300">{{ suggestion.reason }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Análisis de Productividad -->
+                <div class="bg-white dark:bg-slate-700 rounded-lg p-4 border border-gray-200 dark:border-slate-600">
+                  <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Análisis de horarios disponibles
+                  </h5>
+                  
+                  <div class="space-y-2">
+                    {% for opcion in suggestion.todas_opciones %}
+                    <div class="flex items-center gap-3 text-sm {% if opcion.hora == suggestion.current_time|date:'H'|add:0 %}bg-purple-100 dark:bg-purple-900/30 rounded-lg px-2 py-1{% elif opcion.hora == suggestion.mejor_hora %}bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1{% endif %}">
+                      <span class="w-16 text-gray-600 dark:text-gray-300 font-mono {% if opcion.hora == suggestion.current_time|date:'H'|add:0 %}text-purple-600 dark:text-purple-400 font-semibold{% elif opcion.hora == suggestion.mejor_hora %}text-green-600 dark:text-green-400 font-semibold{% endif %}">
+                        {{ opcion.hora|stringformat:"02d" }}:00
+                      </span>
+                      <div class="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2 overflow-hidden">
+                        <div class="h-full bg-gradient-to-r {% if opcion.hora == suggestion.mejor_hora %}from-green-500 to-emerald-500{% elif opcion.hora == suggestion.current_time|date:'H'|add:0 %}from-purple-500 to-blue-500{% else %}from-gray-400 to-gray-500{% endif %} rounded-full transition-all duration-500" 
+                             style="width: {% if opcion.score > 100 %}100{% else %}{{ opcion.score }}{% endif %}%"></div>
+                      </div>
+                      <span class="w-16 text-right text-gray-600 dark:text-gray-300 font-mono text-xs {% if opcion.hora == suggestion.current_time|date:'H'|add:0 %}text-purple-600 dark:text-purple-400 font-semibold{% elif opcion.hora == suggestion.mejor_hora %}text-green-600 dark:text-green-400 font-semibold{% endif %}">
+                        {% if opcion.score > 100 %}100{% else %}{{ opcion.score|floatformat:1 }}{% endif %}%
+                      </span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-12">
+            <div class="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Se necesitan más tareas</h3>
+            <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              Para generar sugerencias óptimas, necesitamos al menos 4 tareas programadas. Esto nos permite analizar mejor tus patrones de productividad y hacer recomendaciones más precisas.
+            </p>
+            <button onclick="window.location.href='/tareas/nueva'" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              Agregar Nueva Tarea
+            </button>
+          </div>
+        {% endfor %}
+      </form>
+    </div>
+
+    <!-- Footer del Modal -->
+    <div class="bg-gray-50 dark:bg-slate-700 px-6 py-4 border-t border-gray-200 dark:border-slate-600">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          <span class="inline-flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Selecciona las sugerencias que deseas aplicar
+          </span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="cancel-btn px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-colors duration-200" type="button">
+            Cancelar
+          </button>
+          <button id="apply-selected-btn" class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg" type="button">
+            Aplicar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

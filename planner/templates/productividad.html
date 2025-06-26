@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="w-full p-6">
+  <!-- Datos ocultos para JavaScript -->
+  <script type="application/json" id="productividad-data">
+    {{ productividad_dias|safe }}
+  </script>
+  <script type="text/plain" id="porcentaje-data">
+    {{ productividad_hoy }}
+  </script>
+  <!-- Debug info -->
+  <div class="hidden">
+    <div id="debug-info">
+      Total bloques: {{ total_bloques }}
+      Minutos hoy: {{ minutos_hoy }}
+      Meta diaria: {{ meta_diaria }}
+    </div>
+  </div>
+
+  <section class="max-w-7xl mx-auto space-y-6">
+    <!-- Título -->
+    <h2 class="text-3xl font-bold">
+      <span class="text-white">Análisis De</span>
+      <span class="text-purple-500">Productividad</span>
+    </h2>
+
+    <!-- Panel principal: Barras + Donut + Indicadores -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Gráfico de Barras -->
+      <div class="lg:col-span-2 bg-card rounded-xl border border-border p-6 transition-all duration-300 hover:shadow-lg">
+        <div id="barChart" class="w-full h-[300px] transition-opacity duration-300"></div>
+      </div>
+      
+      <!-- Columna Derecha -->
+      <div class="space-y-6">
+        <!-- Donut Chart -->
+        <div class="bg-card rounded-xl border border-border p-6 transition-all duration-300 hover:shadow-lg">
+          <div class="relative w-48 h-48 mx-auto">
+            <div id="donutChart" class="w-full h-full transition-transform duration-300 transform hover:scale-105"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span id="donutPorcentaje" class="text-3xl font-bold text-purple-500 transition-all duration-300" data-productivity-value>{{ productividad_hoy }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Indicadores -->
+        <div class="bg-card rounded-xl border border-border p-6 space-y-4">
+          <p class="text-lg font-semibold">
+            <span class="text-purple-500" data-productivity-value>{{ productividad_hoy }}%</span> Progreso
+          </p>
+          <p class="{% if dif_ayer_positivo %}text-green-500{% else %}text-red-500{% endif %}">
+            {{ dif_ayer_valor }}% {% if dif_ayer_positivo %}más{% else %}menos{% endif %} productivo que ayer
+          </p>
+          <p class="{% if dif_promedio_positivo %}text-green-500{% else %}text-red-500{% endif %}">
+            {{ dif_promedio_valor }}% {% if dif_promedio_positivo %}más{% else %}menos{% endif %} que tu promedio semanal
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patrones -->
+    <div class="bg-card rounded-xl border border-border p-6">
+      <h3 class="text-2xl font-bold mb-4">
+        🧠 <span class="text-white">Patrones</span>
+        <span class="text-purple-500">Identificados</span>
+      </h3>
+      <ul class="space-y-4 text-lg">
+        <li class="flex items-center gap-2">
+          <span class="text-2xl">📅</span>
+          Tu día más productivo es:
+          <strong class="text-purple-500">{{ dia_productivo }}</strong>
+        </li>
+        <li class="flex items-center gap-2">
+          <span class="text-2xl">🕒</span>
+          Mayor rendimiento del día:
+          <strong class="text-purple-500">{{ mejor_rango }}</strong>
+        </li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<!-- D3.js y sus extensiones -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://d3js.org/d3-scale.v3.min.js"></script>
+<script src="https://d3js.org/d3-axis.v2.min.js"></script>
+<script src="{% static 'js/productividad.js' %}"></script>
+{% endblock %}

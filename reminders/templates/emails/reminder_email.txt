@@ -1,0 +1,22 @@
+{{ ai_subject }}
+
+Hola {{ user_name }},
+
+Este es tu recordatorio para: {{ reminder.title }}
+
+📝 DETALLES:
+- Título: {{ reminder.title }}
+- Fecha objetivo: {{ reminder.target_datetime|date:"d/m/Y H:i" }}
+{% if reminder.description %}- Descripción: {{ reminder.description }}{% endif %}
+
+⚡ ACCIONES DISPONIBLES:
+1. Marcar como completado: {{ respond_urls.completed }}
+2. Posponer 15 minutos: {{ respond_urls.snooze }}
+3. Cancelar recordatorio: {{ respond_urls.cancel }}
+
+--
+Este es un recordatorio automático de tu Planificador IA.
+Si no deseas recibir estos recordatorios, puedes desactivarlos en: {{ site_url }}/settings
+
+Saludos,
+Tu Planificador IA
