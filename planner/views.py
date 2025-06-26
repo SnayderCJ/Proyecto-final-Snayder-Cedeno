@@ -463,29 +463,33 @@ def suggestions_template(request):
 
 @login_required
 def focused_time_view(request):
+    # Obtener la zona horaria del usuario
+    try:
+        from core.models import UserSettings
+        user_settings = UserSettings.objects.get(user=request.user)
+        user_tz = pytz.timezone(user_settings.timezone)
+    except (UserSettings.DoesNotExist, pytz.exceptions.UnknownTimeZoneError):
+        user_tz = pytz.timezone('America/Guayaquil')
+    
     bloques = generar_bloques_enfocados_semana(request.user, duracion_enfoque=25, duracion_descanso=5)
-    from collections import defaultdict
-    eventos_por_dia = defaultdict(list)
-    eventos = Event.objects.filter(user=request.user).order_by("start_time")
-    for evento in eventos:
-        fecha = evento.start_time.date()
-        eventos_por_dia[fecha].append({
-            "title": evento.title,
-            "start_time": evento.start_time,
-            "end_time": evento.end_time,
-            "event_type": evento.event_type.lower()
-        })
+    
+    # Convertir los bloques a la zona horaria del usuario
     for bloque in bloques:
-        bloque["start_time"] = bloque["start_time"].replace(tzinfo=None) if hasattr(bloque["start_time"], 'replace') else bloque["start_time"]
-        bloque["end_time"] = bloque["end_time"].replace(tzinfo=None) if hasattr(bloque["end_time"], 'replace') else bloque["end_time"]
+        if hasattr(bloque["start_time"], 'astimezone'):
+            bloque["start_time"] = bloque["start_time"].astimezone(user_tz)
+            bloque["end_time"] = bloque["end_time"].astimezone(user_tz)
+        
         bloque["hora_slot"] = bloque["start_time"].strftime("%H:%M")
         bloque["weekday"] = bloque["start_time"].weekday()
+    
+    # Generar las horas para la tabla
     horas = []
-    actual = datetime.combine(timezone.now().date(), time(6, 0)).replace(tzinfo=None)
-    final = datetime.combine(timezone.now().date(), time(22, 0)).replace(tzinfo=None)
+    actual = datetime.combine(timezone.now().date(), time(6, 0))
+    final = datetime.combine(timezone.now().date(), time(22, 0))
     while actual <= final:
         horas.append(actual.strftime("%H:%M"))
         actual += timedelta(minutes=5)
+    
     context = {
         "bloques": bloques,
         "horas": horas,
