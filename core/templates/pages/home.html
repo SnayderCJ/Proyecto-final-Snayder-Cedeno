@@ -201,36 +201,20 @@
             <section class="card rounded-xl border border-border bg-card p-6 animate-slide-in">
                 <h3 class="font-semibold">Análisis de Productividad</h3>
                 
-                <!-- Gráfico de barras -->
-                <div class="mt-6 flex items-end justify-between h-32 px-4">
-                    {% if productivity_data %}
-                        {% for day in productivity_data %}
-                        <div class="flex flex-col items-center">
-                            <div class="w-8 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:from-purple-500 hover:to-purple-300" 
-                                 style="height: {% if day.percentage > 0 %}{{ day.percentage }}%{% else %}5%{% endif %};">
-                                <div class="w-full h-full relative group">
-                                    <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded px-2 py-1 transition-opacity duration-200">
-                                        {{ day.percentage }}%
-                                    </div>
-                                </div>
-                            </div>
-                            <span class="text-xs font-medium text-muted-foreground mt-2">{{ day.name }}</span>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        {% for day in "LMMJVSD" %}
-                        <div class="flex flex-col items-center">
-                            <div class="w-8 bg-gradient-to-t from-purple-600/30 to-purple-400/30 rounded-t-lg" 
-                                 style="height: 5%;"></div>
-                            <span class="text-xs font-medium text-muted-foreground mt-2">{{ day }}</span>
-                        </div>
-                        {% endfor %}
-                    {% endif %}
-                </div>
+                <!-- Gráfico de barras mejorado con D3.js -->
+                <div class="mt-6 w-full h-48" id="dashboardBarChart"></div>
                 
                 <div class="mt-4 flex items-center justify-between text-sm">
                     <span class="text-muted-foreground">Tiempo de enfoque</span>
-                    <span class="text-primary">{{ productivity_status }}</span>
+                    <span class="text-primary font-medium">{{ productivity_status|default:"Sin datos" }}</span>
+                </div>
+                
+                <!-- Indicador de productividad actual -->
+                <div class="mt-3 flex items-center justify-between text-xs">
+                    <span class="text-muted-foreground">Productividad hoy:</span>
+                    <span class="font-semibold {% if productividad_hoy >= 80 %}text-green-500{% elif productividad_hoy >= 60 %}text-blue-500{% elif productividad_hoy >= 40 %}text-yellow-500{% else %}text-red-500{% endif %}" data-productivity-value>
+                        {{ productividad_hoy|default:0 }}%
+                    </span>
                 </div>
             </section>
 
@@ -256,6 +240,7 @@
 
 {% block extra_js %}
 {{ block.super }}
+<script src="{% static 'js/productividad.js' %}"></script>
 <script src="{% static 'js/home.js' %}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

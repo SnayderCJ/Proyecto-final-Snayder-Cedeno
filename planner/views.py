@@ -59,9 +59,6 @@ def calendar_view(request):
         user_tz = pytz.timezone(user_settings.timezone)
     except (UserSettings.DoesNotExist, pytz.exceptions.UnknownTimeZoneError):
         user_tz = pytz.timezone('America/Guayaquil')
-        
-    # Obtener productividad del día
-    productividad_hoy = get_productividad_hoy(request.user)
 
     # Obtener la fecha de referencia desde los parámetros GET
     date_param = request.GET.get('date')
@@ -183,7 +180,7 @@ def calendar_view(request):
     # Obtener el nombre del mes en español
     month_name_en = start_of_week.strftime("%B")
     month_name_es = months_es.get(month_name_en, month_name_en)
-    
+
     context = {
         'today': today,
         'start_of_week': start_of_week,
@@ -193,7 +190,6 @@ def calendar_view(request):
         'time_slots': [f"{h:02d}:00" for h in range(CALENDAR_START_HOUR, CALENDAR_END_HOUR + 1)],
         'current_month_name': month_name_es,
         'current_week_range': f"{start_of_week.day:02d}-{end_of_week.day:02d} de {month_name_es} de {start_of_week.year}",
-        'productividad_hoy': productividad_hoy,
     }
     return render(request, 'horarios.html', context)
 
@@ -357,8 +353,6 @@ def tareas_view(request):
     """
     Vista para mostrar las tareas organizadas por días de la semana y agrupadas por materia.
     """
-    # Obtener productividad del día
-    productividad_hoy = get_productividad_hoy(request.user)
     
     # Obtener la fecha actual
     today = timezone.localdate()
@@ -475,7 +469,6 @@ def tareas_view(request):
         'total_events': total_events,
         'completed_events': completed_events,
         'pending_events': pending_events,
-        'productividad_hoy': productividad_hoy,
     }
     
     return render(request, 'tareas.html', context)
@@ -637,8 +630,6 @@ def suggestions_template(request):
 
 @login_required
 def focused_time_view(request):
-    # Obtener productividad del día
-    productividad_hoy = get_productividad_hoy(request.user)
     
     # Siempre usar valores fijos para la tabla
     bloques = generar_bloques_enfocados_semana(request.user, duracion_enfoque=25, duracion_descanso=5)
@@ -675,7 +666,6 @@ def focused_time_view(request):
     context = {
         "bloques": bloques,
         "horas": horas,
-        'productividad_hoy': productividad_hoy,
     }
     return render(request, "bloques_enfocados.html", context)
 
@@ -697,7 +687,7 @@ def productividad_view(request):
     # Obtener bloques de estudio completados (del temporizador)
     bloques = BloqueEstudio.objects.filter(
         usuario=usuario,
-        fecha__range=(inicio_semana, hoy),
+        fecha__range=(inicio_semana, fin_semana),  # Cambiado de hoy a fin_semana
         completado=True
     )
 
@@ -707,7 +697,7 @@ def productividad_view(request):
         start_time__date__range=(inicio_semana, fin_semana),
         is_completed=True,
         event_type__in=['tarea', 'clase']  # Solo eventos productivos
-    )
+    ).order_by('start_time')  # Ordenar por fecha
 
     print(f"🔍 Debug - Usuario: {usuario}")
     print(f"🔍 Debug - Fecha hoy: {hoy}")
@@ -718,19 +708,23 @@ def productividad_view(request):
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
     productividad_dias = [0] * 7
 
-    # Agregar minutos de bloques de estudio
-    for bloque in bloques:
-        index = bloque.fecha.weekday()
-        productividad_dias[index] += bloque.duracion_min
-
-    # Agregar minutos de eventos completados del calendario
-    for evento in eventos_completados:
-        fecha_evento = evento.start_time.date()
-        if inicio_semana <= fecha_evento <= fin_semana:
-            index = fecha_evento.weekday()
-            # Calcular duración del evento en minutos
-            duracion = (evento.end_time - evento.start_time).total_seconds() / 60
-            productividad_dias[index] += int(duracion)
+    # Agregar minutos de bloques de estudio y eventos por día
+    for dia in range(7):
+        fecha_actual = inicio_semana + timedelta(days=dia)
+        
+        # Sumar minutos de bloques de estudio del día
+        bloques_dia = [b for b in bloques if b.fecha == fecha_actual]
+        minutos_bloques = sum(b.duracion_min for b in bloques_dia)
+        
+        # Sumar minutos de eventos completados del día
+        eventos_dia = [e for e in eventos_completados if e.start_time.date() == fecha_actual]
+        minutos_eventos = sum(
+            int((e.end_time - e.start_time).total_seconds() / 60)
+            for e in eventos_dia
+        )
+        
+        # Total de minutos para este día
+        productividad_dias[dia] = minutos_bloques + minutos_eventos
 
     # Guardar los minutos originales para cálculos
     minutos_originales = productividad_dias.copy()
@@ -777,11 +771,17 @@ def productividad_view(request):
     print(f"📊 Diferencia en puntos porcentuales: {dif_ayer_puntos}%")
 
     import json
-    # Usar los porcentajes para el gráfico
-    datos_productividad = json.dumps(productividad_dias_porcentajes)
+    # Crear datos estructurados para el gráfico
+    dias_nombres = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+    datos_productividad = []
+    for i, porcentaje in enumerate(productividad_dias_porcentajes):
+        datos_productividad.append({
+            'name': dias_nombres[i],
+            'percentage': porcentaje
+        })
     
     context = {
-        'productividad_dias': datos_productividad,
+        'productividad_dias': json.dumps(datos_productividad),
         'productividad_hoy': productividad_hoy_percent,
         'productividad_restante': 100 - productividad_hoy_percent,
 
@@ -947,8 +947,51 @@ from .models import BloqueEstudio  # Asegúrate de importar bien tu modelo
 
 @login_required
 def productividad_api(request):
-    """API endpoint para obtener el porcentaje de productividad actual"""
-    productividad = get_productividad_hoy(request.user)
+    """API endpoint para obtener los porcentajes de productividad de la semana"""
+    usuario = request.user
+    hoy = date.today()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes
+    fin_semana = inicio_semana + timedelta(days=6)  # Domingo
+
+    # Obtener bloques de estudio completados de la semana
+    bloques = BloqueEstudio.objects.filter(
+        usuario=usuario,
+        fecha__range=(inicio_semana, fin_semana),
+        completado=True
+    )
+
+    # Obtener eventos completados de la semana
+    eventos = Event.objects.filter(
+        user=usuario,
+        start_time__date__range=(inicio_semana, fin_semana),
+        is_completed=True,
+        event_type__in=['tarea', 'clase']
+    )
+
+    # Inicializar array de productividad por día
+    productividad_dias = [0] * 7
+    meta_diaria = 120  # 2 horas
+
+    # Calcular productividad para cada día
+    for dia in range(7):
+        fecha_actual = inicio_semana + timedelta(days=dia)
+        
+        # Sumar minutos de bloques de estudio del día
+        bloques_dia = [b for b in bloques if b.fecha == fecha_actual]
+        minutos_bloques = sum(b.duracion_min for b in bloques_dia)
+        
+        # Sumar minutos de eventos completados del día
+        eventos_dia = [e for e in eventos if e.start_time.date() == fecha_actual]
+        minutos_eventos = sum(
+            int((e.end_time - e.start_time).total_seconds() / 60)
+            for e in eventos_dia
+        )
+        
+        # Calcular porcentaje para este día
+        minutos_totales = minutos_bloques + minutos_eventos
+        productividad_dias[dia] = min(100, int((minutos_totales / meta_diaria) * 100))
+
     return JsonResponse({
-        "productividad": productividad
+        "productividad_dias": productividad_dias,
+        "dia_actual": hoy.weekday()
     })
