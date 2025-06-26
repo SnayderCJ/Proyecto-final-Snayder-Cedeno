@@ -227,7 +227,8 @@ function reiniciarPomodoro() {
 }
 
 function actualizarResumenProductividad() {
-  fetch("/planner/obtener-estadisticas-productividad/")
+  // Intentar primero con la API más completa, luego con la alternativa
+  fetch("/planner/api/productividad/")
     .then(response => response.json())
     .then(data => {
       const resumen = document.getElementById("resumen-productividad");
@@ -254,23 +255,53 @@ function actualizarResumenProductividad() {
       `;
     })
     .catch(error => {
-      console.error("Error al cargar productividad:", error);
-      // Mostrar valores por defecto en caso de error
-      const resumen = document.getElementById("resumen-productividad");
-      resumen.innerHTML = `
-        <li class="flex items-center gap-2 text-gray-300">
-          <span class="text-green-500">✅</span>
-          0 bloques de estudio completados hoy
-        </li>
-        <li class="flex items-center gap-2 text-gray-300">
-          <span class="text-purple-500">⏱️</span>
-          Tiempo Acumulado: 0m
-        </li>
-        <li class="flex items-center gap-2 text-gray-300">
-          <span class="text-blue-500">🔄</span>
-          Ciclo actual: ${cicloPomodoro}
-        </li>
-      `;
+      console.error("Error al cargar productividad con API principal, intentando alternativa:", error);
+      // Intentar con la API alternativa
+      fetch("/planner/obtener-estadisticas-productividad/")
+        .then(response => response.json())
+        .then(data => {
+          const resumen = document.getElementById("resumen-productividad");
+          const bloquesEstudio = data.bloques_estudio || 0;
+          const minutosTotales = data.minutos_totales || 0;
+          
+          const tiempoTexto = minutosTotales >= 60
+            ? `${Math.floor(minutosTotales / 60)}h ${minutosTotales % 60}m`
+            : `${minutosTotales}m`;
+
+          resumen.innerHTML = `
+            <li class="flex items-center gap-2 text-gray-300">
+              <span class="text-green-500">✅</span>
+              ${bloquesEstudio} bloques de estudio completados hoy
+            </li>
+            <li class="flex items-center gap-2 text-gray-300">
+              <span class="text-purple-500">⏱️</span>
+              Tiempo Acumulado: ${tiempoTexto}
+            </li>
+            <li class="flex items-center gap-2 text-gray-300">
+              <span class="text-blue-500">🔄</span>
+              Ciclo actual: ${cicloPomodoro}
+            </li>
+          `;
+        })
+        .catch(fallbackError => {
+          console.error("Error al cargar productividad con ambas APIs:", fallbackError);
+          // Mostrar valores por defecto en caso de error
+          const resumen = document.getElementById("resumen-productividad");
+          resumen.innerHTML = `
+            <li class="flex items-center gap-2 text-gray-300">
+              <span class="text-green-500">✅</span>
+              0 bloques de estudio completados hoy
+            </li>
+            <li class="flex items-center gap-2 text-gray-300">
+              <span class="text-purple-500">⏱️</span>
+              Tiempo Acumulado: 0m
+            </li>
+            <li class="flex items-center gap-2 text-gray-300">
+              <span class="text-blue-500">🔄</span>
+              Ciclo actual: ${cicloPomodoro}
+            </li>
+          `;
+        });
     });
 }
 
