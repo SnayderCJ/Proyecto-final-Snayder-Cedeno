@@ -282,14 +282,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const hoy = new Date().getDay(); // 0=Domingo, 1=Lunes, etc.
         const diaActual = hoy === 0 ? 6 : hoy - 1; // Convertir a formato 0=Lunes
         
-        // Buscar el día con actividad en los datos
-        let porcentajeDiaActual = 0;
-        for (let i = 0; i < productividadData.length; i++) {
-            if (productividadData[i] > 0) {
-                porcentajeDiaActual = productividadData[i];
-                break; // Usar el primer día con actividad
-            }
-        }
+            // Corregido: usar el porcentaje del día actual directamente
+            let porcentajeDiaActual = productividadData[diaActual] || 0;
         
         // Si no hay actividad, usar el porcentaje general
         if (porcentajeDiaActual === 0) {

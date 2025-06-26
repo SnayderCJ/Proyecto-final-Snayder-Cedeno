@@ -525,7 +525,8 @@ def productividad_view(request):
     print(f"🔍 Debug - Total bloques encontrados: {bloques.count()}")
     print(f"🔍 Debug - Total eventos completados: {eventos_completados.count()}")
     dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
-    productividad_dias = [0] * 7
+    meta_diaria = 120
+    minutos_originales = [0] * 7
     for dia in range(7):
         fecha_actual = inicio_semana + timedelta(days=dia)
         bloques_dia = [b for b in bloques if b.fecha == fecha_actual]
@@ -535,14 +536,10 @@ def productividad_view(request):
             int((e.end_time - e.start_time).total_seconds() / 60)
             for e in eventos_dia
         )
-        productividad_dias[dia] = minutos_bloques + minutos_eventos
-    minutos_originales = productividad_dias.copy()
-    if all(m == 0 for m in productividad_dias):
-        print("⚠️ No hay actividad registrada. Usando datos de ejemplo.")
-        productividad_dias = [0, 0, 0, 0, 0, 0, 0]
-    meta_diaria = 120
-    productividad_dias_porcentajes = [min(100, int((minutos / meta_diaria) * 100)) for minutos in productividad_dias]
-    print(f"🔍 Debug - Productividad por días (minutos): {productividad_dias}")
+        minutos_totales = minutos_bloques + minutos_eventos
+        minutos_originales[dia] = minutos_totales
+    productividad_dias_porcentajes = [min(100, int((minutos / meta_diaria) * 100)) for minutos in minutos_originales]
+    print(f"🔍 Debug - Productividad por días (minutos): {minutos_originales}")
     print(f"🔍 Debug - Productividad por días (porcentajes): {productividad_dias_porcentajes}")
     hoy_index = hoy.weekday()
     minutos_hoy = minutos_originales[hoy_index]
@@ -735,7 +732,22 @@ def productividad_api(request):
         )
         minutos_totales = minutos_bloques + minutos_eventos
         productividad_dias[dia] = min(100, int((minutos_totales / meta_diaria) * 100))
+    
+    # Calcular productividad del día actual
+    hoy_index = hoy.weekday()
+    minutos_hoy = 0
+    bloques_hoy = [b for b in bloques if b.fecha == hoy]
+    eventos_hoy = [e for e in eventos if e.start_time.date() == hoy]
+    minutos_hoy = sum(b.duracion_min for b in bloques_hoy) + sum(
+        int((e.end_time - e.start_time).total_seconds() / 60)
+        for e in eventos_hoy
+    )
+    productividad_hoy = min(100, int((minutos_hoy / meta_diaria) * 100))
+    
     return JsonResponse({
         "productividad_dias": productividad_dias,
-        "dia_actual": hoy.weekday()
+        "dia_actual": hoy_index,
+        "productividad_hoy": productividad_hoy,
+        "minutos_hoy": minutos_hoy,
+        "meta_diaria": meta_diaria
     })
